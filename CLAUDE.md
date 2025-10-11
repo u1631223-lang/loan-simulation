@@ -214,11 +214,19 @@ describe('元利均等返済計算', () => {
 
 ## Development Phases
 
-1. **Phase 1** (1-2 weeks): Basic UI + calculation logic (元利均等/元金均等)
-2. **Phase 2** (1 week): Bonus payments + history + keyboard shortcuts
-3. **Phase 3** (1 week): Responsive design + animations + error handling
-4. **Phase 4** (1 week): Mobile optimization + Capacitor integration
-5. **Phase 5** (3-5 days): Performance optimization + deployment
+### Current Status: Phase 2 COMPLETED ✅
+
+1. **Phase 1** ✅ COMPLETED: Project setup (Vite, Tailwind, TypeScript, directory structure)
+2. **Phase 2** ✅ COMPLETED: Loan calculation logic (元利均等/元金均等/ボーナス払い)
+   - 74 tests passing
+   - All calculation functions implemented
+3. **Phase 3** ⬜ NEXT: UI components (Keypad, Display, LoanForm, Summary)
+4. **Phase 4** ⬜ PENDING: State management (Context, hooks, localStorage)
+5. **Phase 5** ⬜ PENDING: Page integration and routing
+6. **Phase 6** ⬜ PENDING: Styling & UX improvements
+7. **Phase 7** ⬜ PENDING: Testing & QA
+8. **Phase 8** ⬜ PENDING: Mobile optimization + Capacitor
+9. **Phase 9** ⬜ PENDING: Deployment
 
 ## Important Constraints
 
@@ -253,6 +261,7 @@ vercel --prod
 - **requirements.md**: Full functional and non-functional requirements
 - **tech-stack.md**: Detailed technical specifications, algorithms, and deployment guide
 - **DEVELOPMENT_PLAN.md**: Detailed development tickets, workflow, and subagent strategy
+- **TROUBLESHOOTING.md**: ⚠️ Common errors and solutions (MUST READ when encountering issues)
 
 ## Development Workflow & Tickets
 
@@ -268,18 +277,32 @@ See **DEVELOPMENT_PLAN.md** for complete details. Key highlights:
 - 🟢 **Medium**: Nice-to-have features
 - ⚪ **Low**: Future enhancements
 
-#### Phase Breakdown
-1. **Phase 1**: Project setup (TICKET-001 to TICKET-004) - 0.5 day
-2. **Phase 2**: Loan calculation logic (TICKET-101 to TICKET-105) - 2 days
-3. **Phase 3**: UI components (TICKET-201 to TICKET-209) - 2-3 days with parallel execution
-4. **Phase 4**: State management (TICKET-301 to TICKET-304) - 1.5 days
-5. **Phase 5**: Page integration (TICKET-401 to TICKET-403) - 0.5 day
-6. **Phase 6**: Styling & UX (TICKET-501 to TICKET-503) - 1 day
-7. **Phase 7**: Testing & QA (TICKET-601 to TICKET-603) - 1.5 days
-8. **Phase 8**: Mobile apps (TICKET-701 to TICKET-703) - 1 day
-9. **Phase 9**: Deploy (TICKET-801 to TICKET-803) - 0.5 day
+#### Phase Breakdown (Updated with actual progress)
 
-**Total estimate**: 10-12 days with parallel execution, ~14 days sequential
+✅ **Phase 1**: Project setup (TICKET-001 to TICKET-004) - COMPLETED
+- Vite + React + TypeScript setup
+- Tailwind CSS configuration
+- Directory structure created
+- Type definitions completed
+
+✅ **Phase 2**: Loan calculation logic (TICKET-101 to TICKET-105) - COMPLETED
+- Calculation utility foundation
+- Equal payment calculation (元利均等返済)
+- Equal principal calculation (元金均等返済)
+- Bonus payment calculation (ボーナス払い)
+- **74 tests passing** (42 + 19 + 13)
+
+⬜ **Phase 3**: UI components (TICKET-201 to TICKET-209) - 2-3 days with parallel execution
+⬜ **Phase 4**: State management (TICKET-301 to TICKET-304) - 1.5 days
+⬜ **Phase 5**: Page integration (TICKET-401 to TICKET-403) - 0.5 day
+⬜ **Phase 6**: Styling & UX (TICKET-501 to TICKET-503) - 1 day
+⬜ **Phase 7**: Testing & QA (TICKET-601 to TICKET-603) - 1.5 days
+⬜ **Phase 8**: Mobile apps (TICKET-701 to TICKET-703) - 1 day
+⬜ **Phase 9**: Deploy (TICKET-801 to TICKET-803) - 0.5 day
+
+**Total estimate**: 10-12 days with parallel execution
+**Completed**: 2 days (Phase 1 + 2)
+**Remaining**: 8-10 days
 
 ### Subagent Strategy
 
@@ -322,14 +345,15 @@ Single message with multiple Task tool calls:
 ### Development Commands by Phase
 
 ```bash
-# Phase 1: Setup
-npm create vite@latest loan-simulation -- --template react-ts
+# Phase 1-2: Setup & Calculation Logic (✅ COMPLETED)
 npm install
-npm install -D tailwindcss postcss autoprefixer vitest
+npm run dev        # Development server (http://localhost:5173)
+npm run test -- --run  # Run tests once (NOT watch mode to avoid timeout)
 
-# Phase 2-7: Development
+# Phase 3-7: UI Development & Testing (CURRENT)
 npm run dev        # Keep running during development
-npm run test       # Run after implementing each calculation function
+npm run test -- --run  # Test after each implementation
+npm run type-check     # TypeScript validation
 
 # Phase 8: Mobile
 npm run build && npx cap sync
@@ -340,6 +364,13 @@ npm run build
 vercel --prod
 ```
 
+### ⚠️ IMPORTANT: Testing
+
+**ALWAYS use `npm run test -- --run` instead of `npm run test`**
+
+Reason: Default `npm run test` runs in watch mode and never exits, causing timeout.
+See `docs/TROUBLESHOOTING.md` for details.
+
 ## Development Priorities
 
 1. **Calculation Accuracy**: This is a financial tool - precision is critical
@@ -347,9 +378,52 @@ vercel --prod
 3. **Cross-Platform**: Same experience on phone, tablet, and desktop
 4. **Performance**: Instant calculations (< 100ms), fast startup (< 2s)
 
-## Next Steps
+## Current Implementation Status
 
-1. Review DEVELOPMENT_PLAN.md for complete ticket details
-2. Start with TICKET-001 (Vite setup)
-3. Use subagents for Phase 2 (calculation logic) and Phase 3 (parallel component development)
-4. Track progress with ticket checklist in DEVELOPMENT_PLAN.md
+### ✅ Completed (Phase 1-2)
+
+**Files Created:**
+- `src/utils/loanCalculator.ts` - All calculation functions (426 lines)
+- `src/types/loan.ts` - Complete type definitions
+- `tests/unit/loanCalculator.test.ts` - 42 tests
+- `tests/unit/equalPrincipal.test.ts` - 19 tests
+- `tests/unit/bonusPayment.test.ts` - 13 tests
+- `docs/TROUBLESHOOTING.md` - Error solutions guide
+
+**Git Commits:**
+- Initial setup (Phase 1)
+- Loan calculation logic (Phase 2)
+- Documentation organization
+- Troubleshooting guide
+
+### 🎯 Next Steps (Phase 3)
+
+**Recommended approach:**
+1. Read `docs/DEVELOPMENT_PLAN.md` for TICKET-201 to TICKET-209 details
+2. Use **4 parallel subagents** for component development:
+   - Agent 1: Calculator/Keypad
+   - Agent 2: Calculator/Display
+   - Agent 3: Input/LoanForm
+   - Agent 4: Result/Summary
+3. Main agent: Layout components
+
+**Before starting:**
+- ⚠️ Check `docs/TROUBLESHOOTING.md` for common error solutions
+- Run `npm run test -- --run` to verify Phase 2 tests still pass
+- Ensure dev server is running: `npm run dev`
+
+## Troubleshooting
+
+### When Errors Occur
+
+1. **ALWAYS check `docs/TROUBLESHOOTING.md` FIRST**
+2. Apply documented solutions
+3. If error is new, add it to TROUBLESHOOTING.md for future reference
+4. Update this CLAUDE.md if workflow changes
+
+### Common Issues & Quick Fixes
+
+- **npm test timeout**: Use `npm run test -- --run` instead
+- **Vite create fails**: Manually create config files (see TROUBLESHOOTING.md)
+- **TypeScript warnings**: Check for unused imports, implicit any types
+- **Port in use**: Kill process or use different port
