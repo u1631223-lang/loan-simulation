@@ -49,6 +49,19 @@ const BonusSettings: React.FC<BonusSettingsProps> = ({
     return manyen * 10000;
   };
 
+  // 数値の増減ハンドラ
+  const handleIncrement = (step: number) => {
+    const currentValue = settings.amount || 0;
+    const newValue = currentValue + step;
+    handleChange('amount', Math.max(0, newValue));
+  };
+
+  const handleDecrement = (step: number) => {
+    const currentValue = settings.amount || 0;
+    const newValue = currentValue - step;
+    handleChange('amount', Math.max(0, newValue));
+  };
+
   const inputClass = (hasError: boolean) => `
     w-full px-4 py-2 rounded-lg border-2
     ${hasError ? 'border-red-500 bg-red-50' : 'border-gray-300 bg-white'}
@@ -87,7 +100,7 @@ const BonusSettings: React.FC<BonusSettingsProps> = ({
           >
             ボーナス加算額（1回あたり・万円）
           </label>
-          <div className="relative">
+          <div className="relative flex items-center gap-2">
             <input
               id="bonusAmount"
               type="text"
@@ -99,18 +112,36 @@ const BonusSettings: React.FC<BonusSettingsProps> = ({
                   handleChange('amount', parseManyenToYen(input));
                 }
               }}
-              className={inputClass(!!errors.amount)}
+              className={`${inputClass(!!errors.amount)} flex-1`}
               placeholder="50"
             />
-            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500">
+            <span className="absolute right-20 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none">
               万円
             </span>
+            <div className="flex flex-col gap-1">
+              <button
+                type="button"
+                onClick={() => handleIncrement(10 * 10000)}
+                className="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded border border-gray-300 text-xs"
+                aria-label="10万円増やす"
+              >
+                ▲
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDecrement(10 * 10000)}
+                className="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded border border-gray-300 text-xs"
+                aria-label="10万円減らす"
+              >
+                ▼
+              </button>
+            </div>
           </div>
           {errors.amount && (
             <p className="text-red-500 text-sm mt-1">{errors.amount}</p>
           )}
           <p className="text-xs text-gray-500 mt-1">
-            0万円 〜 1,000万円
+            0万円 〜 1,000万円 ※ ボタンで10万円ずつ調整
           </p>
         </div>
       )}

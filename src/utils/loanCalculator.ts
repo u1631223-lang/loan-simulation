@@ -117,12 +117,8 @@ export const validateLoanParams = (params: LoanParams): ValidationResult => {
       });
     }
 
-    if (params.bonusPayment.months.length === 0) {
-      errors.push({
-        field: 'principal',
-        message: 'ボーナス月を少なくとも1つ選択してください',
-      });
-    }
+    // ボーナス月は固定（1月・8月）なので、monthsの検証は不要
+    // デフォルト値 [1, 8] が設定されるため、空の場合のチェックを削除
   }
 
   return {

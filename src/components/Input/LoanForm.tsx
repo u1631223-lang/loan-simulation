@@ -69,6 +69,27 @@ const LoanForm: React.FC<LoanFormProps> = ({
     }
   };
 
+  // 金利を2桁の小数点でフォーマット（フォーカス外れた時のみ）
+  const formatInterestRate = (rate: number | string): string => {
+    if (!rate && rate !== 0) return '';
+    const num = typeof rate === 'string' ? parseFloat(rate) : rate;
+    if (isNaN(num)) return '';
+    return num.toFixed(2);
+  };
+
+  // 数値の増減ハンドラ
+  const handleIncrement = (field: keyof LoanParams, step: number) => {
+    const currentValue = values[field] as number;
+    const newValue = currentValue + step;
+    handleChange(field, Math.max(0, newValue));
+  };
+
+  const handleDecrement = (field: keyof LoanParams, step: number) => {
+    const currentValue = values[field] as number;
+    const newValue = currentValue - step;
+    handleChange(field, Math.max(0, newValue));
+  };
+
   const inputClass = (hasError: boolean) => `
     w-full px-4 py-2 rounded-lg border-2
     ${hasError ? 'border-red-500 bg-red-50' : 'border-gray-300 bg-white'}
@@ -84,25 +105,43 @@ const LoanForm: React.FC<LoanFormProps> = ({
         <label htmlFor="principal" className="block text-sm font-medium text-gray-700 mb-1">
           借入金額（万円）
         </label>
-        <div className="relative">
+        <div className="relative flex items-center gap-2">
           <input
             id="principal"
             type="text"
             inputMode="decimal"
             value={formatManyen(values.principal)}
             onChange={handlePrincipalChange}
-            className={inputClass(!!errors.principal)}
+            className={`${inputClass(!!errors.principal)} flex-1`}
             placeholder="3000"
           />
-          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500">
+          <span className="absolute right-20 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none">
             万円
           </span>
+          <div className="flex flex-col gap-1">
+            <button
+              type="button"
+              onClick={() => handleIncrement('principal', 100 * 10000)}
+              className="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded border border-gray-300 text-xs"
+              aria-label="100万円増やす"
+            >
+              ▲
+            </button>
+            <button
+              type="button"
+              onClick={() => handleDecrement('principal', 100 * 10000)}
+              className="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded border border-gray-300 text-xs"
+              aria-label="100万円減らす"
+            >
+              ▼
+            </button>
+          </div>
         </div>
         {errors.principal && (
           <p className="text-red-500 text-sm mt-1">{errors.principal}</p>
         )}
         <p className="text-xs text-gray-500 mt-1">
-          0.0001万円 〜 100,000万円（10億円）
+          0.0001万円 〜 100,000万円（10億円） ※ ボタンで100万円ずつ調整
         </p>
       </div>
 
@@ -113,7 +152,7 @@ const LoanForm: React.FC<LoanFormProps> = ({
         </label>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <div className="relative">
+            <div className="relative flex items-center gap-2">
               <input
                 id="years"
                 type="text"
@@ -125,16 +164,34 @@ const LoanForm: React.FC<LoanFormProps> = ({
                     handleChange('years', parseInt(input) || 0);
                   }
                 }}
-                className={inputClass(!!errors.years)}
+                className={`${inputClass(!!errors.years)} flex-1`}
                 placeholder="35"
               />
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500">
+              <span className="absolute right-14 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none">
                 年
               </span>
+              <div className="flex flex-col gap-1">
+                <button
+                  type="button"
+                  onClick={() => handleIncrement('years', 1)}
+                  className="px-2 py-0.5 bg-gray-100 hover:bg-gray-200 rounded border border-gray-300 text-xs"
+                  aria-label="1年増やす"
+                >
+                  ▲
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDecrement('years', 1)}
+                  className="px-2 py-0.5 bg-gray-100 hover:bg-gray-200 rounded border border-gray-300 text-xs"
+                  aria-label="1年減らす"
+                >
+                  ▼
+                </button>
+              </div>
             </div>
           </div>
           <div>
-            <div className="relative">
+            <div className="relative flex items-center gap-2">
               <input
                 id="months"
                 type="text"
@@ -146,12 +203,30 @@ const LoanForm: React.FC<LoanFormProps> = ({
                     handleChange('months', parseInt(input) || 0);
                   }
                 }}
-                className={inputClass(!!errors.months)}
+                className={`${inputClass(!!errors.months)} flex-1`}
                 placeholder="0"
               />
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500">
+              <span className="absolute right-14 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none">
                 ヶ月
               </span>
+              <div className="flex flex-col gap-1">
+                <button
+                  type="button"
+                  onClick={() => handleIncrement('months', 1)}
+                  className="px-2 py-0.5 bg-gray-100 hover:bg-gray-200 rounded border border-gray-300 text-xs"
+                  aria-label="1ヶ月増やす"
+                >
+                  ▲
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDecrement('months', 1)}
+                  className="px-2 py-0.5 bg-gray-100 hover:bg-gray-200 rounded border border-gray-300 text-xs"
+                  aria-label="1ヶ月減らす"
+                >
+                  ▼
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -170,25 +245,43 @@ const LoanForm: React.FC<LoanFormProps> = ({
         <label htmlFor="interestRate" className="block text-sm font-medium text-gray-700 mb-1">
           金利（年利）
         </label>
-        <div className="relative">
+        <div className="relative flex items-center gap-2">
           <input
             id="interestRate"
             type="text"
             inputMode="decimal"
-            value={values.interestRate || ''}
+            value={formatInterestRate(values.interestRate)}
             onChange={handleInterestRateChange}
-            className={inputClass(!!errors.interestRate)}
-            placeholder="1.5"
+            className={`${inputClass(!!errors.interestRate)} flex-1`}
+            placeholder="1.50"
           />
-          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500">
+          <span className="absolute right-14 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none">
             %
           </span>
+          <div className="flex flex-col gap-1">
+            <button
+              type="button"
+              onClick={() => handleIncrement('interestRate', 0.01)}
+              className="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded border border-gray-300 text-xs"
+              aria-label="0.01%増やす"
+            >
+              ▲
+            </button>
+            <button
+              type="button"
+              onClick={() => handleDecrement('interestRate', 0.01)}
+              className="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded border border-gray-300 text-xs"
+              aria-label="0.01%減らす"
+            >
+              ▼
+            </button>
+          </div>
         </div>
         {errors.interestRate && (
           <p className="text-red-500 text-sm mt-1">{errors.interestRate}</p>
         )}
         <p className="text-xs text-gray-500 mt-1">
-          0% 〜 20%（小数点3桁まで）
+          0.00% 〜 20.00% ※ ボタンで0.01%ずつ調整
         </p>
       </div>
 

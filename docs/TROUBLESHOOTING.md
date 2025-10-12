@@ -833,5 +833,59 @@ const DEFAULT_LOAN_PARAMS: LoanParams = {
 
 ---
 
+### 改善3: 金利を小数点2桁表示 + 全入力に↑↓ボタン追加 (2025-10-13)
+
+**背景**: 金利は1.50%のように小数点2桁で表示したい。また、微調整のために↑↓ボタンがあると便利。
+
+**変更内容**:
+
+1. **金利表示を2桁固定**:
+   ```tsx
+   const formatInterestRate = (rate: number): string => {
+     return rate.toFixed(2);  // 1.50%, 2.00% など
+   };
+   ```
+
+2. **全入力欄に↑↓ボタン追加**:
+   - 借入金額: 100万円ずつ調整
+   - 返済期間（年）: 1年ずつ調整
+   - 返済期間（月）: 1ヶ月ずつ調整
+   - 金利: 0.01%ずつ調整
+   - ボーナス加算額: 10万円ずつ調整
+
+3. **ボーナス月バリデーション削除**:
+   - ボーナス月は1月・8月に固定されたため、「月を選択してください」エラーを削除
+   - バリデーション関数から該当チェックを削除
+
+**実装**:
+```tsx
+// 増減ハンドラ
+const handleIncrement = (field: keyof LoanParams, step: number) => {
+  const currentValue = values[field] as number;
+  handleChange(field, Math.max(0, currentValue + step));
+};
+
+// UIレイアウト
+<div className="relative flex items-center gap-2">
+  <input {...props} className="flex-1" />
+  <div className="flex flex-col gap-1">
+    <button onClick={() => handleIncrement('interestRate', 0.01)}>▲</button>
+    <button onClick={() => handleDecrement('interestRate', 0.01)}>▼</button>
+  </div>
+</div>
+```
+
+**メリット**:
+- 金利が見やすい（1.5% → 1.50%）
+- ワンクリックで微調整可能
+- キーボード入力とボタンの両方が使える
+
+**適用箇所**:
+- `LoanForm.tsx`: すべての数値入力
+- `BonusSettings.tsx`: ボーナス加算額
+- `loanCalculator.ts`: ボーナス月バリデーション削除
+
+---
+
 **最終更新**: 2025-10-13
-**バージョン**: 1.3 (UX改善: 万円単位表示、ボーナス月固定化)
+**バージョン**: 1.4 (✅ 簡易版完成: 金利2桁表示、↑↓ボタン、バリデーション修正)
