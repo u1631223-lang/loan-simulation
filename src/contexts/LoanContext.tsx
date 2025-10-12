@@ -16,7 +16,6 @@ import {
   calculateTotalInterestFromSchedule,
   roundFinancial,
   calculatePrincipalFromPayment,
-  calculatePrincipalWithBonus,
 } from '@/utils/loanCalculator';
 import { loadHistory, saveHistory, clearHistory as clearStorageHistory } from '@/utils/storage';
 
@@ -203,17 +202,30 @@ export const LoanProvider: React.FC<LoanProviderProps> = ({ children }) => {
     const totalMonths = params.years * 12 + params.months;
 
     let calculatedPrincipal: number;
+    let calculatedBonusPrincipal: number = 0;
 
     // ボーナス払いがある場合
     if (params.bonusPayment?.enabled && params.bonusPayment.payment > 0) {
-      // 月々の返済額とボーナス返済額から借入可能額を計算
-      calculatedPrincipal = calculatePrincipalWithBonus(
+      // 月々の返済額から月次返済分の借入可能額を計算
+      const monthlyPrincipal = calculatePrincipalFromPayment(
         params.monthlyPayment,
+        params.interestRate,
+        totalMonths
+      );
+
+      // ボーナス返済額からボーナス返済分の借入可能額を計算
+      const bonusTimesPerYear = params.bonusPayment.months.length;
+      const totalYears = totalMonths / 12;
+      const totalBonusPayments = Math.floor(totalYears * bonusTimesPerYear);
+      const bonusPrincipal = calculatePrincipalFromPayment(
         params.bonusPayment.payment,
         params.interestRate,
-        totalMonths,
-        params.bonusPayment.months
+        totalBonusPayments
       );
+
+      // 総借入額とボーナス分の元金を設定
+      calculatedPrincipal = Math.round(monthlyPrincipal + bonusPrincipal);
+      calculatedBonusPrincipal = Math.round(bonusPrincipal);
     } else {
       // ボーナス払いがない場合、月々の返済額のみから計算
       calculatedPrincipal = calculatePrincipalFromPayment(
@@ -231,9 +243,9 @@ export const LoanProvider: React.FC<LoanProviderProps> = ({ children }) => {
       months: params.months,
       repaymentType: params.repaymentType,
       bonusPayment: {
-        enabled: false,
-        amount: 0,
-        months: [1, 8],
+        enabled: params.bonusPayment?.enabled || false,
+        amount: calculatedBonusPrincipal,
+        months: params.bonusPayment?.months || [1, 8],
       },
     };
 

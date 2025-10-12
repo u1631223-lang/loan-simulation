@@ -121,17 +121,17 @@ const LoanForm: React.FC<LoanFormProps> = ({
           <div className="flex flex-col gap-1">
             <button
               type="button"
-              onClick={() => handleIncrement('principal', 100 * 10000)}
+              onClick={() => handleIncrement('principal', 10 * 10000)}
               className="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded border border-gray-300 text-xs"
-              aria-label="100万円増やす"
+              aria-label="10万円増やす"
             >
               ▲
             </button>
             <button
               type="button"
-              onClick={() => handleDecrement('principal', 100 * 10000)}
+              onClick={() => handleDecrement('principal', 10 * 10000)}
               className="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded border border-gray-300 text-xs"
-              aria-label="100万円減らす"
+              aria-label="10万円減らす"
             >
               ▼
             </button>
@@ -141,7 +141,7 @@ const LoanForm: React.FC<LoanFormProps> = ({
           <p className="text-red-500 text-sm mt-1">{errors.principal}</p>
         )}
         <p className="text-xs text-gray-500 mt-1">
-          0.0001万円 〜 100,000万円（10億円） ※ ボタンで100万円ずつ調整
+          0.0001万円 〜 100,000万円（10億円） ※ ボタンで10万円ずつ調整
         </p>
       </div>
 
