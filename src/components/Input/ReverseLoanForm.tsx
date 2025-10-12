@@ -111,17 +111,17 @@ const ReverseLoanForm: React.FC<ReverseLoanFormProps> = ({
           <div className="flex flex-col gap-1">
             <button
               type="button"
-              onClick={() => handleIncrement('monthlyPayment', 10000)}
+              onClick={() => handleIncrement('monthlyPayment', 1000)}
               className="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded border border-gray-300 text-xs"
-              aria-label="1万円増やす"
+              aria-label="1000円増やす"
             >
               ▲
             </button>
             <button
               type="button"
-              onClick={() => handleDecrement('monthlyPayment', 10000)}
+              onClick={() => handleDecrement('monthlyPayment', 1000)}
               className="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded border border-gray-300 text-xs"
-              aria-label="1万円減らす"
+              aria-label="1000円減らす"
             >
               ▼
             </button>
@@ -131,7 +131,7 @@ const ReverseLoanForm: React.FC<ReverseLoanFormProps> = ({
           <p className="text-red-500 text-sm mt-1">{errors.monthlyPayment}</p>
         )}
         <p className="text-xs text-gray-500 mt-1">
-          希望する月々の返済額を入力 ※ ボタンで1万円ずつ調整
+          希望する月々の返済額を入力 ※ ボタンで1000円ずつ調整
         </p>
       </div>
 

@@ -196,36 +196,43 @@ export const LoanProvider: React.FC<LoanProviderProps> = ({ children }) => {
 
   /**
    * 逆算計算を実行（返済額から借入可能額を計算）
+   *
+   * ボーナス払いの考え方：
+   * - 通常月: monthlyPayment円を返済
+   * - ボーナス月: monthlyPayment円 + bonusPayment円を返済
+   *
+   * つまり、ボーナス払いを活用することで、より多く借りられる
    */
   const calculateReverse = useCallback((params: ReverseLoanParams) => {
     // 総返済月数を計算
     const totalMonths = params.years * 12 + params.months;
 
     let calculatedPrincipal: number;
-    let calculatedBonusPrincipal: number = 0;
 
     // ボーナス払いがある場合
     if (params.bonusPayment?.enabled && params.bonusPayment.payment > 0) {
-      // 月々の返済額から月次返済分の借入可能額を計算
-      const monthlyPrincipal = calculatePrincipalFromPayment(
-        params.monthlyPayment,
-        params.interestRate,
-        totalMonths
-      );
-
-      // ボーナス返済額からボーナス返済分の借入可能額を計算
+      // ボーナス月の回数を計算
       const bonusTimesPerYear = params.bonusPayment.months.length;
       const totalYears = totalMonths / 12;
       const totalBonusPayments = Math.floor(totalYears * bonusTimesPerYear);
-      const bonusPrincipal = calculatePrincipalFromPayment(
-        params.bonusPayment.payment,
-        params.interestRate,
-        totalBonusPayments
-      );
 
-      // 総借入額とボーナス分の元金を設定
-      calculatedPrincipal = Math.round(monthlyPrincipal + bonusPrincipal);
-      calculatedBonusPrincipal = Math.round(bonusPrincipal);
+      // 通常月の回数
+      const regularPayments = totalMonths - totalBonusPayments;
+
+      // 通常月の返済分とボーナス月の返済分を合算して総返済額を計算
+      // 例: 月8万×420回 + ボーナス5万×70回 = 33,600,000円 + 3,500,000円 = 37,100,000円
+      const totalPaymentAmount =
+        params.monthlyPayment * regularPayments +
+        (params.monthlyPayment + params.bonusPayment.payment) * totalBonusPayments;
+
+      // この総返済額から、金利を考慮して借入可能額を逆算
+      // 簡易的には calculatePrincipalFromPayment を使って平均返済額から計算
+      const averagePayment = totalPaymentAmount / totalMonths;
+      calculatedPrincipal = calculatePrincipalFromPayment(
+        averagePayment,
+        params.interestRate,
+        totalMonths
+      );
     } else {
       // ボーナス払いがない場合、月々の返済額のみから計算
       calculatedPrincipal = calculatePrincipalFromPayment(
@@ -235,7 +242,7 @@ export const LoanProvider: React.FC<LoanProviderProps> = ({ children }) => {
       );
     }
 
-    // 計算した借入額を使って通常の計算を実行
+    // 計算した借入額を使って通常の計算を実行（ボーナス払いなしで）
     const forwardParams: LoanParams = {
       principal: calculatedPrincipal,
       interestRate: params.interestRate,
@@ -243,9 +250,9 @@ export const LoanProvider: React.FC<LoanProviderProps> = ({ children }) => {
       months: params.months,
       repaymentType: params.repaymentType,
       bonusPayment: {
-        enabled: params.bonusPayment?.enabled || false,
-        amount: calculatedBonusPrincipal,
-        months: params.bonusPayment?.months || [1, 8],
+        enabled: false,
+        amount: 0,
+        months: [1, 8],
       },
     };
 

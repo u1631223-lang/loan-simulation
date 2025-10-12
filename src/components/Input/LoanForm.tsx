@@ -30,31 +30,28 @@ const LoanForm: React.FC<LoanFormProps> = ({
     onSubmit();
   };
 
-  // 万円単位の数値をカンマ区切りでフォーマット
+  // 万円単位の数値をカンマ区切りでフォーマット（整数のみ）
   const formatManyen = (yen: number | string): string => {
     if (!yen) return '';
     const yenNum = typeof yen === 'string' ? parseFloat(yen.replace(/,/g, '')) : yen;
     if (isNaN(yenNum)) return '';
-    const manyen = yenNum / 10000;
-    // 整数部分のみカンマ区切り（小数点以下は保持）
-    const [integer, decimal] = manyen.toString().split('.');
-    const formattedInteger = integer.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-    return decimal ? `${formattedInteger}.${decimal}` : formattedInteger;
+    const manyen = Math.round(yenNum / 10000); // 整数に丸める
+    return manyen.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   };
 
-  // カンマ区切り文字列から円単位の数値を抽出
+  // カンマ区切り文字列から円単位の数値を抽出（整数のみ）
   const parseManyenToYen = (str: string): number => {
     const cleaned = str.replace(/,/g, '');
-    const manyen = parseFloat(cleaned);
+    const manyen = parseInt(cleaned);
     if (isNaN(manyen)) return 0;
     return manyen * 10000; // 万円→円に変換
   };
 
-  // 借入金額の変更ハンドラ（万円単位）
+  // 借入金額の変更ハンドラ（万円単位、整数のみ）
   const handlePrincipalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.target.value;
-    // 数字、カンマ、小数点のみ許可
-    if (input === '' || /^[\d,]*\.?\d*$/.test(input)) {
+    // 数字とカンマのみ許可（小数点不可）
+    if (input === '' || /^[\d,]*$/.test(input)) {
       const yenValue = parseManyenToYen(input);
       handleChange('principal', yenValue);
     }
