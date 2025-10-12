@@ -28,7 +28,7 @@ const Home: React.FC = () => {
       bonusPayment: {
         enabled: false,
         amount: 0,
-        months: [6, 12],
+        months: [1, 8], // デフォルト: 1月（冬）と8月（夏）
       },
     }
   );

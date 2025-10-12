@@ -741,5 +741,97 @@ const handlePrincipalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 
 ---
 
+## UX改善の記録
+
+### 改善1: 入力単位を「万円」に変更 (2025-10-13)
+
+**背景**: 住宅ローンは10万円単位での入力が一般的。円単位では桁数が多く数えにくい。
+
+**変更内容**:
+- 借入金額: 30,000,000円 → 3000万円 と表示
+- ボーナス加算額: 500,000円 → 50万円 と表示
+- 内部では円単位で計算（互換性維持）
+
+**実装**:
+```tsx
+// 万円単位でフォーマット
+const formatManyen = (yen: number): string => {
+  const manyen = yen / 10000;
+  const [integer, decimal] = manyen.toString().split('.');
+  const formattedInteger = integer.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return decimal ? `${formattedInteger}.${decimal}` : formattedInteger;
+};
+
+// 入力時は万円から円に変換
+const parseManyenToYen = (str: string): number => {
+  const manyen = parseFloat(str.replace(/,/g, ''));
+  return isNaN(manyen) ? 0 : manyen * 10000;
+};
+
+<input
+  type="text"
+  inputMode="decimal"
+  value={formatManyen(values.principal)}
+  onChange={(e) => {
+    const input = e.target.value;
+    if (input === '' || /^[\d,]*\.?\d*$/.test(input)) {
+      handleChange('principal', parseManyenToYen(input));
+    }
+  }}
+  placeholder="3000"
+/>
+```
+
+**メリット**:
+- 桁数が少なく入力しやすい（8桁 → 4桁）
+- カンマ区切りで読みやすい（3,000 vs 30,000,000）
+- 業界慣習に合致
+
+**適用箇所**:
+- `LoanForm.tsx`: 借入金額（万円）
+- `BonusSettings.tsx`: ボーナス加算額（万円）
+
+### 改善2: ボーナス払い月を1月・8月に固定 (2025-10-13)
+
+**背景**: 日本の一般的なボーナス月は1月（冬）と8月（夏）。月選択UIは不要。
+
+**変更内容**:
+- 月選択UIを削除（12個のボタン不要）
+- デフォルトで1月・8月に固定
+- 説明文を「年2回（1月・8月）のボーナス月に追加返済」に変更
+
+**実装**:
+```tsx
+// デフォルト値を変更
+const DEFAULT_LOAN_PARAMS: LoanParams = {
+  bonusPayment: {
+    enabled: false,
+    amount: 0,
+    months: [1, 8],  // 固定
+  },
+};
+
+// UIをシンプル化
+<div>
+  <p className="font-medium">ボーナス払い</p>
+  <p className="text-sm text-gray-500">
+    年2回（1月・8月）のボーナス月に追加返済を行います
+  </p>
+  {/* 月選択UIを削除 */}
+</div>
+```
+
+**メリット**:
+- UIがシンプルになり入力が簡単
+- ユーザーが迷わない
+- 一般的なケースに最適化
+
+**適用箇所**:
+- `BonusSettings.tsx`: UI簡素化
+- `LoanContext.tsx`: デフォルト値変更
+- `Home.tsx`: デフォルト値変更
+
+---
+
 **最終更新**: 2025-10-13
-**バージョン**: 1.2 (フォーム入力の問題とtype="number"の制約を追加)
+**バージョン**: 1.3 (UX改善: 万円単位表示、ボーナス月固定化)

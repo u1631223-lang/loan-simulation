@@ -30,27 +30,33 @@ const LoanForm: React.FC<LoanFormProps> = ({
     onSubmit();
   };
 
-  // 数値をカンマ区切りでフォーマット
-  const formatNumber = (num: number | string): string => {
-    if (!num) return '';
-    const numStr = num.toString().replace(/,/g, '');
-    return numStr.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  // 万円単位の数値をカンマ区切りでフォーマット
+  const formatManyen = (yen: number | string): string => {
+    if (!yen) return '';
+    const yenNum = typeof yen === 'string' ? parseFloat(yen.replace(/,/g, '')) : yen;
+    if (isNaN(yenNum)) return '';
+    const manyen = yenNum / 10000;
+    // 整数部分のみカンマ区切り（小数点以下は保持）
+    const [integer, decimal] = manyen.toString().split('.');
+    const formattedInteger = integer.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return decimal ? `${formattedInteger}.${decimal}` : formattedInteger;
   };
 
-  // カンマ区切り文字列から数値を抽出
-  const parseNumber = (str: string): number => {
+  // カンマ区切り文字列から円単位の数値を抽出
+  const parseManyenToYen = (str: string): number => {
     const cleaned = str.replace(/,/g, '');
-    const parsed = parseFloat(cleaned);
-    return isNaN(parsed) ? 0 : parsed;
+    const manyen = parseFloat(cleaned);
+    if (isNaN(manyen)) return 0;
+    return manyen * 10000; // 万円→円に変換
   };
 
-  // 借入金額の変更ハンドラ
+  // 借入金額の変更ハンドラ（万円単位）
   const handlePrincipalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.target.value;
-    // 数字とカンマのみ許可
-    if (input === '' || /^[\d,]*$/.test(input)) {
-      const numValue = parseNumber(input);
-      handleChange('principal', numValue);
+    // 数字、カンマ、小数点のみ許可
+    if (input === '' || /^[\d,]*\.?\d*$/.test(input)) {
+      const yenValue = parseManyenToYen(input);
+      handleChange('principal', yenValue);
     }
   };
 
@@ -76,27 +82,27 @@ const LoanForm: React.FC<LoanFormProps> = ({
       {/* 借入金額 */}
       <div>
         <label htmlFor="principal" className="block text-sm font-medium text-gray-700 mb-1">
-          借入金額
+          借入金額（万円）
         </label>
         <div className="relative">
           <input
             id="principal"
             type="text"
-            inputMode="numeric"
-            value={formatNumber(values.principal)}
+            inputMode="decimal"
+            value={formatManyen(values.principal)}
             onChange={handlePrincipalChange}
             className={inputClass(!!errors.principal)}
-            placeholder="30,000,000"
+            placeholder="3000"
           />
           <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500">
-            円
+            万円
           </span>
         </div>
         {errors.principal && (
           <p className="text-red-500 text-sm mt-1">{errors.principal}</p>
         )}
         <p className="text-xs text-gray-500 mt-1">
-          1円 〜 1,000,000,000円（10億円）
+          0.0001万円 〜 100,000万円（10億円）
         </p>
       </div>
 

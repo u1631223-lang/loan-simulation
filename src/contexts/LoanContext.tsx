@@ -69,7 +69,7 @@ const DEFAULT_LOAN_PARAMS: LoanParams = {
   bonusPayment: {
     enabled: false,
     amount: 0,
-    months: [],
+    months: [1, 8], // デフォルト: 1月（冬）と8月（夏）
   },
 };
 

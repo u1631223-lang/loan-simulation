@@ -477,6 +477,47 @@ npm run cap:run:android
 npm run cap:run:ios
 ```
 
+## Recent UX Improvements (2025-10-13)
+
+### 1. Input Display in 万円 (10,000 yen units)
+
+**Problem**: 住宅ローンの金額は8桁（例：30,000,000円）で桁数が多く数えにくい。
+
+**Solution**: 入力画面では「万円」単位で表示
+- 借入金額: 3000万円 と入力（内部では30,000,000円として計算）
+- ボーナス加算額: 50万円 と入力（内部では500,000円として計算）
+- カンマ区切りで読みやすく（例：3,000万円）
+
+**Benefits**:
+- 桁数が少なく入力しやすい（8桁 → 4桁）
+- 業界慣習に合致（不動産業界では万円単位が一般的）
+- 計算精度は維持（内部は円単位）
+
+**Files modified**:
+- `src/components/Input/LoanForm.tsx`: 借入金額を万円表示
+- `src/components/Input/BonusSettings.tsx`: ボーナス加算額を万円表示
+
+### 2. Bonus Payment Months Fixed to 1月/8月
+
+**Problem**: 12個の月選択ボタンは冗長。日本では一般的に1月（冬）と8月（夏）がボーナス月。
+
+**Solution**: ボーナス月を1月・8月に固定
+- 月選択UIを削除（UIがシンプルに）
+- デフォルト値を `[1, 8]` に変更
+- 説明文: 「年2回（1月・8月）のボーナス月に追加返済を行います」
+
+**Benefits**:
+- UIがシンプルでユーザーが迷わない
+- 一般的なケースに最適化
+- 入力が簡単
+
+**Files modified**:
+- `src/components/Input/BonusSettings.tsx`: UI simplified
+- `src/contexts/LoanContext.tsx`: Default months changed to [1, 8]
+- `src/pages/Home.tsx`: Default months changed to [1, 8]
+
+See `docs/TROUBLESHOOTING.md` **"UX改善の記録"** section for implementation details.
+
 ## Troubleshooting
 
 ### When Errors Occur
@@ -492,3 +533,4 @@ npm run cap:run:ios
 - **Vite create fails**: Manually create config files (see TROUBLESHOOTING.md)
 - **TypeScript warnings**: Check for unused imports, implicit any types
 - **Port in use**: Kill process or use different port
+- **Input range restricted**: Use `type="text"` instead of `type="number"` (see TROUBLESHOOTING.md)

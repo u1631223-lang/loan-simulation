@@ -18,7 +18,7 @@ const BonusSettings: React.FC<BonusSettingsProps> = ({
   settings = {
     enabled: false,
     amount: 0,
-    months: [6, 12],
+    months: [1, 8], // デフォルトは1月（冬）と8月（夏）
   },
   onToggle,
   onChange,
@@ -31,13 +31,22 @@ const BonusSettings: React.FC<BonusSettingsProps> = ({
     });
   };
 
-  const handleMonthToggle = (month: number) => {
-    const currentMonths = settings.months || [];
-    const newMonths = currentMonths.includes(month)
-      ? currentMonths.filter((m: number) => m !== month)
-      : [...currentMonths, month].sort((a: number, b: number) => a - b);
+  // ボーナス加算額を万円単位で表示
+  const formatManyen = (yen: number | string): string => {
+    if (!yen) return '';
+    const yenNum = typeof yen === 'string' ? parseFloat(yen.replace(/,/g, '')) : yen;
+    if (isNaN(yenNum)) return '';
+    const manyen = yenNum / 10000;
+    const [integer, decimal] = manyen.toString().split('.');
+    const formattedInteger = integer.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return decimal ? `${formattedInteger}.${decimal}` : formattedInteger;
+  };
 
-    handleChange('months', newMonths);
+  const parseManyenToYen = (str: string): number => {
+    const cleaned = str.replace(/,/g, '');
+    const manyen = parseFloat(cleaned);
+    if (isNaN(manyen)) return 0;
+    return manyen * 10000;
   };
 
   const inputClass = (hasError: boolean) => `
@@ -48,17 +57,6 @@ const BonusSettings: React.FC<BonusSettingsProps> = ({
     transition-colors duration-150
   `;
 
-  const monthButtonClass = (isSelected: boolean) => `
-    px-3 py-2 rounded-lg border-2 text-sm font-medium
-    transition-all duration-150
-    ${
-      isSelected
-        ? 'bg-primary text-white border-primary'
-        : 'bg-white text-gray-700 border-gray-300 hover:border-primary/50'
-    }
-    ${enabled ? 'cursor-pointer' : 'opacity-50 cursor-not-allowed'}
-  `;
-
   return (
     <div className="space-y-4">
       {/* ボーナス払い有効/無効切り替え */}
@@ -66,7 +64,7 @@ const BonusSettings: React.FC<BonusSettingsProps> = ({
         <div>
           <p className="font-medium text-gray-800">ボーナス払い</p>
           <p className="text-sm text-gray-500 mt-1">
-            年2回のボーナス月に追加返済を行います
+            年2回（1月・8月）のボーナス月に追加返済を行います
           </p>
         </div>
         <label className="relative inline-flex items-center cursor-pointer">
@@ -82,68 +80,39 @@ const BonusSettings: React.FC<BonusSettingsProps> = ({
 
       {/* ボーナス設定（有効時のみ表示） */}
       {enabled && (
-        <>
-          {/* ボーナス加算額 */}
-          <div>
-            <label
-              htmlFor="bonusAmount"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              ボーナス加算額（1回あたり）
-            </label>
-            <div className="relative">
-              <input
-                id="bonusAmount"
-                type="number"
-                value={settings.amount || ''}
-                onChange={(e) =>
-                  handleChange('amount', parseFloat(e.target.value) || 0)
+        <div>
+          <label
+            htmlFor="bonusAmount"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            ボーナス加算額（1回あたり・万円）
+          </label>
+          <div className="relative">
+            <input
+              id="bonusAmount"
+              type="text"
+              inputMode="decimal"
+              value={formatManyen(settings.amount)}
+              onChange={(e) => {
+                const input = e.target.value;
+                if (input === '' || /^[\d,]*\.?\d*$/.test(input)) {
+                  handleChange('amount', parseManyenToYen(input));
                 }
-                className={inputClass(!!errors.amount)}
-                placeholder="500000"
-                min="0"
-                max="10000000"
-                step="10000"
-              />
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500">
-                円
-              </span>
-            </div>
-            {errors.amount && (
-              <p className="text-red-500 text-sm mt-1">{errors.amount}</p>
-            )}
+              }}
+              className={inputClass(!!errors.amount)}
+              placeholder="50"
+            />
+            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500">
+              万円
+            </span>
           </div>
-
-          {/* ボーナス月選択 */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              ボーナス支払月
-            </label>
-            <div className="grid grid-cols-6 gap-2">
-              {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => {
-                const isSelected = settings.months?.includes(month);
-                return (
-                  <button
-                    key={month}
-                    type="button"
-                    onClick={() => handleMonthToggle(month)}
-                    disabled={!enabled}
-                    className={monthButtonClass(isSelected)}
-                    aria-pressed={isSelected}
-                  >
-                    {month}月
-                  </button>
-                );
-              })}
-            </div>
-            {errors.months && (
-              <p className="text-red-500 text-sm mt-1">{errors.months}</p>
-            )}
-            <p className="text-sm text-gray-500 mt-2">
-              ボーナス月を選択してください（複数選択可）
-            </p>
-          </div>
-        </>
+          {errors.amount && (
+            <p className="text-red-500 text-sm mt-1">{errors.amount}</p>
+          )}
+          <p className="text-xs text-gray-500 mt-1">
+            0万円 〜 1,000万円
+          </p>
+        </div>
       )}
     </div>
   );
