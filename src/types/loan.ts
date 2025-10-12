@@ -3,6 +3,13 @@
  */
 
 /**
+ * 計算モード
+ */
+export type CalculationMode = 'forward' | 'reverse';
+// forward = 借入額から計算（通常）
+// reverse = 返済額から計算（逆算）
+
+/**
  * 返済方式
  */
 export type RepaymentType = 'equal-payment' | 'equal-principal';
@@ -17,7 +24,7 @@ export interface BonusPayment {
 }
 
 /**
- * ローンパラメータ
+ * ローンパラメータ（順算用）
  */
 export interface LoanParams {
   principal: number;        // 借入金額
@@ -26,6 +33,27 @@ export interface LoanParams {
   months: number;           // 返済期間（月）※yearsに加算
   repaymentType: RepaymentType; // 返済方式
   bonusPayment?: BonusPayment;  // ボーナス払い（オプション）
+}
+
+/**
+ * ボーナス払い設定（逆算用）
+ */
+export interface ReverseBonusPayment {
+  enabled: boolean;
+  payment: number;       // ボーナス月の返済額
+  months: number[];      // ボーナス月（1-12）
+}
+
+/**
+ * ローンパラメータ（逆算用）
+ */
+export interface ReverseLoanParams {
+  monthlyPayment: number;      // 月々の返済額
+  interestRate: number;        // 金利（年利%）
+  years: number;               // 返済期間（年）
+  months: number;              // 返済期間（月）
+  repaymentType: RepaymentType; // 返済方式
+  bonusPayment?: ReverseBonusPayment; // ボーナス払い（オプション）
 }
 
 /**

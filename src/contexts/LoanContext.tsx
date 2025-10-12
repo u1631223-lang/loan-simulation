@@ -5,7 +5,7 @@
  */
 
 import React, { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
-import type { LoanParams, LoanResult, LoanHistory } from '@/types';
+import type { LoanParams, LoanResult, LoanHistory, ReverseLoanParams } from '@/types';
 import {
   calculateEqualPayment,
   generateEqualPaymentSchedule,
@@ -15,6 +15,7 @@ import {
   calculateTotalFromSchedule,
   calculateTotalInterestFromSchedule,
   roundFinancial,
+  calculatePrincipalFromPayment,
 } from '@/utils/loanCalculator';
 import { loadHistory, saveHistory, clearHistory as clearStorageHistory } from '@/utils/storage';
 
@@ -33,6 +34,9 @@ interface LoanContextType {
 
   // ローン計算を実行
   calculateLoan: (params: LoanParams) => void;
+
+  // 逆算計算を実行（返済額から借入可能額を計算）
+  calculateReverse: (params: ReverseLoanParams) => void;
 
   // 履歴から計算結果を読み込み
   loadFromHistory: (historyId: string) => void;
@@ -191,6 +195,38 @@ export const LoanProvider: React.FC<LoanProviderProps> = ({ children }) => {
   }, []);
 
   /**
+   * 逆算計算を実行（返済額から借入可能額を計算）
+   */
+  const calculateReverse = useCallback((params: ReverseLoanParams) => {
+    // 総返済月数を計算
+    const totalMonths = params.years * 12 + params.months;
+
+    // 月々の返済額から借入可能額を計算
+    const calculatedPrincipal = calculatePrincipalFromPayment(
+      params.monthlyPayment,
+      params.interestRate,
+      totalMonths
+    );
+
+    // 計算した借入額を使って通常の計算を実行
+    const forwardParams: LoanParams = {
+      principal: calculatedPrincipal,
+      interestRate: params.interestRate,
+      years: params.years,
+      months: params.months,
+      repaymentType: params.repaymentType,
+      bonusPayment: {
+        enabled: false,
+        amount: 0,
+        months: [1, 8],
+      },
+    };
+
+    // 通常の計算ロジックを実行
+    calculateLoan(forwardParams);
+  }, [calculateLoan]);
+
+  /**
    * 履歴から計算結果を読み込み
    */
   const loadFromHistory = useCallback((historyId: string) => {
@@ -229,6 +265,7 @@ export const LoanProvider: React.FC<LoanProviderProps> = ({ children }) => {
     loanResult,
     history,
     calculateLoan,
+    calculateReverse,
     loadFromHistory,
     clearHistory,
     removeHistoryItem,

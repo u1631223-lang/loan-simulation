@@ -3,9 +3,12 @@
  */
 
 export type {
+  CalculationMode,
   RepaymentType,
   BonusPayment,
   LoanParams,
+  ReverseBonusPayment,
+  ReverseLoanParams,
   PaymentSchedule,
   LoanResult,
   LoanHistory,

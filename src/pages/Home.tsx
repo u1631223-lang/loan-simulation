@@ -9,15 +9,18 @@ import Container from '@/components/Layout/Container';
 import Header from '@/components/Layout/Header';
 import Footer from '@/components/Layout/Footer';
 import LoanForm from '@/components/Input/LoanForm';
+import ReverseLoanForm from '@/components/Input/ReverseLoanForm';
 import BonusSettings from '@/components/Input/BonusSettings';
 import Summary from '@/components/Result/Summary';
 import Schedule from '@/components/Result/Schedule';
 import { useCalculator } from '@/hooks/useCalculator';
-import type { LoanParams } from '@/types';
+import type { LoanParams, ReverseLoanParams, CalculationMode } from '@/types';
 
 const Home: React.FC = () => {
-  const { loanParams, loanResult, error, calculate } = useCalculator();
+  const { loanParams, loanResult, error, calculate, calculateReverse } = useCalculator();
   const [showSchedule, setShowSchedule] = useState(false);
+  const [calculationMode, setCalculationMode] = useState<CalculationMode>('forward');
+
   const [currentParams, setCurrentParams] = useState<LoanParams>(
     loanParams || {
       principal: 30000000,
@@ -33,8 +36,21 @@ const Home: React.FC = () => {
     }
   );
 
+  const [reverseParams, setReverseParams] = useState<ReverseLoanParams>({
+    monthlyPayment: 100000,
+    interestRate: 1.5,
+    years: 35,
+    months: 0,
+    repaymentType: 'equal-payment',
+  });
+
   const handleCalculate = () => {
     calculate(currentParams);
+    setShowSchedule(true);
+  };
+
+  const handleReverseCalculate = () => {
+    calculateReverse(reverseParams);
     setShowSchedule(true);
   };
 
@@ -67,8 +83,34 @@ const Home: React.FC = () => {
               住宅ローン電卓
             </h1>
             <p className="text-gray-600">
-              借入金額と返済条件を入力して、月々の返済額を計算できます
+              {calculationMode === 'forward'
+                ? '借入金額と返済条件を入力して、月々の返済額を計算できます'
+                : '月々の返済額を入力して、借入可能額を計算できます'}
             </p>
+          </div>
+
+          {/* 計算モード切り替え */}
+          <div className="flex gap-2 mb-8 justify-center">
+            <button
+              onClick={() => setCalculationMode('forward')}
+              className={`px-6 py-3 rounded-lg font-medium transition-all ${
+                calculationMode === 'forward'
+                  ? 'bg-primary text-white shadow-md'
+                  : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-300'
+              }`}
+            >
+              借入額から計算
+            </button>
+            <button
+              onClick={() => setCalculationMode('reverse')}
+              className={`px-6 py-3 rounded-lg font-medium transition-all ${
+                calculationMode === 'reverse'
+                  ? 'bg-primary text-white shadow-md'
+                  : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-300'
+              }`}
+            >
+              返済額から計算
+            </button>
           </div>
 
           {/* メインコンテンツ */}
@@ -77,24 +119,34 @@ const Home: React.FC = () => {
             <div className="space-y-6">
               <div className="bg-white rounded-lg shadow-md p-6">
                 <h2 className="text-xl font-semibold text-gray-800 mb-4">
-                  ローン条件入力
+                  {calculationMode === 'forward' ? 'ローン条件入力' : '返済条件入力'}
                 </h2>
-                <LoanForm
-                  values={currentParams}
-                  onChange={setCurrentParams}
-                  onSubmit={handleCalculate}
-                />
+                {calculationMode === 'forward' ? (
+                  <LoanForm
+                    values={currentParams}
+                    onChange={setCurrentParams}
+                    onSubmit={handleCalculate}
+                  />
+                ) : (
+                  <ReverseLoanForm
+                    values={reverseParams}
+                    onChange={setReverseParams}
+                    onSubmit={handleReverseCalculate}
+                  />
+                )}
               </div>
 
-              {/* ボーナス払い設定 */}
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <BonusSettings
-                  enabled={currentParams.bonusPayment?.enabled || false}
-                  settings={currentParams.bonusPayment}
-                  onToggle={handleBonusToggle}
-                  onChange={handleBonusChange}
-                />
-              </div>
+              {/* ボーナス払い設定（順算モード時のみ表示） */}
+              {calculationMode === 'forward' && (
+                <div className="bg-white rounded-lg shadow-md p-6">
+                  <BonusSettings
+                    enabled={currentParams.bonusPayment?.enabled || false}
+                    settings={currentParams.bonusPayment}
+                    onToggle={handleBonusToggle}
+                    onChange={handleBonusChange}
+                  />
+                </div>
+              )}
             </div>
 
             {/* 右側: 計算結果 */}
@@ -113,7 +165,7 @@ const Home: React.FC = () => {
                     <h2 className="text-xl font-semibold text-gray-800 mb-4">
                       計算結果
                     </h2>
-                    <Summary result={loanResult} />
+                    <Summary result={loanResult} mode={calculationMode} />
                   </div>
 
                   {/* 返済計画表トグル */}

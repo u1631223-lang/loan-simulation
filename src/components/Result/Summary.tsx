@@ -3,18 +3,20 @@
  * ローン計算結果のサマリー表示
  */
 
-import type { LoanResult } from '@/types';
+import type { LoanResult, CalculationMode } from '@/types';
 
 interface SummaryProps {
   result: LoanResult | null;
   loading?: boolean;
   className?: string;
+  mode?: CalculationMode;
 }
 
 const Summary: React.FC<SummaryProps> = ({
   result,
   loading = false,
   className = '',
+  mode = 'forward',
 }) => {
   const formatCurrency = (amount: number): string => {
     return new Intl.NumberFormat('ja-JP', {
@@ -53,6 +55,16 @@ const Summary: React.FC<SummaryProps> = ({
       <h2 className="text-xl font-bold mb-6 text-gray-800 border-b pb-2">
         💰 計算結果
       </h2>
+
+      {/* 逆算モード: 借入可能額を強調表示 */}
+      {mode === 'reverse' && (
+        <div className="bg-secondary/10 rounded-lg p-4 mb-4 border-2 border-secondary/20">
+          <p className="text-sm text-gray-600 mb-1 font-medium">借入可能額</p>
+          <p className="text-3xl sm:text-4xl font-bold text-secondary">
+            {formatCurrency(result.totalPrincipal)}
+          </p>
+        </div>
+      )}
 
       {/* 月々返済額（メイン表示） */}
       <div className="bg-primary/10 rounded-lg p-4 mb-4 border-2 border-primary/20">
