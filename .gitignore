@@ -31,3 +31,8 @@ coverage
 .env
 .env.local
 .env.*.local
+
+# Capacitor
+android/
+ios/
+*.orig

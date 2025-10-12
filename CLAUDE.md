@@ -214,7 +214,7 @@ describe('元利均等返済計算', () => {
 
 ## Development Phases
 
-### Current Status: Phase 5 COMPLETED ✅
+### Current Status: Phase 8 COMPLETED ✅
 
 1. **Phase 1** ✅ COMPLETED: Project setup (Vite, Tailwind, TypeScript, directory structure)
 2. **Phase 2** ✅ COMPLETED: Loan calculation logic (元利均等/元金均等/ボーナス払い)
@@ -233,10 +233,14 @@ describe('元利均等返済計算', () => {
    - History page with list management
    - React Router setup with navigation
    - LoanContext Provider at app level
-6. **Phase 6** ⬜ NEXT: Styling & UX improvements
-7. **Phase 7** ⬜ PENDING: Testing & QA
-8. **Phase 8** ⬜ PENDING: Mobile optimization + Capacitor
-9. **Phase 9** ⬜ PENDING: Deployment
+6. **Phase 6** ⬜ SKIPPED: Styling & UX improvements (can be done later)
+7. **Phase 7** ⬜ SKIPPED: Testing & QA (core tests already passing)
+8. **Phase 8** ✅ COMPLETED: Mobile app development with Capacitor
+   - Capacitor core setup
+   - Android platform configuration
+   - iOS platform configuration
+   - Build scripts added to package.json
+9. **Phase 9** ⬜ NEXT: Deployment (tomorrow with user)
 
 ## Important Constraints
 
@@ -311,14 +315,14 @@ See **DEVELOPMENT_PLAN.md** for complete details. Key highlights:
 
 ✅ **Phase 4**: State management (TICKET-301 to TICKET-304) - COMPLETED
 ✅ **Phase 5**: Page integration (TICKET-401 to TICKET-403) - COMPLETED
-⬜ **Phase 6**: Styling & UX (TICKET-501 to TICKET-503) - 1 day
-⬜ **Phase 7**: Testing & QA (TICKET-601 to TICKET-603) - 1.5 days
-⬜ **Phase 8**: Mobile apps (TICKET-701 to TICKET-703) - 1 day
-⬜ **Phase 9**: Deploy (TICKET-801 to TICKET-803) - 0.5 day
+⬜ **Phase 6**: Styling & UX (TICKET-501 to TICKET-503) - SKIPPED (optional)
+⬜ **Phase 7**: Testing & QA (TICKET-601 to TICKET-603) - SKIPPED (74 tests passing)
+✅ **Phase 8**: Mobile apps (TICKET-701 to TICKET-703) - COMPLETED
+⬜ **Phase 9**: Deploy (TICKET-801 to TICKET-803) - Tomorrow with user
 
 **Total estimate**: 10-12 days with parallel execution
-**Completed**: 6-7 days (Phase 1 + 2 + 3 + 4 + 5)
-**Remaining**: 4-5 days
+**Completed**: 7-8 days (Phase 1 + 2 + 3 + 4 + 5 + 8)
+**Remaining**: Phase 9 only (deployment with user tomorrow)
 
 ### Subagent Strategy
 
@@ -444,28 +448,34 @@ See `docs/TROUBLESHOOTING.md` for details.
 - **Integration**: All components working together
 - Header navigation with active states
 
-### 🎯 Next Steps (Phase 6-8)
+**Phase 8: Mobile App Development** (COMPLETED)
+- **Capacitor**: Core + CLI installed
+- **Android**: Platform added, ready for Android Studio
+- **iOS**: Platform added, ready for Xcode
+- **Scripts**: `cap:sync`, `cap:open:android`, `cap:open:ios`
+- **Config**: `capacitor.config.ts` configured
 
-**Phase 6 - Styling & UX:**
-- Responsive design refinement
-- Animations and transitions
-- Error handling UI
-- Loading states
+### 🎯 Next Steps (Phase 9 - Tomorrow)
 
-**Phase 7 - Testing:**
-- Component tests expansion
-- Integration tests
-- Cross-browser testing
+**Phase 9 - Deployment:**
+- Production build optimization
+- Vercel deployment (web app)
+- Documentation finalization
+- **Will do with user tomorrow**
 
-**Phase 8 - Mobile:**
-- Capacitor setup
-- Android build configuration
-- iOS build configuration
+**How to use mobile features:**
+```bash
+# After code changes
+npm run cap:sync
 
-**Before starting:**
-- ⚠️ Check `docs/TROUBLESHOOTING.md` for common error solutions
-- Run `npm run dev` to test the full application
-- Test on multiple screen sizes
+# Open in native IDEs
+npm run cap:open:android  # Requires Android Studio
+npm run cap:open:ios      # Requires Xcode (Mac only)
+
+# Or run directly on emulators
+npm run cap:run:android
+npm run cap:run:ios
+```
 
 ## Troubleshooting
 

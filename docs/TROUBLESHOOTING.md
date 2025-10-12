@@ -10,6 +10,7 @@
 2. [npm test のタイムアウト](#npm-test-のタイムアウト)
 3. [TypeScript 診断警告](#typescript-診断警告)
 4. [開発サーバー関連](#開発サーバー関連)
+5. [Capacitor / モバイル関連](#capacitor--モバイル関連)
 
 ---
 
@@ -435,6 +436,169 @@ export default defineConfig({
 
 ---
 
+## Capacitor / モバイル関連
+
+### 問題: CocoaPods がインストールされていない（iOS）
+
+```bash
+npx cap add ios
+# → [warn] Skipping pod install because CocoaPods is not installed
+```
+
+**解決方法**:
+
+**macOS のみ**: iOSビルドには CocoaPods が必要
+
+```bash
+# CocoaPods をインストール
+sudo gem install cocoapods
+
+# または Homebrew 経由
+brew install cocoapods
+
+# その後、依存関係をインストール
+cd ios/App
+pod install
+cd ../..
+```
+
+**注意**:
+- iOSビルドは **Mac** でのみ可能
+- Xcode がインストールされていることを確認
+- Windows/Linux では Android のみ対応
+
+### 問題: Android Studio が見つからない
+
+```bash
+npm run cap:open:android
+# → Error: Android Studio not found
+```
+
+**解決方法**:
+
+1. **Android Studio をインストール**:
+   - [Android Studio ダウンロード](https://developer.android.com/studio)
+   - インストール後、初回セットアップを完了
+
+2. **環境変数を設定**:
+   ```bash
+   # ~/.zshrc または ~/.bashrc に追加
+   export ANDROID_HOME=$HOME/Library/Android/sdk
+   export PATH=$PATH:$ANDROID_HOME/tools
+   export PATH=$PATH:$ANDROID_HOME/platform-tools
+   ```
+
+3. **Capacitor に場所を教える**:
+   ```bash
+   # 手動でプロジェクトを開く
+   open -a "Android Studio" android/
+   ```
+
+### 問題: ビルド後にアプリが更新されない
+
+```bash
+npm run build
+# → アプリに変更が反映されない
+```
+
+**解決方法**:
+
+**必ず sync コマンドを実行**:
+
+```bash
+# ✅ 正しい手順
+npm run build
+npx cap sync
+
+# または一発コマンド
+npm run cap:sync
+```
+
+**sync コマンドの役割**:
+- `dist/` の内容をネイティブプロジェクトにコピー
+- プラグインの設定を更新
+- ネイティブの依存関係を同期
+
+### 問題: iOS シミュレータでアプリが起動しない
+
+**解決方法**:
+
+1. **Xcode Command Line Tools を確認**:
+   ```bash
+   xcode-select --install
+   ```
+
+2. **シミュレータのリスト確認**:
+   ```bash
+   xcrun simctl list devices
+   ```
+
+3. **手動で起動**:
+   ```bash
+   # iOS プロジェクトを開く
+   npm run cap:open:ios
+
+   # Xcode でシミュレータを選択して実行
+   ```
+
+### 問題: Android エミュレータが起動しない
+
+**解決方法**:
+
+1. **AVD Manager でエミュレータを作成**:
+   - Android Studio → Tools → AVD Manager
+   - Create Virtual Device
+
+2. **エミュレータを手動で起動**:
+   ```bash
+   # エミュレータのリスト確認
+   emulator -list-avds
+
+   # エミュレータを起動
+   emulator -avd Pixel_5_API_33
+
+   # その後、アプリを実行
+   npm run cap:run:android
+   ```
+
+### 問題: Capacitor のバージョン不一致
+
+```bash
+npx cap sync
+# → [error] Capacitor version mismatch
+```
+
+**解決方法**:
+
+```bash
+# すべての Capacitor パッケージを同じバージョンに
+npm install @capacitor/core@latest @capacitor/cli@latest @capacitor/android@latest @capacitor/ios@latest
+
+# 再度 sync
+npx cap sync
+```
+
+### トラブルシューティングコマンド集
+
+```bash
+# 1. Capacitor の状態確認
+npx cap doctor
+
+# 2. ネイティブプロジェクトのクリーン
+# Android
+cd android && ./gradlew clean && cd ..
+
+# iOS
+cd ios/App && rm -rf Pods Podfile.lock && pod install && cd ../..
+
+# 3. 完全リビルド
+npm run build
+npx cap sync
+npm run cap:open:android  # または ios
+```
+
+---
+
 ## よくある質問 (FAQ)
 
 ### Q1: サブエージェントの実行結果を確認するには？
@@ -479,4 +643,4 @@ export default defineConfig({
 ---
 
 **最終更新**: 2025-10-12
-**バージョン**: 1.0
+**バージョン**: 1.1 (Capacitor / モバイル関連を追加)
