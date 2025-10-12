@@ -71,10 +71,6 @@ const ReverseBonusSettings: React.FC<ReverseBonusSettingsProps> = ({
       <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
         <div>
           <p className="font-medium text-gray-800">ボーナス払い</p>
-          <p className="text-sm text-gray-500 mt-1">
-            年2回（1月・8月）のボーナス月に追加返済を行います<br/>
-            <span className="text-xs">※ ボーナス月の返済額を入力してください</span>
-          </p>
         </div>
         <label className="relative inline-flex items-center cursor-pointer">
           <input
@@ -136,9 +132,6 @@ const ReverseBonusSettings: React.FC<ReverseBonusSettingsProps> = ({
           {errors.payment && (
             <p className="text-red-500 text-sm mt-1">{errors.payment}</p>
           )}
-          <p className="text-xs text-gray-500 mt-1">
-            0円 〜 50万円 ※ ボタンで1万円ずつ調整
-          </p>
         </div>
       )}
     </div>

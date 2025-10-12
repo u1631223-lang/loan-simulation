@@ -24,9 +24,9 @@ const Home: React.FC = () => {
 
   const [currentParams, setCurrentParams] = useState<LoanParams>(
     loanParams || {
-      principal: 30000000,
+      principal: 45000000,
       interestRate: 1.5,
-      years: 35,
+      years: 40,
       months: 0,
       repaymentType: 'equal-payment',
       bonusPayment: {
@@ -38,14 +38,14 @@ const Home: React.FC = () => {
   );
 
   const [reverseParams, setReverseParams] = useState<ReverseLoanParams>({
-    monthlyPayment: 100000,
+    monthlyPayment: 130000,
     interestRate: 1.5,
-    years: 35,
+    years: 40,
     months: 0,
     repaymentType: 'equal-payment',
     bonusPayment: {
       enabled: false,
-      payment: 0,
+      payment: 200000,
       months: [1, 8], // デフォルト: 1月（冬）と8月（夏）
     },
   });

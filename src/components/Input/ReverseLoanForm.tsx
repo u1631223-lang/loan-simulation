@@ -130,9 +130,6 @@ const ReverseLoanForm: React.FC<ReverseLoanFormProps> = ({
         {errors.monthlyPayment && (
           <p className="text-red-500 text-sm mt-1">{errors.monthlyPayment}</p>
         )}
-        <p className="text-xs text-gray-500 mt-1">
-          希望する月々の返済額を入力 ※ ボタンで1000円ずつ調整
-        </p>
       </div>
 
       {/* 返済期間 */}
@@ -270,9 +267,6 @@ const ReverseLoanForm: React.FC<ReverseLoanFormProps> = ({
         {errors.interestRate && (
           <p className="text-red-500 text-sm mt-1">{errors.interestRate}</p>
         )}
-        <p className="text-xs text-gray-500 mt-1">
-          0.00% 〜 20.00% ※ ボタンで0.01%ずつ調整
-        </p>
       </div>
 
       {/* 返済方式 */}
