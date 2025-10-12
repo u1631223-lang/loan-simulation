@@ -11,6 +11,7 @@
 3. [TypeScript 診断警告](#typescript-診断警告)
 4. [開発サーバー関連](#開発サーバー関連)
 5. [Capacitor / モバイル関連](#capacitor--モバイル関連)
+6. [フォーム入力の問題](#フォーム入力の問題)
 
 ---
 
@@ -599,6 +600,104 @@ npm run cap:open:android  # または ios
 
 ---
 
+## フォーム入力の問題
+
+### 問題: 借入金額が2001万円~3001万円の範囲に制限される
+
+```tsx
+// LoanForm.tsx で発生
+<input
+  type="number"
+  step="1000"    // ← この属性が原因
+  min="1"
+  max="1000000000"
+/>
+```
+
+**症状**:
+- 上下ボタンで1000円ずつしか増減できない
+- 初期値30,000,000から±1000円の範囲に制限される
+- 自由な金額入力ができない
+
+**原因**:
+- `type="number"` + `step="1000"` の組み合わせ
+- HTML5の仕様により、stepの倍数の値しか入力できない
+
+**解決方法**:
+
+```tsx
+// ✅ type="text" に変更してカンマ区切りフォーマット
+<input
+  type="text"
+  inputMode="numeric"  // スマホで数字キーボード表示
+  value={formatNumber(values.principal)}
+  onChange={handlePrincipalChange}
+/>
+
+// フォーマット関数
+const formatNumber = (num: number | string): string => {
+  if (!num) return '';
+  const numStr = num.toString().replace(/,/g, '');
+  return numStr.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+};
+
+// パース関数
+const parseNumber = (str: string): number => {
+  const cleaned = str.replace(/,/g, '');
+  const parsed = parseFloat(cleaned);
+  return isNaN(parsed) ? 0 : parsed;
+};
+
+// 変更ハンドラ（数字とカンマのみ許可）
+const handlePrincipalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const input = e.target.value;
+  if (input === '' || /^[\d,]*$/.test(input)) {
+    const numValue = parseNumber(input);
+    handleChange('principal', numValue);
+  }
+};
+```
+
+**メリット**:
+- 自由な金額入力が可能
+- カンマ区切りで見やすい（30,000,000）
+- スマホでは数字キーボードが表示される（`inputMode="numeric"`）
+- step/min/max の制約がなくなる
+
+**適用箇所**:
+- 借入金額（`type="text"` + `inputMode="numeric"`）
+- 返済期間の年数・月数（`type="text"` + `inputMode="numeric"`）
+- 金利（`type="text"` + `inputMode="decimal"`）
+
+**教訓**:
+- `type="number"` は予期しない制約がある
+- 金額入力には `type="text"` + `inputMode` が適切
+- カンマ区切りフォーマットでUX向上
+
+### 問題: 金利入力でstep制約により小数点入力ができない
+
+**症状**: 金利 1.375% などの細かい値が入力できない
+
+**解決方法**:
+
+```tsx
+// type="text" に変更して小数点入力を許可
+<input
+  type="text"
+  inputMode="decimal"  // 小数点キーボード
+  value={values.interestRate || ''}
+  onChange={(e) => {
+    const input = e.target.value;
+    // 数字と小数点のみ許可
+    if (input === '' || /^\d*\.?\d*$/.test(input)) {
+      handleChange('interestRate', parseFloat(input) || 0);
+    }
+  }}
+/>
+```
+
+---
+
 ## よくある質問 (FAQ)
 
 ### Q1: サブエージェントの実行結果を確認するには？
@@ -642,5 +741,5 @@ npm run cap:open:android  # または ios
 
 ---
 
-**最終更新**: 2025-10-12
-**バージョン**: 1.1 (Capacitor / モバイル関連を追加)
+**最終更新**: 2025-10-13
+**バージョン**: 1.2 (フォーム入力の問題とtype="number"の制約を追加)

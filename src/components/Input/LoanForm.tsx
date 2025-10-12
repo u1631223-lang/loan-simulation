@@ -30,6 +30,39 @@ const LoanForm: React.FC<LoanFormProps> = ({
     onSubmit();
   };
 
+  // 数値をカンマ区切りでフォーマット
+  const formatNumber = (num: number | string): string => {
+    if (!num) return '';
+    const numStr = num.toString().replace(/,/g, '');
+    return numStr.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  };
+
+  // カンマ区切り文字列から数値を抽出
+  const parseNumber = (str: string): number => {
+    const cleaned = str.replace(/,/g, '');
+    const parsed = parseFloat(cleaned);
+    return isNaN(parsed) ? 0 : parsed;
+  };
+
+  // 借入金額の変更ハンドラ
+  const handlePrincipalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.target.value;
+    // 数字とカンマのみ許可
+    if (input === '' || /^[\d,]*$/.test(input)) {
+      const numValue = parseNumber(input);
+      handleChange('principal', numValue);
+    }
+  };
+
+  // 金利の変更ハンドラ
+  const handleInterestRateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.target.value;
+    // 数字と小数点のみ許可
+    if (input === '' || /^\d*\.?\d*$/.test(input)) {
+      handleChange('interestRate', parseFloat(input) || 0);
+    }
+  };
+
   const inputClass = (hasError: boolean) => `
     w-full px-4 py-2 rounded-lg border-2
     ${hasError ? 'border-red-500 bg-red-50' : 'border-gray-300 bg-white'}
@@ -48,14 +81,12 @@ const LoanForm: React.FC<LoanFormProps> = ({
         <div className="relative">
           <input
             id="principal"
-            type="number"
-            value={values.principal || ''}
-            onChange={(e) => handleChange('principal', parseFloat(e.target.value) || 0)}
+            type="text"
+            inputMode="numeric"
+            value={formatNumber(values.principal)}
+            onChange={handlePrincipalChange}
             className={inputClass(!!errors.principal)}
-            placeholder="30000000"
-            min="1"
-            max="1000000000"
-            step="1000"
+            placeholder="30,000,000"
           />
           <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500">
             円
@@ -64,6 +95,9 @@ const LoanForm: React.FC<LoanFormProps> = ({
         {errors.principal && (
           <p className="text-red-500 text-sm mt-1">{errors.principal}</p>
         )}
+        <p className="text-xs text-gray-500 mt-1">
+          1円 〜 1,000,000,000円（10億円）
+        </p>
       </div>
 
       {/* 返済期間 */}
@@ -76,13 +110,17 @@ const LoanForm: React.FC<LoanFormProps> = ({
             <div className="relative">
               <input
                 id="years"
-                type="number"
+                type="text"
+                inputMode="numeric"
                 value={values.years || ''}
-                onChange={(e) => handleChange('years', parseInt(e.target.value) || 0)}
+                onChange={(e) => {
+                  const input = e.target.value;
+                  if (input === '' || /^\d+$/.test(input)) {
+                    handleChange('years', parseInt(input) || 0);
+                  }
+                }}
                 className={inputClass(!!errors.years)}
                 placeholder="35"
-                min="0"
-                max="50"
               />
               <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500">
                 年
@@ -93,13 +131,17 @@ const LoanForm: React.FC<LoanFormProps> = ({
             <div className="relative">
               <input
                 id="months"
-                type="number"
+                type="text"
+                inputMode="numeric"
                 value={values.months || 0}
-                onChange={(e) => handleChange('months', parseInt(e.target.value) || 0)}
+                onChange={(e) => {
+                  const input = e.target.value;
+                  if (input === '' || /^\d+$/.test(input)) {
+                    handleChange('months', parseInt(input) || 0);
+                  }
+                }}
                 className={inputClass(!!errors.months)}
                 placeholder="0"
-                min="0"
-                max="11"
               />
               <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500">
                 ヶ月
@@ -112,6 +154,9 @@ const LoanForm: React.FC<LoanFormProps> = ({
             {errors.years || errors.months}
           </p>
         )}
+        <p className="text-xs text-gray-500 mt-1">
+          1ヶ月 〜 50年（600ヶ月）
+        </p>
       </div>
 
       {/* 金利 */}
@@ -122,14 +167,12 @@ const LoanForm: React.FC<LoanFormProps> = ({
         <div className="relative">
           <input
             id="interestRate"
-            type="number"
+            type="text"
+            inputMode="decimal"
             value={values.interestRate || ''}
-            onChange={(e) => handleChange('interestRate', parseFloat(e.target.value) || 0)}
+            onChange={handleInterestRateChange}
             className={inputClass(!!errors.interestRate)}
             placeholder="1.5"
-            min="0"
-            max="20"
-            step="0.001"
           />
           <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500">
             %
@@ -138,6 +181,9 @@ const LoanForm: React.FC<LoanFormProps> = ({
         {errors.interestRate && (
           <p className="text-red-500 text-sm mt-1">{errors.interestRate}</p>
         )}
+        <p className="text-xs text-gray-500 mt-1">
+          0% 〜 20%（小数点3桁まで）
+        </p>
       </div>
 
       {/* 返済方式 */}
