@@ -11,6 +11,7 @@ import Footer from '@/components/Layout/Footer';
 import LoanForm from '@/components/Input/LoanForm';
 import ReverseLoanForm from '@/components/Input/ReverseLoanForm';
 import BonusSettings from '@/components/Input/BonusSettings';
+import ReverseBonusSettings from '@/components/Input/ReverseBonusSettings';
 import Summary from '@/components/Result/Summary';
 import Schedule from '@/components/Result/Schedule';
 import { useCalculator } from '@/hooks/useCalculator';
@@ -42,6 +43,11 @@ const Home: React.FC = () => {
     years: 35,
     months: 0,
     repaymentType: 'equal-payment',
+    bonusPayment: {
+      enabled: false,
+      payment: 0,
+      months: [1, 8], // デフォルト: 1月（冬）と8月（夏）
+    },
   });
 
   const handleCalculate = () => {
@@ -67,6 +73,23 @@ const Home: React.FC = () => {
   const handleBonusChange = (bonusPayment: typeof currentParams.bonusPayment) => {
     setCurrentParams({
       ...currentParams,
+      bonusPayment,
+    });
+  };
+
+  const handleReverseBonusToggle = (enabled: boolean) => {
+    setReverseParams({
+      ...reverseParams,
+      bonusPayment: {
+        ...reverseParams.bonusPayment!,
+        enabled,
+      },
+    });
+  };
+
+  const handleReverseBonusChange = (bonusPayment: typeof reverseParams.bonusPayment) => {
+    setReverseParams({
+      ...reverseParams,
       bonusPayment,
     });
   };
@@ -136,17 +159,24 @@ const Home: React.FC = () => {
                 )}
               </div>
 
-              {/* ボーナス払い設定（順算モード時のみ表示） */}
-              {calculationMode === 'forward' && (
-                <div className="bg-white rounded-lg shadow-md p-6">
+              {/* ボーナス払い設定 */}
+              <div className="bg-white rounded-lg shadow-md p-6">
+                {calculationMode === 'forward' ? (
                   <BonusSettings
                     enabled={currentParams.bonusPayment?.enabled || false}
                     settings={currentParams.bonusPayment}
                     onToggle={handleBonusToggle}
                     onChange={handleBonusChange}
                   />
-                </div>
-              )}
+                ) : (
+                  <ReverseBonusSettings
+                    enabled={reverseParams.bonusPayment?.enabled || false}
+                    settings={reverseParams.bonusPayment}
+                    onToggle={handleReverseBonusToggle}
+                    onChange={handleReverseBonusChange}
+                  />
+                )}
+              </div>
             </div>
 
             {/* 右側: 計算結果 */}

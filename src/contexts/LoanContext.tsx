@@ -16,6 +16,7 @@ import {
   calculateTotalInterestFromSchedule,
   roundFinancial,
   calculatePrincipalFromPayment,
+  calculatePrincipalWithBonus,
 } from '@/utils/loanCalculator';
 import { loadHistory, saveHistory, clearHistory as clearStorageHistory } from '@/utils/storage';
 
@@ -201,12 +202,26 @@ export const LoanProvider: React.FC<LoanProviderProps> = ({ children }) => {
     // 総返済月数を計算
     const totalMonths = params.years * 12 + params.months;
 
-    // 月々の返済額から借入可能額を計算
-    const calculatedPrincipal = calculatePrincipalFromPayment(
-      params.monthlyPayment,
-      params.interestRate,
-      totalMonths
-    );
+    let calculatedPrincipal: number;
+
+    // ボーナス払いがある場合
+    if (params.bonusPayment?.enabled && params.bonusPayment.payment > 0) {
+      // 月々の返済額とボーナス返済額から借入可能額を計算
+      calculatedPrincipal = calculatePrincipalWithBonus(
+        params.monthlyPayment,
+        params.bonusPayment.payment,
+        params.interestRate,
+        totalMonths,
+        params.bonusPayment.months
+      );
+    } else {
+      // ボーナス払いがない場合、月々の返済額のみから計算
+      calculatedPrincipal = calculatePrincipalFromPayment(
+        params.monthlyPayment,
+        params.interestRate,
+        totalMonths
+      );
+    }
 
     // 計算した借入額を使って通常の計算を実行
     const forwardParams: LoanParams = {
