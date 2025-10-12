@@ -77,7 +77,8 @@ const BonusSettings: React.FC<BonusSettingsProps> = ({
         <div>
           <p className="font-medium text-gray-800">ボーナス払い</p>
           <p className="text-sm text-gray-500 mt-1">
-            年2回（1月・8月）のボーナス月に追加返済を行います
+            年2回（1月・8月）のボーナス月に追加返済を行います<br/>
+            <span className="text-xs">※ ボーナス分の借入金額を入力してください</span>
           </p>
         </div>
         <label className="relative inline-flex items-center cursor-pointer">
@@ -98,7 +99,7 @@ const BonusSettings: React.FC<BonusSettingsProps> = ({
             htmlFor="bonusAmount"
             className="block text-sm font-medium text-gray-700 mb-1"
           >
-            ボーナス加算額（1回あたり・万円）
+            ボーナス分の借入金額（万円）
           </label>
           <div className="relative flex items-center gap-2">
             <input

@@ -162,7 +162,7 @@ export const calculateTotalInterestFromSchedule = (schedule: PaymentSchedule[]):
 };
 
 /**
- * 元利均等返済の月々返済額を計算
+ * 元利均等返済の月々返済額を計算（順算）
  * PMT = P × (r × (1 + r)^n) / ((1 + r)^n - 1)
  *
  * @param principal 借入金額
@@ -190,6 +190,37 @@ export const calculateEqualPayment = (
 
   // 整数に丸める
   return Math.round(payment);
+};
+
+/**
+ * 月々返済額から借入可能額を逆算（元利均等返済）
+ * P = PMT × ((1 + r)^n - 1) / (r × (1 + r)^n)
+ *
+ * @param monthlyPayment 月々返済額
+ * @param annualRate 年利（%）
+ * @param totalMonths 総返済月数
+ * @returns 借入可能額
+ */
+export const calculatePrincipalFromPayment = (
+  monthlyPayment: number,
+  annualRate: number,
+  totalMonths: number
+): number => {
+  // 金利0%の特殊ケース
+  if (annualRate === 0) {
+    return Math.round(monthlyPayment * totalMonths);
+  }
+
+  // 月利を計算
+  const monthlyRate = getMonthlyRate(annualRate);
+
+  // 逆算式: P = PMT × ((1 + r)^n - 1) / (r × (1 + r)^n)
+  const numerator = Math.pow(1 + monthlyRate, totalMonths) - 1;
+  const denominator = monthlyRate * Math.pow(1 + monthlyRate, totalMonths);
+  const principal = monthlyPayment * (numerator / denominator);
+
+  // 整数に丸める
+  return Math.round(principal);
 };
 
 /**
@@ -310,14 +341,45 @@ export const calculateEqualPrincipal = (
 };
 
 /**
- * ボーナス併用払いの計算
+ * 月々返済額とボーナス返済額から借入可能額を逆算（ボーナス併用）
+ *
+ * @param monthlyPayment 希望月々返済額
+ * @param bonusPayment 希望ボーナス1回あたり返済額
+ * @param annualRate 年利（%）
+ * @param totalMonths 総返済月数
+ * @param bonusMonths ボーナス月の配列
+ * @returns 借入可能額
+ */
+export const calculatePrincipalWithBonus = (
+  monthlyPayment: number,
+  bonusPayment: number,
+  annualRate: number,
+  totalMonths: number,
+  bonusMonths: number[]
+): number => {
+  const bonusTimesPerYear = bonusMonths.length;
+  const totalYears = totalMonths / 12;
+  const totalBonusPayments = Math.floor(totalYears * bonusTimesPerYear);
+
+  // 月次返済分の借入可能額
+  const regularPrincipal = calculatePrincipalFromPayment(monthlyPayment, annualRate, totalMonths);
+
+  // ボーナス返済分の借入可能額
+  const bonusPrincipal = calculatePrincipalFromPayment(bonusPayment, annualRate, totalBonusPayments);
+
+  // 合計
+  return Math.round(regularPrincipal + bonusPrincipal);
+};
+
+/**
+ * ボーナス併用払いの計算（順算）
  * 借入金額を「月次返済分」と「ボーナス返済分」に分けて計算
  *
  * @param principal 借入金額
  * @param annualRate 年利（%）
  * @param totalMonths 総返済月数
- * @param bonusAmount 年間ボーナス返済額（ボーナス月の合計ではなく年額）
- * @param bonusMonths ボーナス月の配列（例: [6, 12] = 6月と12月）
+ * @param bonusAmount ボーナス分の借入金額（ボーナス払い分の元金）
+ * @param bonusMonths ボーナス月の配列（例: [1, 8] = 1月と8月）
  * @param repaymentType 返済方式（'equal-payment' | 'equal-principal'）
  * @returns 計算結果
  */
