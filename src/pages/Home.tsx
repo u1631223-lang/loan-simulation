@@ -31,7 +31,7 @@ const Home: React.FC = () => {
       repaymentType: 'equal-payment',
       bonusPayment: {
         enabled: false,
-        amount: 0,
+        amount: 10000000, // デフォルト: 1000万円
         months: [1, 8], // デフォルト: 1月（冬）と8月（夏）
       },
     }
@@ -167,6 +167,7 @@ const Home: React.FC = () => {
                     settings={currentParams.bonusPayment}
                     onToggle={handleBonusToggle}
                     onChange={handleBonusChange}
+                    principal={currentParams.principal}
                   />
                 ) : (
                   <ReverseBonusSettings

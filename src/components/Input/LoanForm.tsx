@@ -137,9 +137,6 @@ const LoanForm: React.FC<LoanFormProps> = ({
         {errors.principal && (
           <p className="text-red-500 text-sm mt-1">{errors.principal}</p>
         )}
-        <p className="text-xs text-gray-500 mt-1">
-          0.0001万円 〜 100,000万円（10億円） ※ ボタンで10万円ずつ調整
-        </p>
       </div>
 
       {/* 返済期間 */}
@@ -277,9 +274,6 @@ const LoanForm: React.FC<LoanFormProps> = ({
         {errors.interestRate && (
           <p className="text-red-500 text-sm mt-1">{errors.interestRate}</p>
         )}
-        <p className="text-xs text-gray-500 mt-1">
-          0.00% 〜 20.00% ※ ボタンで0.01%ずつ調整
-        </p>
       </div>
 
       {/* 返済方式 */}

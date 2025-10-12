@@ -208,6 +208,7 @@ export const LoanProvider: React.FC<LoanProviderProps> = ({ children }) => {
     const totalMonths = params.years * 12 + params.months;
 
     let calculatedPrincipal: number;
+    let calculatedBonusAmount: number = 0;
 
     // ボーナス払いがある場合
     if (params.bonusPayment?.enabled && params.bonusPayment.payment > 0) {
@@ -220,7 +221,7 @@ export const LoanProvider: React.FC<LoanProviderProps> = ({ children }) => {
       const regularPayments = totalMonths - totalBonusPayments;
 
       // 通常月の返済分とボーナス月の返済分を合算して総返済額を計算
-      // 例: 月8万×420回 + ボーナス5万×70回 = 33,600,000円 + 3,500,000円 = 37,100,000円
+      // 例: 月8万×350回 + (月8万+ボーナス5万)×70回 = 28,000,000円 + 9,100,000円 = 37,100,000円
       const totalPaymentAmount =
         params.monthlyPayment * regularPayments +
         (params.monthlyPayment + params.bonusPayment.payment) * totalBonusPayments;
@@ -233,6 +234,15 @@ export const LoanProvider: React.FC<LoanProviderProps> = ({ children }) => {
         params.interestRate,
         totalMonths
       );
+
+      // ボーナス分の借入額を推定（総借入額からボーナス払い分を分離）
+      // 簡易的に、ボーナス返済額の割合から算出
+      const bonusPaymentRatio = (params.bonusPayment.payment * totalBonusPayments) / totalPaymentAmount;
+      calculatedBonusAmount = Math.round(calculatedPrincipal * bonusPaymentRatio);
+
+      // ボーナス額が借入額の50%を超えないように制限
+      const maxBonusAmount = Math.floor(calculatedPrincipal * 0.5);
+      calculatedBonusAmount = Math.min(calculatedBonusAmount, maxBonusAmount);
     } else {
       // ボーナス払いがない場合、月々の返済額のみから計算
       calculatedPrincipal = calculatePrincipalFromPayment(
@@ -242,7 +252,7 @@ export const LoanProvider: React.FC<LoanProviderProps> = ({ children }) => {
       );
     }
 
-    // 計算した借入額を使って通常の計算を実行（ボーナス払いなしで）
+    // 計算した借入額を使って通常の計算を実行
     const forwardParams: LoanParams = {
       principal: calculatedPrincipal,
       interestRate: params.interestRate,
@@ -250,9 +260,9 @@ export const LoanProvider: React.FC<LoanProviderProps> = ({ children }) => {
       months: params.months,
       repaymentType: params.repaymentType,
       bonusPayment: {
-        enabled: false,
-        amount: 0,
-        months: [1, 8],
+        enabled: params.bonusPayment?.enabled || false,
+        amount: calculatedBonusAmount,
+        months: params.bonusPayment?.months || [1, 8],
       },
     };
 

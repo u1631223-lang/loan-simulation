@@ -11,20 +11,29 @@ interface BonusSettingsProps {
   onToggle: (enabled: boolean) => void;
   onChange: (settings: BonusPayment) => void;
   errors?: Record<string, string>;
+  principal: number; // 借入額（上限計算に使用）
 }
 
 const BonusSettings: React.FC<BonusSettingsProps> = ({
   enabled,
   settings = {
     enabled: false,
-    amount: 0,
+    amount: 10000000, // デフォルト: 1000万円
     months: [1, 8], // デフォルトは1月（冬）と8月（夏）
   },
   onToggle,
   onChange,
   errors = {},
+  principal,
 }) => {
+  // ボーナス払いの上限（借入額の50%）
+  const maxBonusAmount = Math.floor(principal * 0.5);
+
   const handleChange = (field: keyof BonusPayment, value: any) => {
+    // 上限チェック
+    if (field === 'amount') {
+      value = Math.min(value, maxBonusAmount);
+    }
     onChange({
       ...settings,
       [field]: value,
@@ -142,7 +151,7 @@ const BonusSettings: React.FC<BonusSettingsProps> = ({
             <p className="text-red-500 text-sm mt-1">{errors.amount}</p>
           )}
           <p className="text-xs text-gray-500 mt-1">
-            0万円 〜 1,000万円 ※ ボタンで10万円ずつ調整
+            上限: {formatManyen(maxBonusAmount)}万円（借入額の50%）
           </p>
         </div>
       )}
