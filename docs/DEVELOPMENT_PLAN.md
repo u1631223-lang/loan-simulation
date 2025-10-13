@@ -856,3 +856,82 @@ graph TD
 **作成日**: 2025-10-12
 **最終更新**: 2025-10-12
 **ステータス**: Phase 3 完了 ✅ / Phase 4 実施中
+
+---
+
+## 追加実装記録 (2025-10-13)
+
+### 逆算機能の実装
+
+**実装日**: 2025-10-13
+
+**目的**: 月々の返済額から借入可能額を計算する機能を追加
+
+**実装内容**:
+
+1. **新規型定義**:
+   - `CalculationMode`: 'forward' | 'reverse'
+   - `ReverseLoanParams`: 逆算用のパラメータ型
+   - `ReverseBonusPayment`: 逆算用のボーナス払い型
+
+2. **新規コンポーネント**:
+   - `ReverseLoanForm.tsx`: 逆算用の入力フォーム
+   - `ReverseBonusSettings.tsx`: 逆算用のボーナス設定
+
+3. **Context更新**:
+   - `LoanContext.calculateReverse()`: 逆算ロジック実装
+   - ボーナス払い対応の逆算計算
+
+4. **UI改善**:
+   - Home.tsx にモード切り替えボタン追加
+   - 「借入額から計算」「返済額から計算」の2モード
+
+**重要な修正 (午後)**:
+
+**問題**: ボーナス20万円入力が16万円で表示される
+
+**原因**: 
+```typescript
+// 間違った計算（総返済額の割合で分割）
+const bonusPaymentRatio = (bonusPayment * totalBonusPayments) / totalPaymentAmount;
+calculatedBonusAmount = calculatedPrincipal * bonusPaymentRatio;
+```
+
+**解決策**:
+```typescript
+// 正しい計算（直接計算）
+// Step 1: 月々13万円 → 通常分の借入可能額
+const regularPrincipal = calculatePrincipalFromPayment(monthlyPayment, rate, 480);
+
+// Step 2: ボーナス20万円 → ボーナス分の借入可能額
+const bonusPrincipal = calculatePrincipalFromPayment(bonusPayment, rate, 80);
+
+// Step 3: 合計
+const totalPrincipal = regularPrincipal + bonusPrincipal;
+```
+
+**結果**:
+- ✅ 入力20万円が正しく20万円として表示
+- ✅ 逆算と順算が完全一致
+- ✅ テスト全74件継続合格
+
+**デフォルト値の更新**:
+- 借入金額: 3000万円 → **4500万円**
+- 金利: 1.5% → **1.0%**
+- 返済期間: 35年 → **40年**
+- ボーナス分借入: 0円 → **1000万円**
+- 逆算モード月額: **13万円**
+- 逆算モードボーナス: **20万円**
+
+**コミット履歴**:
+1. `a4d2cbb` - feat: Implement reverse calculation
+2. `0d064fc` - feat: Add bonus payment support for reverse
+3. `4a446bb` - fix: Improve increment step and fix reverse bonus
+4. `bceeee3` - fix: Major corrections to UI and reverse bonus
+5. `4a6e6f6` - feat: Improve bonus payment UX and fix reverse display
+6. `6e9a4a2` - refactor: Remove help texts and update default values
+7. `aa927b7` - fix: Update default values to 4500万円, 1% interest, 40 years
+8. `4473e7f` - fix: Correct reverse bonus calculation logic
+
+**テスト状況**: ✅ All 74 tests passing
+

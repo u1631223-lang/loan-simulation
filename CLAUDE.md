@@ -477,9 +477,9 @@ npm run cap:run:android
 npm run cap:run:ios
 ```
 
-## 🎉 Simple Version Complete (2025-10-13)
+## 🎉 Simple Version Complete + Reverse Calculation (2025-10-13)
 
-**Status**: ✅ 簡易版完成 - Core functionality ready for deployment
+**Status**: ✅ 簡易版完成 + 逆算機能追加 - Core functionality ready for deployment
 
 ### Key Features Implemented
 1. ✅ 万円単位での入力表示（借入金額・ボーナス加算額）
@@ -489,6 +489,8 @@ npm run cap:run:ios
 5. ✅ localStorage による履歴管理（個人単位・完全ローカル）
 6. ✅ 元利均等・元金均等返済の計算
 7. ✅ レスポンシブデザイン（PC/タブレット/スマホ対応）
+8. ✅ **逆算機能**（返済額から借入可能額を計算）- NEW!
+9. ✅ **逆算モードのボーナス払い対応** - NEW!
 
 ### Increment/Decrement Buttons
 All numeric inputs now have ▲/▼ buttons for fine-tuning:
@@ -553,6 +555,46 @@ All numeric inputs now have ▲/▼ buttons for fine-tuning:
 - `src/pages/Home.tsx`: Default months changed to [1, 8]
 
 See `docs/TROUBLESHOOTING.md` **"UX改善の記録"** section for implementation details.
+
+### 3. Reverse Calculation Mode (逆算機能)
+
+**Feature**: Calculate borrowable amount from desired monthly payment.
+
+**Use Case**: Users often know how much they can afford monthly but want to know total borrowable amount.
+
+**Implementation**:
+- **Two calculation modes**:
+  - 「借入額から計算」(Forward): Principal → Monthly payment
+  - 「返済額から計算」(Reverse): Monthly payment → Principal
+- **Mode toggle**: Buttons at top of Home page
+- **Separate forms**: `LoanForm.tsx` for forward, `ReverseLoanForm.tsx` for reverse
+- **Bonus support**: `ReverseBonusSettings.tsx` for reverse mode bonus payments
+
+**Calculation Logic**:
+```typescript
+// Reverse: P = PMT × ((1 + r)^n - 1) / (r × (1 + r)^n)
+// With bonus:
+//   1. Regular principal from monthly payment (480 months)
+//   2. Bonus principal from bonus payment (80 times)
+//   3. Total = regular + bonus
+```
+
+**Key Fix (2025-10-13 afternoon)**:
+- **Problem**: Bonus payment 20万円 input displayed as 16万円 in results
+- **Root cause**: Used payment ratio instead of direct calculation
+- **Solution**: Calculate bonus principal directly from bonus payment amount
+- **Result**: Input 20万円 now correctly displays as 20万円 bonus payment
+
+**Files**:
+- `src/contexts/LoanContext.tsx`: `calculateReverse()` method
+- `src/components/Input/ReverseLoanForm.tsx`: Reverse input form
+- `src/components/Input/ReverseBonusSettings.tsx`: Reverse bonus settings
+- `src/pages/Home.tsx`: Mode toggle and conditional rendering
+- `src/types/loan.ts`: `ReverseLoanParams`, `ReverseBonusPayment` types
+
+**Default Values**:
+- Forward mode: 4,500万円, 1.0%, 40年, ボーナス1,000万円
+- Reverse mode: 13万円/月, 1.0%, 40年, ボーナス20万円
 
 ## Troubleshooting
 

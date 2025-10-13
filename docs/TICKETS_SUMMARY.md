@@ -116,4 +116,29 @@
 
 ---
 
-**最終更新**: 2025-10-12
+**最終更新**: 2025-10-13
+
+---
+
+## 追加実装 (2025-10-13)
+
+### 逆算機能 (Reverse Calculation)
+
+**追加チケット**: EXTRA-001 - 逆算機能実装
+
+**概要**: 月々の返済額から借入可能額を計算する機能
+
+**実装内容**:
+- ✅ 新規型定義: `CalculationMode`, `ReverseLoanParams`, `ReverseBonusPayment`
+- ✅ 新規コンポーネント: `ReverseLoanForm.tsx`, `ReverseBonusSettings.tsx`
+- ✅ Context更新: `LoanContext.calculateReverse()` メソッド追加
+- ✅ UI改善: モード切り替えボタン実装
+- ✅ ボーナス払い対応: 逆算モードでもボーナス計算可能
+- ✅ バグ修正: ボーナス額計算ロジック修正（20万円→16万円の問題解決）
+- ✅ デフォルト値更新: 4500万円、1.0%、40年
+
+**コミット数**: 8コミット
+
+**テスト状況**: ✅ All 74 tests passing
+
+**ステータス**: ✅ COMPLETED
