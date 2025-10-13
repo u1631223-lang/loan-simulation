@@ -217,32 +217,30 @@ export const LoanProvider: React.FC<LoanProviderProps> = ({ children }) => {
       const totalYears = totalMonths / 12;
       const totalBonusPayments = Math.floor(totalYears * bonusTimesPerYear);
 
-      // 通常月の回数
-      const regularPayments = totalMonths - totalBonusPayments;
-
-      // 通常月の返済分とボーナス月の返済分を合算して総返済額を計算
-      // 例: 月8万×350回 + (月8万+ボーナス5万)×70回 = 28,000,000円 + 9,100,000円 = 37,100,000円
-      const totalPaymentAmount =
-        params.monthlyPayment * regularPayments +
-        (params.monthlyPayment + params.bonusPayment.payment) * totalBonusPayments;
-
-      // この総返済額から、金利を考慮して借入可能額を逆算
-      // 簡易的には calculatePrincipalFromPayment を使って平均返済額から計算
-      const averagePayment = totalPaymentAmount / totalMonths;
-      calculatedPrincipal = calculatePrincipalFromPayment(
-        averagePayment,
+      // Step 1: 月々の返済額から「通常分の借入可能額」を計算
+      const regularPrincipal = calculatePrincipalFromPayment(
+        params.monthlyPayment,
         params.interestRate,
         totalMonths
       );
 
-      // ボーナス分の借入額を推定（総借入額からボーナス払い分を分離）
-      // 簡易的に、ボーナス返済額の割合から算出
-      const bonusPaymentRatio = (params.bonusPayment.payment * totalBonusPayments) / totalPaymentAmount;
-      calculatedBonusAmount = Math.round(calculatedPrincipal * bonusPaymentRatio);
+      // Step 2: ボーナス追加返済額から「ボーナス分の借入可能額」を計算
+      // ボーナス返済は年2回（80回）で分割返済
+      calculatedBonusAmount = calculatePrincipalFromPayment(
+        params.bonusPayment.payment,
+        params.interestRate,
+        totalBonusPayments
+      );
+
+      // Step 3: 合計借入可能額
+      calculatedPrincipal = regularPrincipal + calculatedBonusAmount;
 
       // ボーナス額が借入額の50%を超えないように制限
       const maxBonusAmount = Math.floor(calculatedPrincipal * 0.5);
-      calculatedBonusAmount = Math.min(calculatedBonusAmount, maxBonusAmount);
+      if (calculatedBonusAmount > maxBonusAmount) {
+        calculatedBonusAmount = maxBonusAmount;
+        calculatedPrincipal = regularPrincipal + calculatedBonusAmount;
+      }
     } else {
       // ボーナス払いがない場合、月々の返済額のみから計算
       calculatedPrincipal = calculatePrincipalFromPayment(
