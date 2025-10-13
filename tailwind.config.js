@@ -15,8 +15,17 @@ export default {
         sans: ['Noto Sans JP', 'Hiragino Sans', 'Yu Gothic', 'sans-serif'],
         mono: ['Roboto', 'SF Pro', 'Noto Sans JP', 'monospace'],
       },
+      keyframes: {
+        'slide-in': {
+          '0%': { transform: 'translateX(100%)', opacity: '0' },
+          '100%': { transform: 'translateX(0)', opacity: '1' },
+        },
+      },
+      animation: {
+        'slide-in': 'slide-in 0.3s ease-out',
+      },
     },
   },
-  plugins: [],
+  plugins: [require('@tailwindcss/typography')],
 }
 

@@ -612,3 +612,44 @@ See `docs/TROUBLESHOOTING.md` **"UX改善の記録"** section for implementation
 - **TypeScript warnings**: Check for unused imports, implicit any types
 - **Port in use**: Kill process or use different port
 - **Input range restricted**: Use `type="text"` instead of `type="number"` (see TROUBLESHOOTING.md)
+
+---
+
+## Session Notes (2025-10-13)
+
+### Dev Server & Mobile Access
+- Vite dev server running on `http://localhost:5173`.
+- Enabled LAN access for real-device testing by setting in `vite.config.ts`:
+  ```ts
+  export default defineConfig({
+    server: { host: true, port: 5173 },
+  })
+  ```
+- Network URL example: `http://192.168.0.77:5173/` (same Wi‑Fi required).
+- Added helper scripts:
+  - `npm run check-server` → checks Vite process/port/HTTP
+  - `npm run mobile-test` → lists LAN IPs and shows access URL for phones
+
+### How to Test on a Phone (Same Wi‑Fi)
+1) Ensure PC and phone are on the same network.
+2) Start dev server: `npm run dev`.
+3) Find LAN URL from terminal output or run `npm run mobile-test`.
+4) Open `http://<your-lan-ip>:5173` on the phone.
+
+Optional (remote access): use ngrok `ngrok http 5173` for temporary external URL. Prefer LAN for security/simplicity.
+
+### Security Updates
+- Strengthened `.claude/settings.local.json` permissions:
+  - Denied risky commands: `sudo`, `rm -rf /`, `git push --force`, `chmod 777`, `chown`, `npm publish/unpublish`, system file reads, and raw network tools (`ssh`, `scp`, `wget`, `curl http://*`, `nc/netcat`).
+- Created `SECURITY.md` with guidelines, checklist, and scope.
+
+### npm Audit Notes
+- Current report: 5 moderate issues related to `esbuild`/`vite` (dev server scope only).
+- Actions:
+  - Safe: `npm audit` regularly, `npm update` when non‑breaking.
+  - If needed and acceptable: `npm audit fix --force` (may bump Vite major version).
+  - No production impact from current items (dev-only tooling).
+
+### References
+- Scripts: `scripts/check-dev-server.js`, `scripts/mobile-test.js`
+- Docs: `docs/CURRENT_STATUS.md`, `docs/TROUBLESHOOTING.md`, `SECURITY.md`
