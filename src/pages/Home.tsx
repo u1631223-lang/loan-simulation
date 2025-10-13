@@ -25,7 +25,7 @@ const Home: React.FC = () => {
   const [currentParams, setCurrentParams] = useState<LoanParams>(
     loanParams || {
       principal: 45000000,
-      interestRate: 1.5,
+      interestRate: 1.0,
       years: 40,
       months: 0,
       repaymentType: 'equal-payment',
@@ -39,7 +39,7 @@ const Home: React.FC = () => {
 
   const [reverseParams, setReverseParams] = useState<ReverseLoanParams>({
     monthlyPayment: 130000,
-    interestRate: 1.5,
+    interestRate: 1.0,
     years: 40,
     months: 0,
     repaymentType: 'equal-payment',

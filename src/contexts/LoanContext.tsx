@@ -65,14 +65,14 @@ interface LoanProviderProps {
  * デフォルトのローンパラメータ
  */
 const DEFAULT_LOAN_PARAMS: LoanParams = {
-  principal: 30000000, // 3000万円
-  interestRate: 1.5, // 1.5%
-  years: 35,
+  principal: 45000000, // 4500万円
+  interestRate: 1.0, // 1.0%
+  years: 40,
   months: 0,
   repaymentType: 'equal-payment',
   bonusPayment: {
     enabled: false,
-    amount: 0,
+    amount: 10000000, // 1000万円
     months: [1, 8], // デフォルト: 1月（冬）と8月（夏）
   },
 };
