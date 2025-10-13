@@ -1,16 +1,27 @@
-# 住宅ローン電卓 (Loan Calculator)
+# 住宅ローン電卓 → FPツール統合プラットフォーム
 
-住宅営業向けのローン計算アプリケーション。スマートフォンとPCの両方で使用可能なクロスプラットフォーム対応。
+**Phase 0 (完成)**: 住宅ローン電卓 - スマートフォンとPCの両方で使用可能
+**Phase 1-3 (計画中)**: 基本FP機能 → AI統合 → エンタープライズ機能
+
+[![Deploy Status](https://img.shields.io/badge/deploy-vercel-success)](https://loan-simulation.vercel.app)
+[![Build](https://img.shields.io/badge/build-passing-brightgreen)]()
+[![Tests](https://img.shields.io/badge/tests-74%20passing-brightgreen)]()
 
 ## 🎯 プロジェクト概要
 
-物理電卓の持ち運びを不要にし、顧客との商談時にスマホやPCで即座に計算・提示できるツール。
+### Phase 0 (✅ 完成)
+住宅営業向けの基本的なローン計算ツール。物理電卓の持ち運びを不要にし、顧客との商談時にスマホやPCで即座に計算・提示。
 
 **主な機能:**
-- 元利均等返済 / 元金均等返済の計算
-- ボーナス払い対応
-- 計算履歴の保存（最大20件）
-- 電卓風のUI（タップ＋キーボード入力対応）
+- ✅ 元利均等返済 / 元金均等返済の計算
+- ✅ ボーナス払い対応
+- ✅ 逆算機能（返済額→借入可能額）
+- ✅ 計算履歴の保存（最大20件、localStorage）
+- ✅ レスポンシブデザイン（PC/タブレット/スマホ）
+- ✅ モバイルアプリ対応（Capacitor）
+
+### Phase 1-3 (計画中)
+FP業務をサポートする統合プラットフォームへ進化予定。詳細は [DEVELOPMENT_ROADMAP.md](./docs/DEVELOPMENT_ROADMAP.md) を参照。
 
 ## 🚀 クイックスタート
 
@@ -67,29 +78,98 @@ loan-simulation/
 
 ## 📚 ドキュメント
 
-### 重要ドキュメント
+### 📖 計画・仕様書
+
+| ファイル | 説明 | ステータス |
+|---------|------|----------|
+| [DEVELOPMENT_ROADMAP.md](./docs/DEVELOPMENT_ROADMAP.md) | 🗺️ 全体ロードマップ（Phase 0-3） | ✅ v2.0 |
+| [requirements.md](./docs/requirements.md) | 📋 要件定義書（Phase 0完了 + 1-3計画） | ✅ v2.0 |
+| [tech-stack.md](./docs/tech-stack.md) | 🛠️ 技術スタック詳細・アーキテクチャ | ✅ v2.0 |
+| [project.md](./docs/project.md) | 📊 プロジェクト概要・競合分析・収益計画 | ✅ v2.1 |
+| [AI_API_COMPARISON.md](./docs/AI_API_COMPARISON.md) | 🤖 AI API比較分析（Gemini採用） | ✅ |
+
+### 🎫 開発チケット
+
+| ファイル | 説明 | ステータス |
+|---------|------|----------|
+| [PHASE0_ISSUES.md](./docs/issues/PHASE0_ISSUES.md) | Phase 0: デプロイ準備（5 issues） | 🟡 進行中 |
+| [SUBAGENT_GUIDE.md](./docs/SUBAGENT_GUIDE.md) | サブエージェント活用ガイド | ✅ |
+
+### 📝 その他
 
 | ファイル | 説明 |
 |---------|------|
-| [requirements.md](./docs/requirements.md) | 要件定義書（機能要件・UI/UX仕様） |
-| [tech-stack.md](./docs/tech-stack.md) | 技術スタック詳細・アーキテクチャ |
-| [DEVELOPMENT_PLAN.md](./docs/DEVELOPMENT_PLAN.md) | 開発計画（Phase 1-9、50+チケット） |
-| [TICKETS_SUMMARY.md](./docs/TICKETS_SUMMARY.md) | 開発進捗チェックリスト |
+| [TROUBLESHOOTING.md](./docs/TROUBLESHOOTING.md) | トラブルシューティング・エラー解決策 |
 | [CLAUDE.md](./CLAUDE.md) | Claude Code向けガイド |
 
-### 開発の進め方
+---
 
-1. **Phase 1** ✅ 完了: プロジェクトセットアップ
-2. **Phase 2**: ローン計算ロジック実装（サブエージェント推奨）
-3. **Phase 3**: UIコンポーネント開発（並列実行推奨）
-4. **Phase 4**: 状態管理とロジック統合
-5. **Phase 5**: ページ統合とルーティング
-6. **Phase 6**: スタイリングとUX改善
-7. **Phase 7**: テストとQA
-8. **Phase 8**: モバイルアプリ化（Capacitor）
-9. **Phase 9**: デプロイとリリース
+## 🚦 Phase 0: デプロイ準備と初期リリース（期間: 2-3日）
 
-詳細は [DEVELOPMENT_PLAN.md](./docs/DEVELOPMENT_PLAN.md) を参照。
+### 現在の状況
+- ✅ **完成**: 住宅ローン計算機（元利均等、元金均等、ボーナス、逆算、履歴）
+- ✅ **ビルド**: 成功（dist/ 生成済み）
+- ✅ **テスト**: 74個全パス
+- ⚠️ **デプロイ**: 未実施
+
+### 次のステップ
+
+#### 必須タスク（Must Have）
+1. **ISSUE-001**: Vercelへのデプロイ 🔴 Critical
+2. **ISSUE-002**: ErrorBoundary実装 🟡 High
+3. **ISSUE-004**: プライバシーポリシー・利用規約作成 🟡 High
+
+#### 推奨タスク（Should Have）
+4. **ISSUE-003**: トーストメッセージ実装 🟢 Medium
+5. **ISSUE-005**: Google Analytics設定 🟢 Medium
+
+**詳細**: [docs/issues/PHASE0_ISSUES.md](./docs/issues/PHASE0_ISSUES.md)
+
+**並列実行戦略**:
+```bash
+# メイン開発者: ISSUE-001 (Vercelデプロイ) + ISSUE-004 (文書作成)
+# Agent 1: ISSUE-002 (ErrorBoundary)
+# Agent 2: ISSUE-003 (Toast)
+# Agent 3: ISSUE-005 (Google Analytics)
+```
+
+**サブエージェント活用**: [docs/SUBAGENT_GUIDE.md](./docs/SUBAGENT_GUIDE.md)
+
+---
+
+## 🗺️ Phase 1-3 概要（計画中）
+
+### Phase 1: 基本FP機能（Tier 1）- 3ヶ月
+**目標**: 月額¥980のSaaSとして提供
+- 顧客管理（CRUD）
+- ライフイベント管理
+- キャッシュフロー表（60年間）
+- 教育費・老後資金シミュレーション
+- PDF出力
+
+**技術追加**: Supabase, React Query, Recharts, jsPDF
+
+### Phase 2: AI統合（Tier 2）- 6ヶ月
+**目標**: 月額¥4,980の付加価値
+- AIヒアリングアシスタント（Gemini 1.5 Flash）
+- 音声入力（Whisper API）
+- AI分析レポート（Gemini 1.5 Pro）
+- 家計簿API連携
+- 顧客ポータル（PWA）
+
+**技術追加**: Google Gemini API, OpenAI Whisper, PWA
+
+### Phase 3: エンタープライズ機能（Tier 3）- 12ヶ月
+**目標**: 月額¥50,000の法人向け
+- CRM連携（Salesforce, HubSpot）
+- チーム機能
+- 監査ログ
+- 金融商品DB
+- ホワイトラベル
+
+**技術追加**: Salesforce API, Auth0, Datadog, Sentry
+
+**詳細**: [docs/DEVELOPMENT_ROADMAP.md](./docs/DEVELOPMENT_ROADMAP.md)
 
 ## 🧮 計算式
 
