@@ -29,14 +29,15 @@ const BonusSettings: React.FC<BonusSettingsProps> = ({
   // ボーナス払いの上限（借入額の50%）
   const maxBonusAmount = Math.floor(principal * 0.5);
 
-  const handleChange = (field: keyof BonusPayment, value: any) => {
+  const handleChange = (field: keyof BonusPayment, value: number | number[]) => {
     // 上限チェック
-    if (field === 'amount') {
-      value = Math.min(value, maxBonusAmount);
+    let finalValue: number | number[] = value;
+    if (field === 'amount' && typeof value === 'number') {
+      finalValue = Math.min(value, maxBonusAmount);
     }
     onChange({
       ...settings,
-      [field]: value,
+      [field]: finalValue,
     });
   };
 

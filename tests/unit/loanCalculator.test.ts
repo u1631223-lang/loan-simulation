@@ -12,7 +12,7 @@ import {
   calculateTotalFromSchedule,
   calculateTotalInterestFromSchedule,
 } from '../../src/utils/loanCalculator';
-import type { LoanParams, LoanResult, PaymentSchedule } from '../../src/types';
+import type { LoanParams, LoanResult } from '../../src/types';
 
 describe('loanCalculator', () => {
   describe('Helper Functions', () => {

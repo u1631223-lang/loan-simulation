@@ -24,7 +24,7 @@ const ReverseBonusSettings: React.FC<ReverseBonusSettingsProps> = ({
   onChange,
   errors = {},
 }) => {
-  const handleChange = (field: keyof ReverseBonusPayment, value: any) => {
+  const handleChange = (field: keyof ReverseBonusPayment, value: number | number[]) => {
     onChange({
       ...settings,
       [field]: value,

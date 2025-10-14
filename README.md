@@ -225,6 +225,8 @@ npm run type-check
 
 ## 📦 ビルドとデプロイ
 
+### クイックデプロイ
+
 ```bash
 # プロダクションビルド
 npm run build
@@ -235,6 +237,25 @@ npm run preview
 # Vercelへデプロイ
 vercel --prod
 ```
+
+### デプロイ準備完了 ✅
+
+Phase 9（デプロイメント準備）が完了しました：
+
+- ✅ Production build 成功（dist/ 生成済み）
+- ✅ TypeScript 型チェック通過
+- ✅ ESLint 静的解析通過
+- ✅ 全テスト通過（74 tests passing）
+- ✅ Preview build 動作確認済み
+- ✅ Vercel 設定完了（vercel.json）
+- ✅ Capacitor 設定完了（Android/iOS ready）
+
+**ビルドサイズ:**
+- HTML: 0.45 KB
+- CSS: 35.14 KB (gzip: 6.22 KB)
+- JS: 238.53 KB (gzip: 74.25 KB)
+
+**詳細なデプロイ手順は [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md) を参照してください。**
 
 ## 🤝 開発ガイドライン
 

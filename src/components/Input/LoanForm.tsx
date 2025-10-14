@@ -18,7 +18,7 @@ const LoanForm: React.FC<LoanFormProps> = ({
   onSubmit,
   errors = {},
 }) => {
-  const handleChange = (field: keyof LoanParams, value: any) => {
+  const handleChange = (field: keyof LoanParams, value: string | number) => {
     onChange({
       ...values,
       [field]: value,

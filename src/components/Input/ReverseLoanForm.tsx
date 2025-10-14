@@ -18,7 +18,7 @@ const ReverseLoanForm: React.FC<ReverseLoanFormProps> = ({
   onSubmit,
   errors = {},
 }) => {
-  const handleChange = (field: keyof ReverseLoanParams, value: any) => {
+  const handleChange = (field: keyof ReverseLoanParams, value: string | number) => {
     onChange({
       ...values,
       [field]: value,
