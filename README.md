@@ -3,9 +3,10 @@
 **Phase 0 (完成)**: 住宅ローン電卓 - スマートフォンとPCの両方で使用可能
 **Phase 1-3 (計画中)**: 基本FP機能 → AI統合 → エンタープライズ機能
 
-[![Deploy Status](https://img.shields.io/badge/deploy-vercel-success)](https://loan-simulation.vercel.app)
+[![Deploy Status](https://img.shields.io/badge/deploy-vercel-success)](https://loan-simulation-eight.vercel.app)
 [![Build](https://img.shields.io/badge/build-passing-brightgreen)]()
 [![Tests](https://img.shields.io/badge/tests-74%20passing-brightgreen)]()
+[![Production](https://img.shields.io/badge/production-live-brightgreen)](https://loan-simulation-eight.vercel.app)
 
 ## 🎯 プロジェクト概要
 
@@ -110,12 +111,14 @@ loan-simulation/
 - ✅ **完成**: 住宅ローン計算機（元利均等、元金均等、ボーナス、逆算、履歴）
 - ✅ **ビルド**: 成功（dist/ 生成済み）
 - ✅ **テスト**: 74個全パス
-- ⚠️ **デプロイ**: 未実施
+- ✅ **デプロイ**: 本番稼働中 🎉
+
+**🚀 本番URL**: https://loan-simulation-eight.vercel.app
 
 ### 次のステップ
 
 #### 必須タスク（Must Have）
-1. **ISSUE-001**: Vercelへのデプロイ 🔴 Critical
+1. ~~**ISSUE-001**: Vercelへのデプロイ~~ ✅ **完了**
 2. **ISSUE-002**: ErrorBoundary実装 🟡 High
 3. **ISSUE-004**: プライバシーポリシー・利用規約作成 🟡 High
 
@@ -288,5 +291,6 @@ Claude Codeで開発する場合は [CLAUDE.md](./CLAUDE.md) を参照してく�
 ---
 
 **作成日**: 2025-10-12
-**バージョン**: 0.0.1
-**ステータス**: Phase 1 完了
+**バージョン**: 1.0.0
+**ステータス**: Phase 9 完了 - 本番稼働中 🎉
+**本番URL**: https://loan-simulation-eight.vercel.app
