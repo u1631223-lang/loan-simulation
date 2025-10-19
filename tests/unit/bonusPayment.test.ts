@@ -406,5 +406,24 @@ describe('calculateWithBonus - ボーナス払い計算', () => {
         );
       }).toThrow('ボーナス返済額が借入金額を超えています');
     });
+
+    it('返済期間内にボーナス返済が発生しない場合はエラー', () => {
+      const principal = 5_000_000;
+      const bonusAmount = 1_000_000;
+      const annualRate = 1.5;
+      const totalMonths = 4; // 4ヶ月でボーナス月に到達しない
+      const bonusMonths = [6, 12];
+
+      expect(() => {
+        calculateWithBonus(
+          principal,
+          annualRate,
+          totalMonths,
+          bonusAmount,
+          bonusMonths,
+          'equal-payment'
+        );
+      }).toThrow('返済期間内にボーナス返済が発生しません');
+    });
   });
 });

@@ -361,6 +361,10 @@ export const calculatePrincipalWithBonus = (
   const totalYears = totalMonths / 12;
   const totalBonusPayments = Math.floor(totalYears * bonusTimesPerYear);
 
+  if (totalBonusPayments < 1) {
+    throw new Error('返済期間内にボーナス返済が発生しません');
+  }
+
   // 月次返済分の借入可能額
   const regularPrincipal = calculatePrincipalFromPayment(monthlyPayment, annualRate, totalMonths);
 
@@ -403,6 +407,10 @@ export const calculateWithBonus = (
   const totalYears = totalMonths / 12;
   const totalBonusPayments = Math.floor(totalYears * bonusTimesPerYear);
 
+  if (totalBonusPayments < 1) {
+    throw new Error('返済期間内にボーナス返済が発生しません');
+  }
+
   // Step 2: 月次返済額の計算
   let regularMonthlyPayment: number;
   let regularSchedule: PaymentSchedule[];
@@ -430,6 +438,7 @@ export const calculateWithBonus = (
   // Step 4: 返済計画表の統合
   const schedule: PaymentSchedule[] = [];
   let bonusIndex = 0;
+  let bonusBalanceOutstanding = bonusPrincipal;
 
   for (let month = 1; month <= totalMonths; month++) {
     const regularPayment = regularSchedule[month - 1];
@@ -451,20 +460,19 @@ export const calculateWithBonus = (
         isBonus: true,
       });
 
+      bonusBalanceOutstanding = bonusPayment.balance;
       bonusIndex++;
     } else {
       // 通常月: 月次返済額のみ
-      // ボーナス分の残高を加算
-      const bonusBalance = bonusIndex < bonusSchedule.length
-        ? bonusSchedule[bonusIndex]?.balance || 0
-        : 0;
+      // ボーナス分の残高を加算（最後に支払われた時点の残高を使用）
+      const combinedBalance = roundFinancial(regularPayment.balance + bonusBalanceOutstanding);
 
       schedule.push({
         month,
         payment: regularPayment.payment,
         principal: regularPayment.principal,
         interest: regularPayment.interest,
-        balance: roundFinancial(regularPayment.balance + bonusBalance),
+        balance: combinedBalance,
         isBonus: false,
       });
     }

@@ -77,6 +77,7 @@ export interface LoanResult {
   totalPayment: number;         // 総返済額
   totalInterest: number;        // 利息総額
   totalPrincipal: number;       // 元金総額
+  bonusPrincipal?: number;      // ボーナス分の借入額（逆算時のみ）
   schedule: PaymentSchedule[];  // 返済計画表
 }
 

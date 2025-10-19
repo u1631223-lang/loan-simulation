@@ -4,6 +4,7 @@
  */
 
 import type { LoanParams } from '@/types';
+import BonusSettings from './BonusSettings';
 
 interface LoanFormProps {
   values: LoanParams;
@@ -110,7 +111,7 @@ const LoanForm: React.FC<LoanFormProps> = ({
             value={formatManyen(values.principal)}
             onChange={handlePrincipalChange}
             className={`${inputClass(!!errors.principal)} flex-1`}
-            placeholder="3000"
+            placeholder="5000"
           />
           <span className="absolute right-20 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none">
             万円
@@ -190,7 +191,7 @@ const LoanForm: React.FC<LoanFormProps> = ({
                 id="months"
                 type="text"
                 inputMode="numeric"
-                value={values.months || 0}
+                value={values.months === 0 ? '' : values.months}
                 onChange={(e) => {
                   const input = e.target.value;
                   if (input === '' || /^\d+$/.test(input)) {
@@ -315,6 +316,30 @@ const LoanForm: React.FC<LoanFormProps> = ({
             </span>
           </label>
         </div>
+      </div>
+
+      {/* ボーナス払い設定 */}
+      <div className="border-t pt-6">
+        <BonusSettings
+          enabled={values.bonusPayment?.enabled || false}
+          settings={values.bonusPayment}
+          onToggle={(enabled) => {
+            onChange({
+              ...values,
+              bonusPayment: {
+                ...values.bonusPayment!,
+                enabled,
+              },
+            });
+          }}
+          onChange={(bonusPayment) => {
+            onChange({
+              ...values,
+              bonusPayment,
+            });
+          }}
+          principal={values.principal}
+        />
       </div>
 
       {/* 計算ボタン */}

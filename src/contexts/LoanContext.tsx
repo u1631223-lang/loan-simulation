@@ -217,6 +217,10 @@ export const LoanProvider: React.FC<LoanProviderProps> = ({ children }) => {
       const totalYears = totalMonths / 12;
       const totalBonusPayments = Math.floor(totalYears * bonusTimesPerYear);
 
+      if (totalBonusPayments < 1) {
+        throw new Error('返済期間内にボーナス返済が発生しません');
+      }
+
       // Step 1: 月々の返済額から「通常分の借入可能額」を計算
       const regularPrincipal = calculatePrincipalFromPayment(
         params.monthlyPayment,
@@ -264,9 +268,91 @@ export const LoanProvider: React.FC<LoanProviderProps> = ({ children }) => {
       },
     };
 
-    // 通常の計算ロジックを実行
-    calculateLoan(forwardParams);
-  }, [calculateLoan]);
+    // バリデーション
+    const validation = validateLoanParams(forwardParams);
+    if (!validation.valid) {
+      console.error('Validation errors:', validation.errors);
+      throw new Error(validation.errors[0].message);
+    }
+
+    let result: LoanResult;
+
+    // ボーナス払いがある場合
+    if (forwardParams.bonusPayment?.enabled && forwardParams.bonusPayment.amount > 0) {
+      result = calculateWithBonus(
+        forwardParams.principal,
+        forwardParams.interestRate,
+        totalMonths,
+        forwardParams.bonusPayment.amount,
+        forwardParams.bonusPayment.months,
+        forwardParams.repaymentType
+      );
+    } else {
+      // ボーナス払いがない場合
+      if (forwardParams.repaymentType === 'equal-payment') {
+        // 元利均等返済
+        const monthlyPayment = calculateEqualPayment(
+          forwardParams.principal,
+          forwardParams.interestRate,
+          totalMonths
+        );
+        const schedule = generateEqualPaymentSchedule(
+          forwardParams.principal,
+          forwardParams.interestRate,
+          totalMonths
+        );
+        const totalPayment = calculateTotalFromSchedule(schedule);
+        const totalInterest = calculateTotalInterestFromSchedule(schedule);
+
+        result = {
+          monthlyPayment: roundFinancial(monthlyPayment),
+          totalPayment: roundFinancial(totalPayment),
+          totalInterest: roundFinancial(totalInterest),
+          totalPrincipal: forwardParams.principal,
+          schedule,
+        };
+      } else {
+        // 元金均等返済
+        const schedule = calculateEqualPrincipal(
+          forwardParams.principal,
+          forwardParams.interestRate,
+          totalMonths
+        );
+        const totalPayment = calculateTotalFromSchedule(schedule);
+        const totalInterest = calculateTotalInterestFromSchedule(schedule);
+
+        result = {
+          monthlyPayment: schedule[0]?.payment || 0,
+          totalPayment: roundFinancial(totalPayment),
+          totalInterest: roundFinancial(totalInterest),
+          totalPrincipal: forwardParams.principal,
+          schedule,
+        };
+      }
+    }
+
+    // 逆算モードの場合、ボーナス分の借入額を追加
+    if (calculatedBonusAmount > 0) {
+      result.bonusPrincipal = calculatedBonusAmount;
+    }
+
+    setLoanParams(forwardParams);
+    setLoanResult(result);
+
+    // 履歴に追加（FIFO）
+    const newHistoryItem: LoanHistory = {
+      id: `loan-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+      timestamp: Date.now(),
+      params: forwardParams,
+      result,
+    };
+
+    setHistory((prevHistory) => {
+      const newHistory = [newHistoryItem, ...prevHistory];
+      // 最大20件まで保存
+      return newHistory.slice(0, MAX_HISTORY_ITEMS);
+    });
+  }, []);
 
   /**
    * 履歴から計算結果を読み込み

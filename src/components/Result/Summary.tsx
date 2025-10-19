@@ -63,6 +63,11 @@ const Summary: React.FC<SummaryProps> = ({
           <p className="text-3xl sm:text-4xl font-bold text-secondary">
             {formatCurrency(result.totalPrincipal)}
           </p>
+          {result.bonusPrincipal && result.bonusPrincipal > 0 && (
+            <p className="text-sm text-gray-600 mt-2">
+              （内ボーナス {Math.round(result.bonusPrincipal / 10000).toLocaleString('ja-JP')}万円）
+            </p>
+          )}
         </div>
       )}
 

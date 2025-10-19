@@ -10,8 +10,6 @@ import Header from '@/components/Layout/Header';
 import Footer from '@/components/Layout/Footer';
 import LoanForm from '@/components/Input/LoanForm';
 import ReverseLoanForm from '@/components/Input/ReverseLoanForm';
-import BonusSettings from '@/components/Input/BonusSettings';
-import ReverseBonusSettings from '@/components/Input/ReverseBonusSettings';
 import Summary from '@/components/Result/Summary';
 import Schedule from '@/components/Result/Schedule';
 import { useCalculator } from '@/hooks/useCalculator';
@@ -24,21 +22,21 @@ const Home: React.FC = () => {
 
   const [currentParams, setCurrentParams] = useState<LoanParams>(
     loanParams || {
-      principal: 45000000,
+      principal: 50000000, // デフォルト: 5000万円
       interestRate: 1.0,
       years: 40,
       months: 0,
       repaymentType: 'equal-payment',
       bonusPayment: {
         enabled: false,
-        amount: 10000000, // デフォルト: 1000万円
+        amount: 15000000, // デフォルト: 1500万円
         months: [1, 8], // デフォルト: 1月（冬）と8月（夏）
       },
     }
   );
 
   const [reverseParams, setReverseParams] = useState<ReverseLoanParams>({
-    monthlyPayment: 130000,
+    monthlyPayment: 150000, // デフォルト: 15万円
     interestRate: 1.0,
     years: 40,
     months: 0,
@@ -60,39 +58,6 @@ const Home: React.FC = () => {
     setShowSchedule(true);
   };
 
-  const handleBonusToggle = (enabled: boolean) => {
-    setCurrentParams({
-      ...currentParams,
-      bonusPayment: {
-        ...currentParams.bonusPayment!,
-        enabled,
-      },
-    });
-  };
-
-  const handleBonusChange = (bonusPayment: typeof currentParams.bonusPayment) => {
-    setCurrentParams({
-      ...currentParams,
-      bonusPayment,
-    });
-  };
-
-  const handleReverseBonusToggle = (enabled: boolean) => {
-    setReverseParams({
-      ...reverseParams,
-      bonusPayment: {
-        ...reverseParams.bonusPayment!,
-        enabled,
-      },
-    });
-  };
-
-  const handleReverseBonusChange = (bonusPayment: typeof reverseParams.bonusPayment) => {
-    setReverseParams({
-      ...reverseParams,
-      bonusPayment,
-    });
-  };
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -139,7 +104,7 @@ const Home: React.FC = () => {
           {/* メインコンテンツ */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* 左側: 入力フォーム */}
-            <div className="space-y-6">
+            <div>
               <div className="bg-white rounded-lg shadow-md p-6">
                 <h2 className="text-xl font-semibold text-gray-800 mb-4">
                   {calculationMode === 'forward' ? 'ローン条件入力' : '返済条件入力'}
@@ -155,26 +120,6 @@ const Home: React.FC = () => {
                     values={reverseParams}
                     onChange={setReverseParams}
                     onSubmit={handleReverseCalculate}
-                  />
-                )}
-              </div>
-
-              {/* ボーナス払い設定 */}
-              <div className="bg-white rounded-lg shadow-md p-6">
-                {calculationMode === 'forward' ? (
-                  <BonusSettings
-                    enabled={currentParams.bonusPayment?.enabled || false}
-                    settings={currentParams.bonusPayment}
-                    onToggle={handleBonusToggle}
-                    onChange={handleBonusChange}
-                    principal={currentParams.principal}
-                  />
-                ) : (
-                  <ReverseBonusSettings
-                    enabled={reverseParams.bonusPayment?.enabled || false}
-                    settings={reverseParams.bonusPayment}
-                    onToggle={handleReverseBonusToggle}
-                    onChange={handleReverseBonusChange}
                   />
                 )}
               </div>

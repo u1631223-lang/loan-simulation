@@ -18,7 +18,7 @@ const BonusSettings: React.FC<BonusSettingsProps> = ({
   enabled,
   settings = {
     enabled: false,
-    amount: 10000000, // デフォルト: 1000万円
+    amount: 15000000, // デフォルト: 1500万円
     months: [1, 8], // デフォルトは1月（冬）と8月（夏）
   },
   onToggle,

@@ -522,9 +522,9 @@ All numeric inputs now have ▲/▼ buttons for fine-tuning:
 **Problem**: 住宅ローンの金額は8桁（例：30,000,000円）で桁数が多く数えにくい。
 
 **Solution**: 入力画面では「万円」単位で表示
-- 借入金額: 3000万円 と入力（内部では30,000,000円として計算）
+- 借入金額: 5000万円 と入力（内部では50,000,000円として計算）
 - ボーナス加算額: 50万円 と入力（内部では500,000円として計算）
-- カンマ区切りで読みやすく（例：3,000万円）
+- カンマ区切りで読みやすく（例：5,000万円）
 
 **Benefits**:
 - 桁数が少なく入力しやすい（8桁 → 4桁）
@@ -534,6 +534,32 @@ All numeric inputs now have ▲/▼ buttons for fine-tuning:
 **Files modified**:
 - `src/components/Input/LoanForm.tsx`: 借入金額を万円表示
 - `src/components/Input/BonusSettings.tsx`: ボーナス加算額を万円表示
+
+### 4. Form Layout Reorganization (2025-10-20)
+
+**Change**: Moved bonus payment settings inside the main forms
+
+**Rationale**: Better user flow - all settings in one place
+- Bonus payment section now appears between "返済方式" and "計算する" button
+- Users can see all options without scrolling to a separate section
+- More intuitive workflow
+
+**Updated Placeholders**:
+- 借入金額: 3000万円 → 5000万円
+- 月々の返済額: 100,000円 → 150,000円
+
+**Updated Default Values**:
+- Forward mode bonus: 1000万円 → 1500万円
+- Reverse mode: Shows bonus breakdown "（内ボーナス○○万円）" when bonus is enabled
+
+**Files modified**:
+- `src/components/Input/LoanForm.tsx`: Integrated BonusSettings component
+- `src/components/Input/ReverseLoanForm.tsx`: Integrated ReverseBonusSettings component
+- `src/pages/Home.tsx`: Removed separate bonus settings sections, updated default values
+- `src/components/Input/BonusSettings.tsx`: Updated default bonus amount
+- `src/types/loan.ts`: Added `bonusPrincipal` field to LoanResult
+- `src/contexts/LoanContext.tsx`: Calculate and store bonus principal in reverse mode
+- `src/components/Result/Summary.tsx`: Display bonus breakdown in reverse mode
 
 ### 2. Bonus Payment Months Fixed to 1月/8月
 
@@ -593,8 +619,8 @@ See `docs/TROUBLESHOOTING.md` **"UX改善の記録"** section for implementation
 - `src/types/loan.ts`: `ReverseLoanParams`, `ReverseBonusPayment` types
 
 **Default Values**:
-- Forward mode: 4,500万円, 1.0%, 40年, ボーナス1,000万円
-- Reverse mode: 13万円/月, 1.0%, 40年, ボーナス20万円
+- Forward mode: 5,000万円, 1.0%, 40年, ボーナス1,500万円
+- Reverse mode: 15万円/月, 1.0%, 40年, ボーナス20万円
 
 ## Troubleshooting
 
