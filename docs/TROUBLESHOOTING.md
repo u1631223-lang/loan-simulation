@@ -887,5 +887,148 @@ const handleIncrement = (field: keyof LoanParams, step: number) => {
 
 ---
 
-**最終更新**: 2025-10-13
-**バージョン**: 1.4 (✅ 簡易版完成: 金利2桁表示、↑↓ボタン、バリデーション修正)
+## デプロイ関連
+
+### Vercel デプロイの仕組み（GitHub連携）
+
+**発生日**: 2025-10-20
+
+**重要な発見**:
+VercelとGitHubを連携している場合、**GitHubへのpushだけで自動デプロイされる**
+
+**デプロイフロー**:
+```bash
+# 1. GitHubにpush
+git add .
+git commit -m "feat: Add new feature"
+git push origin main
+
+# 2. Vercelが自動的に検知してデプロイ
+# → `vercel --prod` コマンドは不要！
+```
+
+**確認方法**:
+1. Vercelダッシュボード (https://vercel.com/dashboard) にアクセス
+2. プロジェクトページで最新のデプロイメントを確認
+3. GitHubのコミットハッシュと紐付いていることを確認
+
+**メリット**:
+- 手動デプロイコマンド不要
+- GitHubへのpush後、自動的に本番環境に反映
+- デプロイ履歴がGitコミットと連動
+- ロールバックが簡単（以前のコミットに戻すだけ）
+
+**注意点**:
+- mainブランチへのpushが本番デプロイになる設定の場合、慎重に
+- プレビューデプロイ: feature branchへのpushは自動的にプレビュー環境にデプロイ
+- 環境変数はVercelダッシュボードから設定
+
+**CLI でのデプロイが必要な場合**:
+- ローカルから直接デプロイしたい場合のみ
+- GitHub連携していない場合
+- 環境変数のテストなど特殊な場合
+
+---
+
+### 問題: Vercel CLI デプロイ時のトークン無効エラー（参考）
+
+**エラー内容**:
+```bash
+vercel --prod
+# → Error: The specified token is not valid. Use `vercel login` to generate a new token.
+```
+
+**原因**:
+- Vercelの認証トークンが期限切れまたは無効化されている
+- 長期間ログインしていない場合に発生
+
+**解決方法** (GitHub連携していない場合のみ):
+
+1. **Vercelに再ログイン**:
+   ```bash
+   vercel login
+   ```
+
+2. **ブラウザで認証URLにアクセス**:
+   - コマンドが表示するURLをブラウザで開く
+   - 例: `https://vercel.com/oauth/device?user_code=XXXX-XXXX`
+
+3. **認証完了後、デプロイを実行**:
+   ```bash
+   vercel --prod --yes
+   ```
+
+**推奨**: GitHub連携を設定して自動デプロイを利用する方が便利
+
+**関連コマンド**:
+```bash
+# ログイン状態確認
+vercel whoami
+
+# プロジェクト情報確認
+vercel project ls
+
+# デプロイ履歴確認
+vercel ls
+```
+
+---
+
+## SimpleCalculator 実装時のトラブル
+
+### 問題: JSX Adjacent Elements Error
+
+**発生日**: 2025-10-20
+
+**エラー内容**:
+```
+Adjacent JSX elements must be wrapped in an enclosing tag
+```
+
+**場所**: `src/pages/Home.tsx` (line 225)
+
+**原因**:
+- SimpleCalculator を Home ページに統合する際、ternary operator の構造が不適切
+- 特に grid container `<div>` の開始タグが `:` の後に正しく配置されていなかった
+- インデントの乱れにより、括弧のマッチングが分かりにくくなっていた
+
+**解決方法**:
+
+1. **ファイル全体を読み込んで構造を確認**:
+   ```typescript
+   // 正しい構造
+   {viewMode === 'calculator' ? (
+     <SimpleCalculator />
+   ) : (
+     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+       {/* ローン計算コンテンツ */}
+     </div>
+   )}
+   ```
+
+2. **インデントを統一**:
+   - grid container とその子要素のインデントを揃える
+   - 閉じタグの位置を明確にする
+
+3. **Vite dev server を再起動**:
+   - HMR (Hot Module Replacement) のキャッシュが古いエラーを表示し続ける場合がある
+   - サーバーを再起動することで解決
+
+**手順**:
+```bash
+# 1. 既存のViteサーバーを停止
+# Ctrl+C または kill コマンド
+
+# 2. サーバーを再起動
+npm run dev
+```
+
+**教訓**:
+- ternary operator を使う場合は括弧の対応を慎重に確認
+- JSXのネストが深い場合は、インデントを統一して可読性を保つ
+- HMRが正しく動作しない場合は、サーバー再起動を試す
+
+---
+
+**最終更新**: 2025-10-20
+**バージョン**: 1.5 (✅ SimpleCalculator追加、デプロイエラー対応記録)
