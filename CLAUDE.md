@@ -62,20 +62,20 @@ npx cap run ios
 
 ## Architecture
 
-### Directory Structure (Planned)
+### Directory Structure
 ```
 src/
 ├── components/
-│   ├── Calculator/    # Keypad, Display components
-│   ├── Input/         # LoanForm, BonusSettings
-│   ├── Result/        # Summary, Schedule, Chart
-│   ├── History/       # HistoryList, HistoryItem
+│   ├── Calculator/    # SimpleCalculator (standalone calculator)
+│   ├── Input/         # LoanForm, ReverseLoanForm, BonusSettings, ReverseBonusSettings
+│   ├── Result/        # Summary, Schedule
+│   ├── History/       # HistoryList
 │   └── Layout/        # Header, Footer, Container
 ├── contexts/          # LoanContext (global state)
 ├── hooks/             # useCalculator, useHistory, useKeyboard
 ├── utils/             # loanCalculator, storage, formatter
 ├── types/             # TypeScript type definitions (loan.ts)
-└── pages/             # Home, History, Settings
+└── pages/             # Home, History
 ```
 
 ### State Management Architecture
@@ -415,13 +415,13 @@ See `docs/TROUBLESHOOTING.md` for details.
 - `tests/unit/bonusPayment.test.ts` - 13 tests
 - **74 tests passing** ✅
 
-**Phase 3: UI Components** (2 commits)
+**Phase 3: UI Components**
 - **Layout**: `Container.tsx`, `Header.tsx`, `Footer.tsx`
-- **Calculator**: `Keypad.tsx`, `Display.tsx`
-- **Input**: `LoanForm.tsx`, `BonusSettings.tsx`
+- **Calculator**: `SimpleCalculator.tsx` (standalone calculator with memory functions)
+- **Input**: `LoanForm.tsx`, `ReverseLoanForm.tsx`, `BonusSettings.tsx`, `ReverseBonusSettings.tsx`
 - **Result**: `Summary.tsx`, `Schedule.tsx`
 - **History**: `HistoryList.tsx`
-- 8/9 components completed (Chart optional - skipped)
+- All components completed (Chart optional - skipped)
 
 **Documentation:**
 - `docs/requirements.md` - Full requirements
@@ -621,6 +621,94 @@ See `docs/TROUBLESHOOTING.md` **"UX改善の記録"** section for implementation
 **Default Values**:
 - Forward mode: 5,000万円, 1.0%, 40年, ボーナス1,500万円
 - Reverse mode: 15万円/月, 1.0%, 40年, ボーナス20万円
+
+## 🧮 Simple Calculator Feature (2025-10-20)
+
+**Status**: ✅ 簡易電卓機能追加完了 - Simple calculator fully functional
+
+### Overview
+Added a standalone calculator feature for quick real estate calculations (area/tsubo calculations, building area calculations) during customer meetings.
+
+### Key Features Implemented
+1. ✅ **Memory Functions**: MC, MR, M+, M- (critical for real estate calculations)
+2. ✅ **Calculation History**: Persistent until AC pressed, values clickable for reuse
+3. ✅ **Keyboard Input**: Full support (e.g., "1+1" then Enter)
+4. ✅ **00 Button**: Quick entry of large housing-related amounts (数千万〜数億円)
+5. ✅ **Touch-Friendly Design**: 68px button height, active:scale-95 feedback
+6. ✅ **View Mode Toggle**: Tab switching between loan calculator and simple calculator
+7. ✅ **Financial Institution Design**: Professional aesthetic for customer-facing use
+
+### Design Philosophy (Option B - Financial Institution Style)
+
+**Color Palette:**
+- **Display Background**: `#1E3A5F` to `#2C5282` (dark navy gradient) - trust and stability
+- **Operator Buttons**: `#1E3A5F` (deep navy blue) - professional financial color
+- **Equals Button**: Amber gradient (`from-amber-500 to-amber-600`) - gold accent for luxury/premium feel
+- **Number Buttons**: White with shadows - clean, professional, high readability
+- **Memory Buttons**: `bg-gray-700` - elegant dark gray
+- **Clear Buttons**: `bg-gray-600` - subdued gray
+
+**Design Rationale:**
+- High-end financial institution aesthetic for customer meetings
+- Dark navy conveys trust and stability (Japanese banking tradition)
+- Gold accents create premium feel appropriate for high-value housing transactions
+- White number buttons provide maximum readability under various lighting
+- Layered shadows create depth and tactile feeling
+
+### Implementation Files
+
+**New Component:**
+- `src/components/Calculator/SimpleCalculator.tsx` (300 lines)
+  - Complete calculator logic with expression evaluation
+  - Memory state management (MR, M+, M-, MC)
+  - Calculation history with click-to-reuse
+  - Keyboard event handling (numbers, operators, Enter, Escape, Backspace)
+  - 00 button for large number entry
+  - Financial institution styling with Tailwind CSS
+
+**Modified Files:**
+- `src/pages/Home.tsx`
+  - Added `ViewMode` type ('loan' | 'calculator')
+  - View mode toggle buttons
+  - Conditional rendering between loan calculator and simple calculator
+
+### Keyboard Shortcuts
+- **Numbers**: 0-9, . (decimal point)
+- **Operators**: +, -, *, / (× and ÷ displayed in UI)
+- **Execute**: Enter or =
+- **Clear**: Escape (clears current input)
+- **Backspace**: Delete last character
+
+### Button Layout
+```
+MC   MR   M+   M-
+AC   C    ⌫    ÷
+7    8    9    ×
+4    5    6    -
+1    2    3    +
+0    00   .    =
+```
+
+### Use Cases
+- 坪数計算 (tsubo/area calculations): e.g., 50坪 × 坪単価
+- 建物面積計算 (building area calculations)
+- Quick price estimates during customer meetings
+- Multiple calculations with memory function (M+/M- for totals)
+- History review when memory button forgotten
+
+### Technical Details
+- **Expression Evaluation**: Uses `Function` constructor (safer than `eval`)
+- **Float Precision**: `Math.round(result * 100000000) / 100000000` to handle floating-point errors
+- **Number Formatting**: `toLocaleString('ja-JP')` for comma separators
+- **State Management**: Local React state (useState) - no global context needed
+- **Responsive**: `flex-col lg:flex-row` layout (mobile-first)
+
+### Customer-Facing Design Considerations
+- Large display text (`text-5xl sm:text-6xl`) for easy viewing by customers
+- High contrast for readability in various lighting conditions
+- Professional color scheme builds trust
+- Touch-friendly button sizes (68px height) for tablet/smartphone use
+- Calculation history visible for transparency
 
 ## Troubleshooting
 

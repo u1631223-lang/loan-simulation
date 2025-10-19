@@ -12,13 +12,17 @@ import LoanForm from '@/components/Input/LoanForm';
 import ReverseLoanForm from '@/components/Input/ReverseLoanForm';
 import Summary from '@/components/Result/Summary';
 import Schedule from '@/components/Result/Schedule';
+import SimpleCalculator from '@/components/Calculator/SimpleCalculator';
 import { useCalculator } from '@/hooks/useCalculator';
 import type { LoanParams, ReverseLoanParams, CalculationMode } from '@/types';
+
+type ViewMode = 'loan' | 'calculator';
 
 const Home: React.FC = () => {
   const { loanParams, loanResult, error, calculate, calculateReverse } = useCalculator();
   const [showSchedule, setShowSchedule] = useState(false);
   const [calculationMode, setCalculationMode] = useState<CalculationMode>('forward');
+  const [viewMode, setViewMode] = useState<ViewMode>('loan');
 
   const [currentParams, setCurrentParams] = useState<LoanParams>(
     loanParams || {
@@ -71,41 +75,72 @@ const Home: React.FC = () => {
               住宅ローン電卓
             </h1>
             <p className="text-gray-600">
-              {calculationMode === 'forward'
-                ? '借入金額と返済条件を入力して、月々の返済額を計算できます'
-                : '月々の返済額を入力して、借入可能額を計算できます'}
+              {viewMode === 'loan'
+                ? calculationMode === 'forward'
+                  ? '借入金額と返済条件を入力して、月々の返済額を計算できます'
+                  : '月々の返済額を入力して、借入可能額を計算できます'
+                : '坪数計算や簡易計算に便利な電卓です'}
             </p>
           </div>
 
-          {/* 計算モード切り替え */}
-          <div className="flex gap-2 mb-8 justify-center">
+          {/* 表示モード切り替え */}
+          <div className="flex gap-2 mb-6 justify-center">
             <button
-              onClick={() => setCalculationMode('forward')}
+              onClick={() => setViewMode('loan')}
               className={`px-6 py-3 rounded-lg font-medium transition-all ${
-                calculationMode === 'forward'
+                viewMode === 'loan'
                   ? 'bg-primary text-white shadow-md'
                   : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-300'
               }`}
             >
-              借入額から計算
+              💰 ローン計算
             </button>
             <button
-              onClick={() => setCalculationMode('reverse')}
+              onClick={() => setViewMode('calculator')}
               className={`px-6 py-3 rounded-lg font-medium transition-all ${
-                calculationMode === 'reverse'
+                viewMode === 'calculator'
                   ? 'bg-primary text-white shadow-md'
                   : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-300'
               }`}
             >
-              返済額から計算
+              🧮 電卓
             </button>
           </div>
 
+          {/* ローンモード時の計算タイプ切り替え */}
+          {viewMode === 'loan' && (
+            <div className="flex gap-2 mb-8 justify-center">
+              <button
+                onClick={() => setCalculationMode('forward')}
+                className={`px-6 py-3 rounded-lg font-medium transition-all ${
+                  calculationMode === 'forward'
+                    ? 'bg-secondary text-white shadow-md'
+                    : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-300'
+                }`}
+              >
+                借入額から計算
+              </button>
+              <button
+                onClick={() => setCalculationMode('reverse')}
+                className={`px-6 py-3 rounded-lg font-medium transition-all ${
+                  calculationMode === 'reverse'
+                    ? 'bg-secondary text-white shadow-md'
+                    : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-300'
+                }`}
+              >
+                返済額から計算
+              </button>
+            </div>
+          )}
+
           {/* メインコンテンツ */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* 左側: 入力フォーム */}
-            <div>
-              <div className="bg-white rounded-lg shadow-md p-6">
+          {viewMode === 'calculator' ? (
+            <SimpleCalculator />
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* 左側: 入力フォーム */}
+              <div>
+                <div className="bg-white rounded-lg shadow-md p-6">
                 <h2 className="text-xl font-semibold text-gray-800 mb-4">
                   {calculationMode === 'forward' ? 'ローン条件入力' : '返済条件入力'}
                 </h2>
@@ -122,71 +157,72 @@ const Home: React.FC = () => {
                     onSubmit={handleReverseCalculate}
                   />
                 )}
-              </div>
-            </div>
-
-            {/* 右側: 計算結果 */}
-            <div className="space-y-6">
-              {error && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                  <p className="text-red-800 font-medium">エラー</p>
-                  <p className="text-red-600 text-sm mt-1">{error}</p>
                 </div>
-              )}
+              </div>
 
-              {loanResult && (
-                <>
-                  {/* 結果サマリー */}
-                  <div className="bg-white rounded-lg shadow-md p-6">
-                    <h2 className="text-xl font-semibold text-gray-800 mb-4">
-                      計算結果
-                    </h2>
-                    <Summary result={loanResult} mode={calculationMode} />
+              {/* 右側: 計算結果 */}
+              <div className="space-y-6">
+                {error && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <p className="text-red-800 font-medium">エラー</p>
+                    <p className="text-red-600 text-sm mt-1">{error}</p>
                   </div>
+                )}
 
-                  {/* 返済計画表トグル */}
-                  <div className="bg-white rounded-lg shadow-md p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <h2 className="text-xl font-semibold text-gray-800">
-                        返済計画表
+                {loanResult && (
+                  <>
+                    {/* 結果サマリー */}
+                    <div className="bg-white rounded-lg shadow-md p-6">
+                      <h2 className="text-xl font-semibold text-gray-800 mb-4">
+                        計算結果
                       </h2>
-                      <button
-                        onClick={() => setShowSchedule(!showSchedule)}
-                        className="text-primary hover:text-primary-dark font-medium text-sm"
-                      >
-                        {showSchedule ? '非表示' : '表示'}
-                      </button>
+                      <Summary result={loanResult} mode={calculationMode} />
                     </div>
 
-                    {showSchedule && (
-                      <Schedule schedule={loanResult.schedule} />
-                    )}
-                  </div>
-                </>
-              )}
+                    {/* 返済計画表トグル */}
+                    <div className="bg-white rounded-lg shadow-md p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-xl font-semibold text-gray-800">
+                          返済計画表
+                        </h2>
+                        <button
+                          onClick={() => setShowSchedule(!showSchedule)}
+                          className="text-primary hover:text-primary-dark font-medium text-sm"
+                        >
+                          {showSchedule ? '非表示' : '表示'}
+                        </button>
+                      </div>
 
-              {!loanResult && !error && (
-                <div className="bg-white rounded-lg shadow-md p-12 text-center">
-                  <svg
-                    className="mx-auto h-16 w-16 text-gray-400 mb-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-                    />
-                  </svg>
-                  <p className="text-gray-500">
-                    ローン条件を入力して「計算する」ボタンを押してください
-                  </p>
-                </div>
-              )}
+                      {showSchedule && (
+                        <Schedule schedule={loanResult.schedule} />
+                      )}
+                    </div>
+                  </>
+                )}
+
+                {!loanResult && !error && (
+                  <div className="bg-white rounded-lg shadow-md p-12 text-center">
+                    <svg
+                      className="mx-auto h-16 w-16 text-gray-400 mb-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                      />
+                    </svg>
+                    <p className="text-gray-500">
+                      ローン条件を入力して「計算する」ボタンを押してください
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </Container>
 
