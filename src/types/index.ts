@@ -16,3 +16,9 @@ export type {
   ValidationError,
   CalculatorSettings,
 } from './loan';
+
+export type {
+  InvestmentParams,
+  InvestmentResult,
+  YearlyData,
+} from './investment';
