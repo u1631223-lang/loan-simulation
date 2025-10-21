@@ -1030,5 +1030,123 @@ npm run dev
 
 ---
 
-**最終更新**: 2025-10-20
-**バージョン**: 1.5 (✅ SimpleCalculator追加、デプロイエラー対応記録)
+---
+
+## NISA Calculator 入力フィールドの問題
+
+### 問題: `toFixed()` による入力フィールドの編集不能
+
+**発生日**: 2025-10-21
+
+**症状**:
+- 月々の積立額フィールドで数字を削除できない
+- キーボードで「10.5」などの小数点を入力できない
+- 入力しようとすると値が戻ってしまう
+
+**原因**:
+```tsx
+// ❌ 問題のあるコード
+<input
+  type="text"
+  value={monthlyAmount.toFixed(1)}  // ← 常にフォーマットされる
+  onChange={(e) => {
+    const parsed = parseFloat(e.target.value);
+    setMonthlyAmount(parsed);
+  }}
+/>
+```
+
+- `value={monthlyAmount.toFixed(1)}` により、入力中も常にフォーマットされる
+- 例：「1」と入力 → 即座に「1.0」にフォーマット → 次の文字が入力できない
+- 削除時：「10.5」の「0」を消す → `parseFloat("1.5")` → `1.5.toFixed(1)` = "1.5" → 元に戻る
+
+**解決方法: 二重状態管理パターン**
+
+```tsx
+// ✅ 解決コード
+// 表示用と実数値用の2つの状態を持つ
+const [monthlyAmount, setMonthlyAmount] = useState(3);           // 実数値
+const [monthlyInputValue, setMonthlyInputValue] = useState('3.0'); // 表示用
+
+// 入力中は表示用状態を自由に更新
+const handleMonthlyChange = (value: string) => {
+  setMonthlyInputValue(value);  // 即座に表示更新（フォーマットしない）
+
+  // 空文字や小数点のみの場合
+  if (value === '' || value === '.') {
+    setMonthlyAmount(0.1);
+    return;
+  }
+
+  // 数値としてパース
+  const parsed = parseFloat(value);
+  if (!Number.isNaN(parsed)) {
+    setMonthlyAmount(clamp(parsed, 0.1, 100));
+  }
+};
+
+// フォーカスを外した時のみフォーマット
+const handleMonthlyBlur = () => {
+  setMonthlyInputValue(monthlyAmount.toFixed(1));
+};
+
+// JSX
+<input
+  type="text"
+  inputMode="decimal"  // モバイルで数字キーボード
+  value={monthlyInputValue}  // 表示用状態を使用
+  onChange={(e) => handleMonthlyChange(e.target.value)}
+  onBlur={handleMonthlyBlur}  // blur時にフォーマット
+  onKeyDown={(e) => {
+    if (e.key === 'Enter') {
+      handleCalculate();
+    }
+  }}
+/>
+```
+
+**increment/decrement ボタンでの同期**:
+
+```tsx
+const increment = (field: 'monthly' | 'return') => {
+  switch (field) {
+    case 'monthly':
+      setMonthlyAmount(prev => {
+        const newVal = clamp(parseFloat((prev + 0.1).toFixed(1)), 0.1, 100);
+        setMonthlyInputValue(newVal.toFixed(1)); // 表示も同期
+        return newVal;
+      });
+      break;
+    // ...
+  }
+};
+```
+
+**適用箇所**:
+- 月々の積立額: `monthlyAmount` / `monthlyInputValue`
+- 想定利回り: `annualReturn` / `returnInputValue`
+- 積立期間: 通常の状態管理（整数なので問題なし）
+
+**メリット**:
+- ✅ ユーザーが自由に編集できる（削除、小数点入力）
+- ✅ blur時だけフォーマットされる（10.5 → 10.5、3 → 3.0）
+- ✅ increment/decrementボタンは即座にフォーマット
+- ✅ `inputMode="decimal"` でモバイル数字キーボード対応
+
+**教訓**:
+- `toFixed()` などのフォーマットは `value` に直接使わない
+- 入力中は生の値、blur時だけフォーマット
+- 表示用と実数値用の状態を分離する
+
+**類似の問題**:
+- `toLocaleString()` でカンマ区切りフォーマット
+- `replace()` で文字列置換
+- その他のフォーマット関数全般
+
+**関連ファイル**:
+- `src/components/Investment/InvestmentCalculator.tsx` (line 19-31, 78-99, 120-198)
+
+---
+
+**最終更新**: 2025-10-21
+**バージョン**: 1.6 (✅ NISA Calculator入力フィールド問題を追加)
