@@ -75,7 +75,7 @@ const Home: React.FC = () => {
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
               住宅ローン電卓
             </h1>
-            <p className="text-gray-600">
+            <p className="text-gray-600 max-w-2xl mx-auto">
               {viewMode === 'loan'
                 ? calculationMode === 'forward'
                   ? '借入金額と返済条件を入力して、月々の返済額を計算できます'
@@ -87,10 +87,10 @@ const Home: React.FC = () => {
           </div>
 
           {/* 表示モード切り替え */}
-          <div className="flex gap-2 mb-6 justify-center">
+          <div className="flex flex-wrap gap-2 mb-6 justify-center">
             <button
               onClick={() => setViewMode('loan')}
-              className={`px-6 py-3 rounded-lg font-medium transition-all ${
+              className={`px-4 sm:px-6 py-3 rounded-lg font-medium transition-all whitespace-nowrap ${
                 viewMode === 'loan'
                   ? 'bg-primary text-white shadow-md'
                   : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-300'
@@ -100,7 +100,7 @@ const Home: React.FC = () => {
             </button>
             <button
               onClick={() => setViewMode('calculator')}
-              className={`px-6 py-3 rounded-lg font-medium transition-all ${
+              className={`px-4 sm:px-6 py-3 rounded-lg font-medium transition-all whitespace-nowrap ${
                 viewMode === 'calculator'
                   ? 'bg-primary text-white shadow-md'
                   : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-300'
@@ -110,7 +110,7 @@ const Home: React.FC = () => {
             </button>
             <button
               onClick={() => setViewMode('investment')}
-              className={`px-6 py-3 rounded-lg font-medium transition-all ${
+              className={`px-4 sm:px-6 py-3 rounded-lg font-medium transition-all whitespace-nowrap ${
                 viewMode === 'investment'
                   ? 'bg-primary text-white shadow-md'
                   : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-300'

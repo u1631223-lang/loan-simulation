@@ -1148,5 +1148,108 @@ const increment = (field: 'monthly' | 'return') => {
 
 ---
 
+## Vercel ビルドエラー
+
+### 問題: 型エクスポートエラーでビルド失敗
+
+**発生日**: 2025-10-21
+
+**症状**:
+- Vercelのビルドが失敗（Build Failed）
+- エラー: `Command "npm run build" exited with 2`
+- TypeScriptエラー:
+  ```
+  error TS2305: Module '"@/types"' has no exported member 'AuthState'
+  error TS2305: Module '"@/types"' has no exported member 'InvestmentParams'
+  error TS2307: Cannot find module 'recharts'
+  ```
+
+**原因**:
+
+1. **存在しないファイルからの型エクスポート**
+   ```typescript
+   // src/types/index.ts
+   export type { AuthState, ... } from './auth';  // ❌ auth.ts が存在しない
+   ```
+   - `src/types/index.ts` が `auth.ts` や `subscription.ts` から型をエクスポート
+   - しかし、これらのファイルはGitにコミットされていない（Phase 11以降の予定）
+   - ローカル開発環境には存在するが、Vercelにはない
+
+2. **依存関係の未コミット**
+   ```json
+   // package.json (ローカル変更のみ、未コミット)
+   "recharts": "^3.3.0"  // ❌ Gitにコミットされていない
+   ```
+   - `npm install recharts` 実行済みだが `package.json` 未コミット
+   - Vercelが `npm install` 時に recharts をインストールできない
+
+**なぜローカルでは動いていたのか？**
+- ローカル: `node_modules/` に recharts がインストール済み、auth.ts も存在
+- Vercel: クリーンな環境で `npm install` → recharts なし、auth.ts なし
+
+**解決方法**:
+
+```bash
+# 1. src/types/index.ts から存在しない型のエクスポートを削除
+# ❌ 削除
+export type { AuthState, SignUpParams, ... } from './auth';
+export type { SubscriptionState, ... } from './subscription';
+
+# 2. package.json と package-lock.json をコミット
+git add package.json package-lock.json src/types/index.ts
+git commit -m "fix: Add missing recharts dependency and fix type exports"
+git push origin main
+
+# 3. Vercelが自動的に再デプロイ（1〜2分）
+```
+
+**教訓**:
+
+1. **依存関係は必ずコミット**
+   - `npm install` したら即座に `package.json` をコミット
+   - `package-lock.json` も一緒にコミット
+
+2. **型エクスポートは存在確認**
+   - `src/types/index.ts` でエクスポートする前に、ファイルが実際に存在するか確認
+   - `git ls-files src/types/` で確認
+
+3. **ローカルとリモートの差分を意識**
+   - ローカルで動いていても、Vercelで失敗する可能性がある
+   - 未コミットファイルは Vercel にデプロイされない
+
+4. **ビルドログを確認**
+   - Vercel ダッシュボードの "Build Logs" でエラー詳細を確認
+   - TypeScript エラーはビルド時に発見される
+
+**確認コマンド**:
+
+```bash
+# コミットされているファイルを確認
+git ls-files src/types/
+
+# package.json の差分確認
+git diff package.json
+
+# ローカルでビルドテスト（Vercel環境を再現）
+rm -rf node_modules
+npm ci  # package-lock.json から正確にインストール
+npm run build
+```
+
+**関連する他のケース**:
+
+- 環境変数が `.env.local` だけで `.env.example` に記載されていない
+- `.gitignore` で除外されたファイルに依存している
+- `devDependencies` に入れるべきものが `dependencies` にある（または逆）
+
+**デバッグ手順**:
+
+1. Vercel ダッシュボード → 失敗したデプロイメント → "View Build Logs"
+2. エラーメッセージから欠けているモジュール/型を特定
+3. `git status` で未コミットファイルを確認
+4. 必要なファイルをコミット → 自動再デプロイ
+
+---
+
 **最終更新**: 2025-10-21
-**バージョン**: 1.6 (✅ NISA Calculator入力フィールド問題を追加)
+**バージョン**: 1.7 (✅ Vercelビルドエラー追加)

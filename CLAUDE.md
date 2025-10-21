@@ -703,6 +703,32 @@ See `docs/TROUBLESHOOTING.md` for details.
 - 詳細: `docs/NISA_FEATURE_SPEC.md`, `docs/TICKETS_NISA.md`, `docs/DEVELOPMENT_PLAN.md#phase-95`
 - 総見積時間: 約7.5時間（18チケット）
 
+**🚨 Phase 10 デプロイ時の重要な教訓 (2025-10-21)**
+
+Vercelビルドが失敗した原因と対策：
+
+1. **依存関係の未コミット**
+   - `npm install recharts` 実行後、`package.json` をコミット忘れ
+   - ローカルでは動作するが、Vercelでビルド失敗
+   - **対策**: `npm install` したら即座に `package.json` と `package-lock.json` をコミット
+
+2. **存在しないファイルからの型エクスポート**
+   - `src/types/index.ts` が未コミットの `auth.ts` から型をエクスポート
+   - ローカルには存在するが、Vercelにはない
+   - **対策**: `git ls-files src/types/` で確認してからエクスポート
+
+3. **ローカルとリモートの差分を意識**
+   - ローカルで動いていても、Vercelで失敗する可能性
+   - **確認コマンド**:
+     ```bash
+     # Vercel環境を再現してビルドテスト
+     rm -rf node_modules
+     npm ci  # package-lock.json から正確にインストール
+     npm run build
+     ```
+
+詳細: `docs/TROUBLESHOOTING.md#vercel-ビルドエラー`
+
 **How to use mobile features:**
 ```bash
 # After code changes
