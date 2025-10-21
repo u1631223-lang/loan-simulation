@@ -4,23 +4,77 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a **住宅ローン電卓 (Loan Calculator)** - a web-based loan calculator for real estate sales professionals. The app is designed to replicate the experience of a physical calculator while being accessible on both smartphones and PCs, with plans for eventual Android/iOS native apps.
+This is a **住宅ローン電卓 → FPツール統合プラットフォーム (Loan Calculator → FP Tool Platform)** - evolving from a simple loan calculator into a comprehensive financial planning tool for professionals.
 
-**Key Requirements:**
-- Calculator-style UI with both touch/click buttons and keyboard input support
-- Support for two repayment types: 元利均等返済 (equal payment) and 元金均等返済 (equal principal)
-- Bonus payment calculations
-- Short-term calculation history (no login required)
-- Cross-platform: Web → Android/iOS via Capacitor
+### Project Vision
+
+**「住宅営業とFPが一体化した、AIネイティブなライフプランニングツール」**
+
+Starting as a住宅ローン calculator for real estate professionals, this project is now expanding into a full-featured FP (Financial Planning) platform with:
+
+1. **無料版 (Free Tier)** - Current Status: ✅ DEPLOYED
+   - 住宅ローン計算（通常・逆算・ボーナス払い対応）
+   - 簡易電卓機能
+   - 履歴管理（localStorage）
+   - ユーザー登録不要
+   - 🆕 NISA複利シミュレーション（毎月積立 + 初期投資、折れ線/棒グラフ、PDFロック付きCTA）
+
+2. **有料版 (Paid Tier)** - Planned: Phase 10-18
+   - 🆕 ライフプランシミュレーション
+   - 🆕 家計収支シミュレーション
+   - 🆕 資産運用シミュレーション
+   - 🆕 保険設計シミュレーション
+   - 繰上返済シミュレーション
+   - 複数ローン比較機能
+   - PDF出力・印刷機能
+   - クラウド同期・データ永続化
+   - **月額サブスクリプション: ¥980/月**
+
+### Target Users
+
+- **Primary**: 独立系FP、住宅営業担当者、IFA
+- **Secondary**: 保険代理店、地方銀行渉外担当
+- **個人ユーザー**: 住宅ローン検討者（無料版）
+
+### Current Status: Phase 9 COMPLETED ✅ / Phase 9.5 Deliverables ✅ (QA follow-up)
+
+無料版のデプロイ済みプロトタイプに、NISA複利シミュレーションを追加済み。グラフ描画・CTA導線・PDFロックを含むUIが実装済みで、残タスクはレスポンシブの手動確認と既存Lint警告の整理のみ。
+次のステップは有料版への進化（Phase 10-18）。
 
 ## Technology Stack
+
+### Phase 1-9 (無料版) - CURRENT ✅
 
 - **Frontend**: React 18 + Vite + TypeScript
 - **Styling**: Tailwind CSS
 - **State Management**: React Hooks + Context API
 - **Storage**: localStorage (no backend)
 - **Mobile Packaging**: Capacitor (for Android/iOS)
-- **Testing**: Vitest + React Testing Library
+- **Testing**: Vitest + React Testing Library (74 tests passing)
+- **Deployment**: Vercel
+
+### Phase 10-18 (有料版) - PLANNED 🚀
+
+**Backend & Auth:**
+- **Supabase**
+  - PostgreSQL database
+  - Auth (Email + Social Login: Google, Apple, LINE)
+  - Row Level Security (RLS)
+  - Realtime subscriptions
+  - Storage (PDF reports)
+
+**Payment:**
+- **Stripe**
+  - Subscription management (月額 ¥980)
+  - Webhook integration
+  - Customer portal
+
+**Additional Libraries:**
+- **React Query**: Server state management
+- **Recharts**: Data visualization
+- **jsPDF + html2canvas**: PDF generation
+- **React Hook Form + Zod**: Form handling & validation
+- **Google Gemini API**: AI features (future enhancement)
 
 ## Development Commands
 
@@ -62,7 +116,8 @@ npx cap run ios
 
 ## Architecture
 
-### Directory Structure
+### Directory Structure (Phase 1-9: 無料版)
+
 ```
 src/
 ├── components/
@@ -78,10 +133,71 @@ src/
 └── pages/             # Home, History
 ```
 
+### Planned Directory Structure (Phase 10-18: 有料版追加)
+
+```
+src/
+├── components/
+│   ├── Calculator/      # SimpleCalculator
+│   ├── Input/           # Loan forms
+│   ├── Result/          # Summary, Schedule
+│   ├── History/         # HistoryList
+│   ├── Layout/          # Header, Footer, Container
+│   ├── FP/              # 🆕 FP機能コンポーネント
+│   │   ├── LifeEvent/      # ライフイベント入力
+│   │   ├── CashFlow/       # キャッシュフロー表
+│   │   ├── HouseholdBudget/ # 家計収支シミュレーション
+│   │   ├── AssetPlan/      # 資産運用シミュレーション
+│   │   └── Insurance/      # 保険設計
+│   ├── Auth/            # 🆕 認証UI (Login, Signup, Account)
+│   └── Subscription/    # 🆕 サブスク管理UI
+├── contexts/
+│   ├── LoanContext.tsx         # ローン計算
+│   ├── LifePlanContext.tsx     # 🆕 ライフプラン全体管理
+│   ├── AuthContext.tsx         # 🆕 認証状態管理
+│   └── SubscriptionContext.tsx # 🆕 サブスク状態管理
+├── hooks/
+│   ├── useCalculator.ts
+│   ├── useHistory.ts
+│   ├── useKeyboard.ts
+│   ├── useAuth.ts             # 🆕 Supabase Auth
+│   └── useSubscription.ts     # 🆕 Stripe連携
+├── utils/
+│   ├── loanCalculator.ts
+│   ├── storage.ts
+│   ├── formatter.ts
+│   ├── lifePlanCalculator.ts  # 🆕 CF計算ロジック
+│   ├── educationData.ts       # 🆕 教育費データ
+│   ├── retirementData.ts      # 🆕 年金・老後データ
+│   └── pdfGenerator.ts        # 🆕 PDF生成
+├── services/
+│   ├── supabase.ts            # 🆕 Supabase client
+│   └── stripe.ts              # 🆕 Stripe client
+├── types/
+│   ├── loan.ts
+│   ├── lifePlan.ts            # 🆕 FP型定義
+│   ├── auth.ts                # 🆕 認証型定義
+│   └── subscription.ts        # 🆕 サブスク型定義
+└── pages/
+    ├── Home.tsx
+    ├── History.tsx
+    ├── LifePlan.tsx           # 🆕 ライフプラン画面
+    ├── Account.tsx            # 🆕 アカウント設定
+    └── Pricing.tsx            # 🆕 料金プラン
+```
+
 ### State Management Architecture
+
+**無料版 (Phase 1-9):**
 - **Context API** for global state (loan parameters, calculation results, history)
 - **localStorage** for persistence (max 20 history items, no server sync)
 - **No Redux** - keeping it simple with React hooks
+
+**有料版 (Phase 10-18):**
+- **Context API** + **React Query** for server state
+- **Supabase** for data persistence & real-time sync
+- **Stripe** for subscription management
+- Separate contexts for Auth, Subscription, LifePlan
 
 ### Core Type Definitions
 ```typescript
@@ -214,7 +330,9 @@ describe('元利均等返済計算', () => {
 
 ## Development Phases
 
-### Current Status: Phase 8 COMPLETED ✅
+### Current Status: Phase 9 COMPLETED ✅ | Next: Phase 10-18 (有料版開発)
+
+#### Phase 1-9: 無料版（住宅ローン計算機） - COMPLETED ✅
 
 1. **Phase 1** ✅ COMPLETED: Project setup (Vite, Tailwind, TypeScript, directory structure)
 2. **Phase 2** ✅ COMPLETED: Loan calculation logic (元利均等/元金均等/ボーナス払い)
@@ -240,22 +358,103 @@ describe('元利均等返済計算', () => {
    - Android platform configuration
    - iOS platform configuration
    - Build scripts added to package.json
-9. **Phase 9** ⬜ NEXT: Deployment (tomorrow with user)
+9. **Phase 9** ✅ COMPLETED: Deployment
+   - Vercel production deployment
+   - Free tier prototype完成
+
+**Status**: 無料版プロトタイプ完成・デプロイ済み。現在は様子見フェーズ。
+
+---
+
+#### Phase 10-18: 有料版（FPツール機能追加） - PLANNED 🚀
+
+10. **Phase 10** ⏭️ NEXT: ユーザー向けドキュメント整備（1日）
+    - USER_GUIDE.md作成
+    - FAQ.md作成
+    - README.md更新
+
+11. **Phase 11** 🔜 バックエンド基盤構築（1週間）
+    - Supabase setup (PostgreSQL, Auth, RLS)
+    - Stripe integration (subscription management)
+    - Database schema design
+    - Email + Social login (Google, Apple, LINE)
+
+12. **Phase 12** 🔜 認証UI実装（3日）
+    - Login/Signup pages
+    - Account settings page
+    - Subscription management page
+    - Paywall implementation
+
+13. **Phase 13** 🔜 FP機能 - ライフプランシミュレーション（1週間）
+    - ライフイベント管理（結婚・出産・教育・退職）
+    - 収入・支出データ管理
+    - キャッシュフロー計算エンジン
+    - タイムラインUI
+    - グラフ・ビジュアライゼーション
+
+14. **Phase 14** 🔜 FP機能 - 家計収支シミュレーション（4日）
+    - 月次収支入力フォーム
+    - 集計・分析ロジック
+    - カテゴリ別支出グラフ
+    - 年間収支サマリー
+
+15. **Phase 15** 🔜 FP機能 - 資産運用シミュレーション（5日）
+    - 資産運用計算エンジン（複利計算）
+    - ポートフォリオ管理
+    - 積立投資シミュレーター
+    - リスク・リターン分析
+
+16. **Phase 16** 🔜 FP機能 - 保険設計シミュレーション（4日）
+    - 必要保障額計算ロジック
+    - 保険管理機能
+    - 分析・提案機能
+
+17. **Phase 17** 🔜 追加機能（1週間）
+    - 繰上返済シミュレーション
+    - 複数ローン比較機能
+    - PDF出力機能（jsPDF + html2canvas）
+    - データエクスポート（CSV/Excel）
+
+18. **Phase 18** 🔜 モバイルアプリ最終調整（1週間）
+    - ネイティブ機能統合（生体認証・プッシュ通知）
+    - Android/iOS最適化・テスト
+    - ストア公開準備
+
+**Total Estimate**: 2-3 months for Phase 10-18
+
+詳細は `docs/DEVELOPMENT_PLAN.md` と `docs/TICKETS_FP.md` を参照。
 
 ## Important Constraints
 
-### Out of Scope
-- User authentication/login
-- Long-term customer data storage
-- Backend/database
-- Multi-device sync
-- Offline support (initial version)
+### Phase 1-9 (無料版) - Out of Scope ✅
+- ✅ No user authentication/login
+- ✅ No long-term customer data storage
+- ✅ No backend/database
+- ✅ No multi-device sync
+- ✅ Client-side only (no API calls)
+
+### Phase 10-18 (有料版) - NOW IN SCOPE 🆕
+- 🆕 User authentication (Supabase Auth)
+- 🆕 Cloud data storage (PostgreSQL)
+- 🆕 Multi-device sync
+- 🆕 Subscription management (Stripe)
+- 🆕 PDF generation & storage
 
 ### Security Considerations
+
+**無料版:**
 - No personal information collection
 - No external data transmission
-- Client-side only (no API calls to servers)
+- Client-side only
 - Input validation to prevent calculation errors
+
+**有料版追加:**
+- 🆕 Supabase Row Level Security (RLS)
+- 🆕 HTTPS only (TLS 1.3)
+- 🆕 Stripe PCI-DSS compliance
+- 🆕 OAuth 2.0 for social login
+- 🆕 GDPR / Japanese privacy law compliance
+- 🆕 Audit logging for compliance
 
 ## Deployment
 
@@ -354,13 +553,31 @@ Single message with multiple Task tool calls:
 
 ### MCP Server Requirements
 
-**No additional MCP servers needed** for this project.
+**Phase 1-9 (無料版): No additional MCP servers needed** ✅
 
 **Rationale:**
 - Frontend-only application (no backend/database)
 - No external API integrations
 - localStorage for persistence (browser-native)
 - Standard Claude Code tools sufficient for all tasks
+
+**Phase 10-18 (有料版): Supabase MCP Server recommended** 🆕
+
+**Available MCP Servers:**
+- ✅ `mcp__supabase__*` - Already configured and available
+  - `search_docs`: Supabase documentation search
+  - `list_tables`: Database schema inspection
+  - `execute_sql`: SQL query execution
+  - `apply_migration`: Database migrations
+  - `get_logs`: Service logs for debugging
+  - `get_advisors`: Security and performance recommendations
+  - `generate_typescript_types`: Auto-generate TypeScript types from DB schema
+
+**Usage:**
+- Use Supabase MCP tools for database schema design
+- Execute migrations via `apply_migration`
+- Generate TypeScript types automatically
+- Monitor logs and security advisors
 
 ### Development Commands by Phase
 
@@ -455,13 +672,36 @@ See `docs/TROUBLESHOOTING.md` for details.
 - **Scripts**: `cap:sync`, `cap:open:android`, `cap:open:ios`
 - **Config**: `capacitor.config.ts` configured
 
-### 🎯 Next Steps (Phase 9 - Tomorrow)
+### 🎯 Next Steps
 
-**Phase 9 - Deployment:**
-- Production build optimization
-- Vercel deployment (web app)
-- Documentation finalization
-- **Will do with user tomorrow**
+**✅ Phase 9 - Deployment: COMPLETED**
+- Production build optimization ✅
+- Vercel deployment (web app) ✅
+- Documentation finalization ✅
+- v1.0.0 deployed and live 🎉
+
+**✅ Phase 9.5 - NISA複利計算ツール追加（完了）**
+- 無料版機能拡張として、NISA複利計算ツールを追加 ✅
+- 繰上返済よりもNISA運用が効果的であることを視覚的にアピール ✅
+- 有料版（詳細比較・PDF出力）への自然な導線を作成 ✅
+- **Phase 10 documentation complete**: USER_GUIDE.md, FAQ.md, README.md updated ✅
+
+**🆕 NISA Calculator UX Improvements (2025-10-21)**
+- ✅ **千円単位の入力精度**: 月々積立額を0.1万円（1000円）単位で調整可能に
+  - 例：3.0万円 → 2.9万円（▼ボタン）
+  - `monthlyAmount` と `monthlyInputValue` の二重状態管理で実現
+- ✅ **想定利回りのデフォルト変更**: 5% → 7%
+  - S&P500の長期平均リターン（約10.5%）の保守的見積もり
+  - 注釈追加：「※ デフォルト7%：S&P500の長期平均リターン（約10.5%）を保守的に見積もった値。過去50年以上のデータに基づく。」
+- ✅ **積立期間のデフォルト変更**: 20年 → 40年
+- ✅ **キーボード入力対応**: 月々積立額・利回りともに自由に編集・削除・入力可能
+  - 問題：`value={monthlyAmount.toFixed(1)}` で常にフォーマットされ、編集不可能だった
+  - 解決：`monthlyInputValue`（表示用）と`monthlyAmount`（実数値）の分離
+  - `onBlur` でフォーマット、入力中は自由に編集可能
+  - `inputMode="decimal"` でモバイル数字キーボード対応
+  - Enter キーで即座に計算実行
+- 詳細: `docs/NISA_FEATURE_SPEC.md`, `docs/TICKETS_NISA.md`, `docs/DEVELOPMENT_PLAN.md#phase-95`
+- 総見積時間: 約7.5時間（18チケット）
 
 **How to use mobile features:**
 ```bash

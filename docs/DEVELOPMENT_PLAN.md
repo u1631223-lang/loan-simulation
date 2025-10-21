@@ -935,3 +935,288 @@ const totalPrincipal = regularPrincipal + bonusPrincipal;
 
 **テスト状況**: ✅ All 74 tests passing
 
+---
+
+## Phase 9.5: NISA複利計算ツール追加（無料版機能拡張）
+
+### 概要
+
+**Status**: ✅ 実装完了（QA残タスク: レスポンシブ手動確認, Lint修正）
+
+Phase 9（無料版デプロイ）の直後に実施する機能拡張として、**NISA複利計算ツール**を追加します。
+
+**目的**:
+- 繰上返済よりもNISA運用の方が効果的であることを視覚的にアピール
+- 複利の力を理解してもらうための教育ツール
+- 有料版（詳細比較・PDF出力）への自然な導線を作る
+
+**ビジネス背景**:
+住宅業界の大手メーカーでは、建物のLCC（ライフサイクルコスト）が低いことをアピールし、その差額を繰上返済ではなくNISA投資に回すことで将来の安心感を謳うのが常套手段。この手法を中小FPや住宅営業でも使えるようにする。
+
+### チケット構成
+
+**総チケット数**: 18（TICKET-1001 〜 TICKET-1018）
+**総見積時間**: 約7.5時間
+
+詳細は **`docs/TICKETS_NISA.md`** および **`docs/NISA_FEATURE_SPEC.md`** を参照。
+
+### Phase 1: 基盤構築（2時間）
+
+| チケット | タスク | 見積 |
+|---------|--------|------|
+| TICKET-1001 | rechartsライブラリインストール | 5分 |
+| TICKET-1002 | 型定義作成（InvestmentParams, InvestmentResult, YearlyData） | 15分 |
+| TICKET-1003 | 複利計算関数実装（calculateCompoundInterest） | 30分 |
+| TICKET-1004 | 年次データ生成関数実装（generateYearlyData） | 20分 |
+| TICKET-1005 | 単体テスト作成 | 30分 |
+
+**成果物**:
+- `src/types/investment.ts`
+- `src/utils/investmentCalculator.ts`
+- `tests/unit/investmentCalculator.test.ts`
+
+### Phase 2: コンポーネント実装（2.5時間）
+
+| チケット | タスク | 見積 |
+|---------|--------|------|
+| TICKET-1006 | InvestmentCalculatorコンポーネント構造作成 | 20分 |
+| TICKET-1007 | 入力フォーム実装（↑↓ボタン付き） | 40分 |
+| TICKET-1008 | 結果サマリー表示実装 | 30分 |
+| TICKET-1009 | InvestmentChart折れ線グラフ実装 | 40分 |
+| TICKET-1010 | 棒グラフ追加（元本 vs 運用益） | 30分 |
+| TICKET-1011 | barrel export作成 | 5分 |
+
+**成果物**:
+- `src/components/Investment/InvestmentCalculator.tsx`
+- `src/components/Investment/InvestmentChart.tsx`
+- `src/components/Investment/index.ts`
+
+### Phase 3: ページ統合（30分）
+
+| チケット | タスク | 見積 |
+|---------|--------|------|
+| TICKET-1012 | ViewMode型に'investment'追加 | 5分 |
+| TICKET-1013 | タブナビゲーションに「資産運用」追加 | 15分 |
+| TICKET-1014 | InvestmentCalculator条件付きレンダリング | 10分 |
+
+**成果物**:
+- `src/pages/Home.tsx` 修正
+
+### Phase 4: 有料版誘導UI（35分）
+
+| チケット | タスク | 見積 |
+|---------|--------|------|
+| TICKET-1015 | 繰上返済比較CTA作成 | 20分 |
+| TICKET-1016 | PDF出力ボタン（🔒鍵マーク付き）追加 | 15分 |
+
+**成果物**:
+- 有料版への誘導UI（CTAセクション、鍵マークボタン）
+
+### Phase 5: 品質保証（35分）
+
+| チケット | タスク | 見積 |
+|---------|--------|------|
+| TICKET-1017 | レスポンシブデザインテスト | 20分 |
+| TICKET-1018 | 品質チェック実行（test/lint/build） | 15分 |
+
+**検証内容**:
+- モバイル・タブレット・デスクトップでの表示確認
+- npm test, type-check, lint, build の全チェック合格
+
+### 機能仕様
+
+#### 入力項目（シンプル設計）
+- 月々の積立額（万円単位、デフォルト: 3万円）
+- 想定利回り（年利%、デフォルト: 5.0%）
+- 積立期間（年、デフォルト: 20年）
+- 初期投資額（オプション、デフォルト: 0円）
+
+#### 出力項目
+- 総積立額（元本）
+- 運用益
+- 最終資産額
+- 折れ線グラフ（年次の資産推移）
+- 棒グラフ（元本 vs 運用益の内訳）
+
+#### 複利計算式
+```
+FV = PMT × ((1 + r)^n - 1) / r
+FV_total = FV_monthly + PV × (1 + r)^n
+
+Where:
+- FV  = 将来価値
+- PMT = 月々の積立額
+- r   = 月利（年利 / 12 / 100）
+- n   = 総月数
+- PV  = 初期投資額
+```
+
+### 有料版への導線
+
+1. **計算結果下のCTA**:
+   ```
+   💡 繰上返済との詳細比較は有料版で
+   「この積立額を繰上返済に回した場合」との比較シミュレーションが可能です
+   ```
+
+2. **PDF出力ボタン（🔒鍵マーク付き）**:
+   顧客提案資料として活用したい場合は有料版へ誘導
+
+### 技術スタック
+
+- **グラフライブラリ**: recharts（軽量、React互換性高い）
+- **新規依存**: `recharts@^2.x.x`
+- **レスポンシブ**: Tailwind CSSでモバイルファースト設計
+
+### 期待される効果
+
+**ユーザー体験**:
+- ✅ 複利の力を視覚的に理解（グラフで一目瞭然）
+- ✅ 「繰上返済 vs NISA運用」の選択肢を提示
+- ✅ 無料版でも十分有用（顧客への簡易提案が可能）
+
+**ビジネス**:
+- ✅ 有料版への自然な導線（詳細比較・PDF出力）
+- ✅ FPツールへの進化を印象づける
+- ✅ 差別化ポイント（大手メーカーの常套手段を中小FPでも実現）
+
+**技術**:
+- ✅ rechartsを導入（将来のグラフ機能の基盤）
+- ✅ 計算ロジックの再利用性（有料版でも使用）
+- ✅ コンポーネント設計の一貫性維持
+
+### 関連ドキュメント
+
+- **機能仕様書**: `docs/NISA_FEATURE_SPEC.md`
+- **チケット詳細**: `docs/TICKETS_NISA.md`
+- **実装ガイド**: `docs/NISA_IMPLEMENTATION_GUIDE.md`
+
+---
+
+## Phase 10: 有料版準備 - ユーザー向けドキュメント整備（1日）
+
+**Status**: ✅ COMPLETED (2025-10-21)
+
+### 概要
+有料版（Phase 11-18）へ進む前に、現在の無料版の機能を正確に説明するドキュメントを整備。
+ユーザーが無料版と有料版の違いを理解し、スムーズに移行できるようにする。
+
+### NISA Calculator UX Improvements
+Phase 10のドキュメント作成中に、NISA計算機のUX改善を実施：
+
+#### 改善内容
+
+1. **千円単位の入力精度** ✅
+   - 月々積立額を0.1万円（1000円）単位で調整可能に
+   - 例：3.0万円 → 2.9万円（▼ボタン）
+   - 実装：`monthlyAmount` と `monthlyInputValue` の二重状態管理
+
+2. **想定利回りのデフォルト変更** ✅
+   - 5% → 7%に変更
+   - S&P500の長期平均リターン（約10.5%）の保守的見積もり
+   - 注釈追加：過去50年以上のデータに基づく説明
+
+3. **積立期間のデフォルト変更** ✅
+   - 20年 → 40年に変更
+   - 長期投資の効果を実感できる期間に設定
+
+4. **キーボード入力対応** ✅
+   - 月々積立額・利回りともに自由に編集・削除・入力可能
+   - 問題：`value={monthlyAmount.toFixed(1)}` で常にフォーマットされ、編集不可能
+   - 解決：表示用状態（`monthlyInputValue`）と実数値（`monthlyAmount`）の分離
+   - `onBlur` でフォーマット、入力中は自由に編集可能
+   - `inputMode="decimal"` でモバイル数字キーボード対応
+   - Enter キーで即座に計算実行
+
+#### 技術的な実装パターン
+
+```typescript
+// 二重状態管理パターン
+const [monthlyAmount, setMonthlyAmount] = useState(3);
+const [monthlyInputValue, setMonthlyInputValue] = useState('3.0');
+
+// 入力中は自由に編集
+const handleMonthlyChange = (value: string) => {
+  setMonthlyInputValue(value);
+  const parsed = parseFloat(value);
+  if (!Number.isNaN(parsed)) {
+    setMonthlyAmount(clamp(parsed, 0.1, 100));
+  }
+};
+
+// フォーカスを外したときにフォーマット
+const handleMonthlyBlur = () => {
+  setMonthlyInputValue(monthlyAmount.toFixed(1));
+};
+
+// increment/decrementボタンは両方の状態を同期
+const increment = (field: 'monthly') => {
+  setMonthlyAmount(prev => {
+    const newVal = clamp(parseFloat((prev + 0.1).toFixed(1)), 0.1, 100);
+    setMonthlyInputValue(newVal.toFixed(1)); // 同期
+    return newVal;
+  });
+};
+```
+
+#### 変更ファイル
+- `src/components/Investment/InvestmentCalculator.tsx`
+  - 入力フィールドの二重状態管理実装
+  - デフォルト値変更（7%, 40年、3.0万円）
+  - 注釈追加（想定利回りの根拠）
+  - increment/decrement のステップサイズ変更（±0.1）
+
+### チケット構成
+
+| チケット | タスク | ステータス | 見積 | 実績 |
+|---------|--------|-----------|------|-----|
+| TICKET-1001 | USER_GUIDE.md 作成 | ✅ 完了 | 2時間 | 2時間 |
+| TICKET-1002 | FAQ.md 作成 | ✅ 完了 | 2時間 | 2時間 |
+| TICKET-1003 | README.md 更新 | ✅ 完了 | 1時間 | 1時間 |
+| **Extra** | NISA UX改善 | ✅ 完了 | - | 1時間 |
+
+**総見積**: 5時間
+**実績**: 6時間（UX改善含む）
+
+### 成果物
+
+1. **USER_GUIDE.md** (740行)
+   - 無料版機能の詳細説明
+   - 有料版機能の概要
+   - スクリーンショット付き操作ガイド
+   - トラブルシューティング
+
+2. **FAQ.md** (515行)
+   - 30のQ&A項目
+   - 無料版/有料版に関する質問
+   - 計算ロジックの説明
+   - 技術的な質問
+   - プライバシー・セキュリティ
+
+3. **README.md** (更新)
+   - Phase 10-18 の詳細追加
+   - Supabase + Stripe の技術スタック説明
+   - 開発ステータステーブル
+   - プロジェクト構造の比較（無料版 vs 有料版）
+
+4. **InvestmentCalculator.tsx** (改善)
+   - 千円単位の精密入力
+   - S&P500ベースのデフォルト利回り（7%）
+   - 長期投資期間（40年）
+   - フル機能のキーボード入力サポート
+
+### 次のステップ
+
+**Phase 11: バックエンド基盤構築（1週間）**
+- Supabase setup (PostgreSQL, Auth, RLS)
+- Stripe integration (subscription management)
+- Database schema design
+- Email + Social login (Google, Apple, LINE)
+
+**準備完了事項:**
+- ✅ ドキュメント整備完了
+- ✅ 無料版の機能が明確化
+- ✅ NISA計算機のUX改善完了
+- ✅ 有料版との差別化ポイント整理
+
+---

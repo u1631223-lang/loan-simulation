@@ -13,10 +13,11 @@ import ReverseLoanForm from '@/components/Input/ReverseLoanForm';
 import Summary from '@/components/Result/Summary';
 import Schedule from '@/components/Result/Schedule';
 import SimpleCalculator from '@/components/Calculator/SimpleCalculator';
+import { InvestmentCalculator } from '@/components/Investment';
 import { useCalculator } from '@/hooks/useCalculator';
 import type { LoanParams, ReverseLoanParams, CalculationMode } from '@/types';
 
-type ViewMode = 'loan' | 'calculator';
+type ViewMode = 'loan' | 'calculator' | 'investment';
 
 const Home: React.FC = () => {
   const { loanParams, loanResult, error, calculate, calculateReverse } = useCalculator();
@@ -79,7 +80,9 @@ const Home: React.FC = () => {
                 ? calculationMode === 'forward'
                   ? '借入金額と返済条件を入力して、月々の返済額を計算できます'
                   : '月々の返済額を入力して、借入可能額を計算できます'
-                : '坪数計算や簡易計算に便利な電卓です'}
+                : viewMode === 'calculator'
+                  ? '坪数計算や簡易計算に便利な電卓です'
+                  : 'NISAを活用した資産運用のシミュレーションが行えます'}
             </p>
           </div>
 
@@ -104,6 +107,16 @@ const Home: React.FC = () => {
               }`}
             >
               🧮 電卓
+            </button>
+            <button
+              onClick={() => setViewMode('investment')}
+              className={`px-6 py-3 rounded-lg font-medium transition-all ${
+                viewMode === 'investment'
+                  ? 'bg-primary text-white shadow-md'
+                  : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-300'
+              }`}
+            >
+              📈 資産運用
             </button>
           </div>
 
@@ -134,29 +147,29 @@ const Home: React.FC = () => {
           )}
 
           {/* メインコンテンツ */}
-          {viewMode === 'calculator' ? (
-            <SimpleCalculator />
-          ) : (
+          {viewMode === 'calculator' && <SimpleCalculator />}
+          {viewMode === 'investment' && <InvestmentCalculator />}
+          {viewMode === 'loan' && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* 左側: 入力フォーム */}
               <div>
                 <div className="bg-white rounded-lg shadow-md p-6">
-                <h2 className="text-xl font-semibold text-gray-800 mb-4">
-                  {calculationMode === 'forward' ? 'ローン条件入力' : '返済条件入力'}
-                </h2>
-                {calculationMode === 'forward' ? (
-                  <LoanForm
-                    values={currentParams}
-                    onChange={setCurrentParams}
-                    onSubmit={handleCalculate}
-                  />
-                ) : (
-                  <ReverseLoanForm
-                    values={reverseParams}
-                    onChange={setReverseParams}
-                    onSubmit={handleReverseCalculate}
-                  />
-                )}
+                  <h2 className="text-xl font-semibold text-gray-800 mb-4">
+                    {calculationMode === 'forward' ? 'ローン条件入力' : '返済条件入力'}
+                  </h2>
+                  {calculationMode === 'forward' ? (
+                    <LoanForm
+                      values={currentParams}
+                      onChange={setCurrentParams}
+                      onSubmit={handleCalculate}
+                    />
+                  ) : (
+                    <ReverseLoanForm
+                      values={reverseParams}
+                      onChange={setReverseParams}
+                      onSubmit={handleReverseCalculate}
+                    />
+                  )}
                 </div>
               </div>
 

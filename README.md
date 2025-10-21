@@ -1,28 +1,58 @@
 # 住宅ローン電卓 → FPツール統合プラットフォーム
 
-**Phase 0 (完成)**: 住宅ローン電卓 - スマートフォンとPCの両方で使用可能
-**Phase 1-3 (計画中)**: 基本FP機能 → AI統合 → エンタープライズ機能
+不動産営業やファイナンシャルプランナー向けの、住宅ローン計算から総合的なFP業務までをサポートするWebアプリケーション。
+
+**無料版（Phase 1-9）**: ✅ **本番稼働中** - 住宅ローン計算・簡易電卓・NISA複利計算
+**有料版（Phase 10-18）**: 🔜 **開発開始** - FP機能・認証・サブスクリプション（月額¥980）
 
 [![Deploy Status](https://img.shields.io/badge/deploy-vercel-success)](https://loan-simulation-eight.vercel.app)
 [![Build](https://img.shields.io/badge/build-passing-brightgreen)]()
 [![Tests](https://img.shields.io/badge/tests-74%20passing-brightgreen)]()
 [![Production](https://img.shields.io/badge/production-live-brightgreen)](https://loan-simulation-eight.vercel.app)
+[![License](https://img.shields.io/badge/license-Private-blue)]()
+
 
 ## 🎯 プロジェクト概要
 
-### Phase 0 (✅ 完成)
+### 無料版（Phase 1-9）✅ 本番稼働中
+
 住宅営業向けの基本的なローン計算ツール。物理電卓の持ち運びを不要にし、顧客との商談時にスマホやPCで即座に計算・提示。
 
 **主な機能:**
-- ✅ 元利均等返済 / 元金均等返済の計算
-- ✅ ボーナス払い対応
+- ✅ 住宅ローン計算（元利均等・元金均等・ボーナス払い）
 - ✅ 逆算機能（返済額→借入可能額）
-- ✅ 計算履歴の保存（最大20件、localStorage）
+- ✅ 簡易電卓（メモリ機能付き）
+- ✅ NISA複利計算ツール
+- ✅ 計算履歴管理（最大20件、localStorage）
 - ✅ レスポンシブデザイン（PC/タブレット/スマホ）
 - ✅ モバイルアプリ対応（Capacitor）
 
-### Phase 1-3 (計画中)
-FP業務をサポートする統合プラットフォームへ進化予定。詳細は [DEVELOPMENT_ROADMAP.md](./docs/DEVELOPMENT_ROADMAP.md) を参照。
+**🚀 本番URL**: https://loan-simulation-eight.vercel.app
+
+---
+
+### 有料版（Phase 10-18）🔜 開発開始
+
+**月額 ¥980** のサブスクリプション制で、FP業務をフルサポート。
+
+#### FP機能（Phase 13-16）
+- **ライフプランシミュレーション** - ライフイベント管理・キャッシュフロー表
+- **家計収支シミュレーション** - 月次・年次の収支分析
+- **資産運用シミュレーション** - 複利計算・ポートフォリオ分析
+- **保険設計シミュレーション** - 必要保障額計算
+
+#### 追加機能（Phase 17）
+- **繰上返済シミュレーション** - 期間短縮 vs 返済額軽減
+- **複数ローン比較** - 最大5件の条件を並べて比較
+- **PDF出力・印刷** - 提案書として保存・印刷
+
+#### インフラ（Phase 11-12, 18）
+- **Supabase認証** - Email + Social Login（Google, Apple, LINE）
+- **Stripe決済** - サブスクリプション管理
+- **クラウド同期** - PostgreSQL + Row Level Security
+- **モバイルアプリ完成** - Android/iOS配信
+
+**詳細**: [docs/TICKETS_FP.md](./docs/TICKETS_FP.md)
 
 ## 🚀 クイックスタート
 
@@ -43,136 +73,194 @@ npm run test
 
 ## 🛠️ 技術スタック
 
+### 無料版（Phase 1-9）✅
+
 - **Frontend**: React 18 + Vite + TypeScript
 - **Styling**: Tailwind CSS
-- **State**: React Hooks + Context API
-- **Storage**: localStorage
-- **Testing**: Vitest + React Testing Library
+- **State Management**: React Hooks + Context API
+- **Storage**: localStorage (client-side only)
+- **Charts**: Recharts (NISA複利計算)
+- **Testing**: Vitest + React Testing Library (74 tests)
 - **Mobile**: Capacitor (Android/iOS)
+- **Deployment**: Vercel
+
+### 有料版（Phase 10-18）🔜
+
+**Backend & Auth:**
+- **Supabase** - PostgreSQL database, Auth, Row Level Security, Storage
+- **Stripe** - Subscription management (月額 ¥980)
+
+**Additional Libraries:**
+- **React Query** - Server state management
+- **React Hook Form + Zod** - Form validation
+- **jsPDF + html2canvas** - PDF generation
+- **Google Gemini API** - AI features (future enhancement)
 
 ## 📁 プロジェクト構造
 
+### 現在（無料版）
+
 ```
 loan-simulation/
-├── docs/                    # 📚 ドキュメント
-│   ├── requirements.md      # 要件定義書
-│   ├── tech-stack.md        # 技術仕様書
-│   ├── DEVELOPMENT_PLAN.md  # 開発計画（50+チケット）
-│   └── TICKETS_SUMMARY.md   # 進捗管理サマリー
+├── docs/                     # 📚 ドキュメント
+│   ├── USER_GUIDE.md         # ユーザーガイド（無料版・有料版）
+│   ├── FAQ.md                # よくある質問
+│   ├── requirements.md       # 要件定義書
+│   ├── tech-stack.md         # 技術仕様書
+│   ├── DEVELOPMENT_PLAN.md   # 開発計画（Phase 1-18）
+│   ├── TICKETS_FP.md         # Phase 10-18チケット（37件）
+│   ├── TICKETS_NISA.md       # Phase 9.5チケット（18件）
+│   └── TICKETS_SUMMARY.md    # Phase 1-9進捗サマリー
 ├── src/
-│   ├── components/          # UIコンポーネント
-│   │   ├── Calculator/      # 電卓UI
-│   │   ├── Input/           # 入力フォーム
-│   │   ├── Result/          # 結果表示
-│   │   ├── History/         # 履歴
-│   │   └── Layout/          # レイアウト
-│   ├── contexts/            # Context API
-│   ├── hooks/               # カスタムフック
-│   ├── utils/               # ユーティリティ関数
-│   ├── types/               # TypeScript型定義
-│   └── pages/               # ページコンポーネント
-├── tests/                   # テスト
-│   ├── unit/
+│   ├── components/           # UIコンポーネント
+│   │   ├── Calculator/       # SimpleCalculator（メモリ機能付き）
+│   │   ├── Input/            # LoanForm, ReverseLoanForm, BonusSettings
+│   │   ├── Result/           # Summary, Schedule
+│   │   ├── History/          # HistoryList
+│   │   ├── Investment/       # InvestmentCalculator（NISA）
+│   │   └── Layout/           # Header, Footer, Container
+│   ├── contexts/             # LoanContext
+│   ├── hooks/                # useCalculator, useHistory, useKeyboard
+│   ├── utils/                # loanCalculator, investmentCalculator, storage
+│   ├── types/                # loan.ts, investment.ts
+│   └── pages/                # Home, History
+├── tests/                    # 74 tests passing
+│   ├── unit/                 # loanCalculator.test.ts, etc.
 │   └── integration/
-└── CLAUDE.md                # Claude Code向けガイド
+└── CLAUDE.md                 # Claude Code向けガイド
+```
+
+### 有料版で追加される構成（Phase 10-18）
+
+```
+src/
+├── components/
+│   ├── Auth/                 # 🆕 Login, SignUp, Account
+│   ├── Subscription/         # 🆕 Paywall, SubscriptionManagement
+│   ├── FP/                   # 🆕 FP機能コンポーネント
+│   │   ├── LifeEvent/        # ライフイベント入力
+│   │   ├── CashFlow/         # キャッシュフロー表
+│   │   ├── HouseholdBudget/  # 家計収支シミュレーション
+│   │   ├── AssetPlan/        # 資産運用シミュレーション
+│   │   ├── Insurance/        # 保険設計
+│   │   ├── Prepayment/       # 繰上返済シミュレーション
+│   │   └── LoanComparison/   # 複数ローン比較
+│   └── Export/               # 🆕 PDF出力
+├── contexts/
+│   ├── AuthContext.tsx       # 🆕 認証状態管理
+│   ├── SubscriptionContext.tsx # 🆕 サブスク状態管理
+│   └── LifePlanContext.tsx   # 🆕 ライフプラン管理
+├── hooks/
+│   ├── useAuth.ts            # 🆕 Supabase Auth
+│   └── useSubscription.ts    # 🆕 Stripe連携
+├── services/
+│   ├── supabase.ts           # 🆕 Supabase client
+│   └── stripe.ts             # 🆕 Stripe client
+├── utils/
+│   ├── lifePlanCalculator.ts # 🆕 CF計算ロジック
+│   ├── householdCalculator.ts # 🆕 家計収支計算
+│   ├── assetCalculator.ts    # 🆕 資産運用計算
+│   ├── insuranceCalculator.ts # 🆕 保険設計計算
+│   └── pdfGenerator.ts       # 🆕 PDF生成
+└── types/
+    ├── auth.ts               # 🆕 認証型定義
+    ├── subscription.ts       # 🆕 サブスク型定義
+    └── lifePlan.ts           # 🆕 FP型定義
 ```
 
 ## 📚 ドキュメント
 
-### 📖 計画・仕様書
+### 👥 ユーザー向け（Phase 10で追加）
 
 | ファイル | 説明 | ステータス |
 |---------|------|----------|
-| [DEVELOPMENT_ROADMAP.md](./docs/DEVELOPMENT_ROADMAP.md) | 🗺️ 全体ロードマップ（Phase 0-3） | ✅ v2.0 |
-| [requirements.md](./docs/requirements.md) | 📋 要件定義書（Phase 0完了 + 1-3計画） | ✅ v2.0 |
-| [tech-stack.md](./docs/tech-stack.md) | 🛠️ 技術スタック詳細・アーキテクチャ | ✅ v2.0 |
-| [project.md](./docs/project.md) | 📊 プロジェクト概要・競合分析・収益計画 | ✅ v2.1 |
-| [AI_API_COMPARISON.md](./docs/AI_API_COMPARISON.md) | 🤖 AI API比較分析（Gemini採用） | ✅ |
+| [USER_GUIDE.md](./docs/USER_GUIDE.md) | 📘 ユーザーガイド（無料版・有料版の使い方） | ✅ Phase 10 |
+| [FAQ.md](./docs/FAQ.md) | ❓ よくある質問（30問） | ✅ Phase 10 |
 
-### 🎫 開発チケット
+### 📖 開発者向け - 計画・仕様書
 
 | ファイル | 説明 | ステータス |
 |---------|------|----------|
-| [PHASE0_ISSUES.md](./docs/issues/PHASE0_ISSUES.md) | Phase 0: デプロイ準備（5 issues） | 🟡 進行中 |
-| [SUBAGENT_GUIDE.md](./docs/SUBAGENT_GUIDE.md) | サブエージェント活用ガイド | ✅ |
+| [DEVELOPMENT_PLAN.md](./docs/DEVELOPMENT_PLAN.md) | 🗺️ 開発計画（Phase 1-18） | ✅ |
+| [requirements.md](./docs/requirements.md) | 📋 要件定義書 | ✅ |
+| [tech-stack.md](./docs/tech-stack.md) | 🛠️ 技術スタック詳細 | ✅ |
+| [TICKETS_FP.md](./docs/TICKETS_FP.md) | 🎫 Phase 10-18チケット（37件） | ✅ |
+| [TICKETS_NISA.md](./docs/TICKETS_NISA.md) | 🎫 Phase 9.5チケット（18件） | ✅ |
+| [TICKETS_SUMMARY.md](./docs/TICKETS_SUMMARY.md) | 📊 Phase 1-9進捗サマリー | ✅ |
 
 ### 📝 その他
 
 | ファイル | 説明 |
 |---------|------|
 | [TROUBLESHOOTING.md](./docs/TROUBLESHOOTING.md) | トラブルシューティング・エラー解決策 |
-| [CLAUDE.md](./CLAUDE.md) | Claude Code向けガイド |
+| [CLAUDE.md](./CLAUDE.md) | Claude Code向け開発ガイド |
 
 ---
 
-## 🚦 Phase 0: デプロイ準備と初期リリース（期間: 2-3日）
+## 🎯 現在の開発状況
 
-### 現在の状況
-- ✅ **完成**: 住宅ローン計算機（元利均等、元金均等、ボーナス、逆算、履歴）
-- ✅ **ビルド**: 成功（dist/ 生成済み）
-- ✅ **テスト**: 74個全パス
-- ✅ **デプロイ**: 本番稼働中 🎉
+### Phase 1-9（無料版）✅ 完了・本番稼働中
+
+| Phase | 説明 | 進捗 | ステータス |
+|-------|------|------|----------|
+| Phase 1 | プロジェクトセットアップ | 4/4 | ✅ 完了 |
+| Phase 2 | ローン計算ロジック | 5/5 | ✅ 完了 |
+| Phase 3 | UIコンポーネント | 8/9 | ✅ 完了 |
+| Phase 4 | 状態管理 | 4/4 | ✅ 完了 |
+| Phase 5 | ページ統合 | 3/3 | ✅ 完了 |
+| Phase 6 | スタイリング・UX | 0/3 | ⬜ スキップ |
+| Phase 7 | テスト・QA | 0/3 | ⬜ スキップ |
+| Phase 8 | モバイルアプリ | 3/3 | ✅ 完了 |
+| Phase 9 | デプロイ | 3/3 | ✅ 完了 |
+
+**総チケット数**: 27/50完了（54%）
+**実質完了**: Phase 1,2,3,4,5,8,9 ✅
 
 **🚀 本番URL**: https://loan-simulation-eight.vercel.app
 
-### 次のステップ
+---
 
-#### 必須タスク（Must Have）
-1. ~~**ISSUE-001**: Vercelへのデプロイ~~ ✅ **完了**
-2. **ISSUE-002**: ErrorBoundary実装 🟡 High
-3. **ISSUE-004**: プライバシーポリシー・利用規約作成 🟡 High
+### Phase 9.5（NISA複利計算ツール）🔧 開発中（Codexが担当）
 
-#### 推奨タスク（Should Have）
-4. **ISSUE-003**: トーストメッセージ実装 🟢 Medium
-5. **ISSUE-005**: Google Analytics設定 🟢 Medium
+無料版機能拡張として、NISA複利計算ツールを追加中。
 
-**詳細**: [docs/issues/PHASE0_ISSUES.md](./docs/issues/PHASE0_ISSUES.md)
+**チケット数**: 18件
+**見積時間**: 約7.5時間
+**担当**: Codex
 
-**並列実行戦略**:
-```bash
-# メイン開発者: ISSUE-001 (Vercelデプロイ) + ISSUE-004 (文書作成)
-# Agent 1: ISSUE-002 (ErrorBoundary)
-# Agent 2: ISSUE-003 (Toast)
-# Agent 3: ISSUE-005 (Google Analytics)
-```
-
-**サブエージェント活用**: [docs/SUBAGENT_GUIDE.md](./docs/SUBAGENT_GUIDE.md)
+**詳細**: [docs/TICKETS_NISA.md](./docs/TICKETS_NISA.md)
 
 ---
 
-## 🗺️ Phase 1-3 概要（計画中）
+### Phase 10-18（有料版FP機能）🚀 Phase 10開始
 
-### Phase 1: 基本FP機能（Tier 1）- 3ヶ月
-**目標**: 月額¥980のSaaSとして提供
-- 顧客管理（CRUD）
-- ライフイベント管理
-- キャッシュフロー表（60年間）
-- 教育費・老後資金シミュレーション
-- PDF出力
+**月額 ¥980** のサブスクリプション制による有料版開発。
 
-**技術追加**: Supabase, React Query, Recharts, jsPDF
+| Phase | 説明 | チケット数 | 見積時間 | ステータス |
+|-------|------|-----------|---------|----------|
+| **Phase 10** | **ドキュメント整備** | **3** | **4h** | **🟢 進行中** |
+| Phase 11 | バックエンド構築（Supabase + Stripe） | 5 | 30-35h | ⬜ 未着手 |
+| Phase 12 | 認証UI実装 | 5 | 18-22h | ⬜ 未着手 |
+| Phase 13 | ライフプランシミュレーション | 5 | 36-42h | ⬜ 未着手 |
+| Phase 14 | 家計収支シミュレーション | 4 | 24-30h | ⬜ 未着手 |
+| Phase 15 | 資産運用シミュレーション | 4 | 30-36h | ⬜ 未着手 |
+| Phase 16 | 保険設計シミュレーション | 4 | 24-30h | ⬜ 未着手 |
+| Phase 17 | 追加機能（繰上返済・PDF出力） | 4 | 36-42h | ⬜ 未着手 |
+| Phase 18 | モバイルアプリ完成 | 4 | 36-42h | ⬜ 未着手 |
 
-### Phase 2: AI統合（Tier 2）- 6ヶ月
-**目標**: 月額¥4,980の付加価値
-- AIヒアリングアシスタント（Gemini 1.5 Flash）
-- 音声入力（Whisper API）
-- AI分析レポート（Gemini 1.5 Pro）
-- 家計簿API連携
-- 顧客ポータル（PWA）
+**総チケット数**: 37件
+**総見積時間**: 238-283時間（10-12週間）
+**並列実行可能**: 28/37チケット（76%）
 
-**技術追加**: Google Gemini API, OpenAI Whisper, PWA
+**詳細**: [docs/TICKETS_FP.md](./docs/TICKETS_FP.md)
 
-### Phase 3: エンタープライズ機能（Tier 3）- 12ヶ月
-**目標**: 月額¥50,000の法人向け
-- CRM連携（Salesforce, HubSpot）
-- チーム機能
-- 監査ログ
-- 金融商品DB
-- ホワイトラベル
+#### Phase 10の進捗（現在）
 
-**技術追加**: Salesforce API, Auth0, Datadog, Sentry
-
-**詳細**: [docs/DEVELOPMENT_ROADMAP.md](./docs/DEVELOPMENT_ROADMAP.md)
+| チケット | タスク | 見積時間 | ステータス |
+|---------|--------|---------|----------|
+| TICKET-1001 | USER_GUIDE.md作成 | 2h | ✅ 完了 |
+| TICKET-1002 | FAQ.md作成 | 1h | ✅ 完了 |
+| TICKET-1003 | README.md更新 | 1h | 🟢 進行中 |
 
 ## 🧮 計算式
 
@@ -290,7 +378,24 @@ Claude Codeで開発する場合は [CLAUDE.md](./CLAUDE.md) を参照してく�
 
 ---
 
+## 📞 サポート・フィードバック
+
+### ユーザー向け
+
+- **GitHub Issues**: https://github.com/anthropics/claude-code/issues
+- **Email**: support@loan-calculator.example.com
+- **営業時間**: 平日 9:00-18:00（日本時間）
+
+### 開発者向け
+
+- **Claude Code向けガイド**: [CLAUDE.md](./CLAUDE.md)
+- **トラブルシューティング**: [docs/TROUBLESHOOTING.md](./docs/TROUBLESHOOTING.md)
+- **開発計画**: [docs/DEVELOPMENT_PLAN.md](./docs/DEVELOPMENT_PLAN.md)
+
+---
+
 **作成日**: 2025-10-12
-**バージョン**: 1.0.0
-**ステータス**: Phase 9 完了 - 本番稼働中 🎉
+**最終更新**: 2025-10-21
+**バージョン**: 1.1.0
+**ステータス**: Phase 10 進行中（Phase 9 本番稼働中） 🚀
 **本番URL**: https://loan-simulation-eight.vercel.app
