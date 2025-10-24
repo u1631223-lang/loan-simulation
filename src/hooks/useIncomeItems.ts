@@ -60,7 +60,7 @@ export const useIncomeItems = (budgetId?: string): UseIncomeItemsReturn => {
 
   // 収入項目一覧を取得
   const fetchIncomeItems = useCallback(async () => {
-    if (!budgetId) {
+    if (!budgetId || !supabase) {
       setIncomeItems([]);
       setLoading(false);
       return;
@@ -101,7 +101,7 @@ export const useIncomeItems = (budgetId?: string): UseIncomeItemsReturn => {
   const createIncomeItem = async (
     params: CreateIncomeItemParams
   ): Promise<IncomeItem | null> => {
-    if (!user) {
+    if (!user || !supabase) {
       setError('ログインが必要です');
       return null;
     }
@@ -147,6 +147,11 @@ export const useIncomeItems = (budgetId?: string): UseIncomeItemsReturn => {
     id: string,
     params: UpdateIncomeItemParams
   ): Promise<boolean> => {
+    if (!supabase) {
+      setError('認証が設定されていません');
+      return false;
+    }
+
     try {
       setError(null);
 
@@ -179,6 +184,11 @@ export const useIncomeItems = (budgetId?: string): UseIncomeItemsReturn => {
 
   // 収入項目削除
   const deleteIncomeItem = async (id: string): Promise<boolean> => {
+    if (!supabase) {
+      setError('認証が設定されていません');
+      return false;
+    }
+
     try {
       setError(null);
 

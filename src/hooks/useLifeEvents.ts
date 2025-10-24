@@ -31,7 +31,7 @@ export const useLifeEvents = (lifePlanId?: string): UseLifeEventsReturn => {
 
   // イベント一覧を取得
   const fetchEvents = useCallback(async () => {
-    if (!lifePlanId) {
+    if (!lifePlanId || !supabase) {
       setEvents([]);
       setLoading(false);
       return;
@@ -73,8 +73,8 @@ export const useLifeEvents = (lifePlanId?: string): UseLifeEventsReturn => {
   const createEvent = async (
     params: CreateLifeEventParams
   ): Promise<LifeEvent | null> => {
-    if (!user) {
-      setError('ログインが必要です');
+    if (!user || !supabase) {
+      setError(!supabase ? '認証が設定されていません' : 'ログインが必要です');
       return null;
     }
 
@@ -121,6 +121,11 @@ export const useLifeEvents = (lifePlanId?: string): UseLifeEventsReturn => {
     id: string,
     params: UpdateLifeEventParams
   ): Promise<boolean> => {
+    if (!supabase) {
+      setError('認証が設定されていません');
+      return false;
+    }
+
     try {
       setError(null);
 
@@ -156,6 +161,11 @@ export const useLifeEvents = (lifePlanId?: string): UseLifeEventsReturn => {
 
   // イベント削除
   const deleteEvent = async (id: string): Promise<boolean> => {
+    if (!supabase) {
+      setError('認証が設定されていません');
+      return false;
+    }
+
     try {
       setError(null);
 

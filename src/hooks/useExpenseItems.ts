@@ -71,7 +71,7 @@ export const useExpenseItems = (budgetId?: string): UseExpenseItemsReturn => {
 
   // 支出項目一覧を取得
   const fetchExpenseItems = useCallback(async () => {
-    if (!budgetId) {
+    if (!budgetId || !supabase) {
       setExpenseItems([]);
       setLoading(false);
       return;
@@ -113,7 +113,7 @@ export const useExpenseItems = (budgetId?: string): UseExpenseItemsReturn => {
   const createExpenseItem = async (
     params: CreateExpenseItemParams
   ): Promise<ExpenseItem | null> => {
-    if (!user) {
+    if (!user || !supabase) {
       setError('ログインが必要です');
       return null;
     }
@@ -161,6 +161,11 @@ export const useExpenseItems = (budgetId?: string): UseExpenseItemsReturn => {
     id: string,
     params: UpdateExpenseItemParams
   ): Promise<boolean> => {
+    if (!supabase) {
+      setError('認証が設定されていません');
+      return false;
+    }
+
     try {
       setError(null);
 
@@ -194,6 +199,11 @@ export const useExpenseItems = (budgetId?: string): UseExpenseItemsReturn => {
 
   // 支出項目削除
   const deleteExpenseItem = async (id: string): Promise<boolean> => {
+    if (!supabase) {
+      setError('認証が設定されていません');
+      return false;
+    }
+
     try {
       setError(null);
 

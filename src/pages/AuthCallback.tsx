@@ -14,6 +14,11 @@ const AuthCallback: React.FC = () => {
 
   useEffect(() => {
     const handleAuthCallback = async () => {
+      if (!supabase) {
+        navigate('/', { replace: true });
+        return;
+      }
+
       try {
         // Get the hash fragment from URL (contains auth tokens)
         const hashParams = new URLSearchParams(window.location.hash.substring(1));

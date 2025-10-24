@@ -63,6 +63,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
    * Initialize auth state from Supabase session
    */
   const initializeAuth = useCallback(async () => {
+    // Supabaseが設定されていない場合はスキップ
+    if (!supabase) {
+      setLoading(false);
+      setInitialized(true);
+      return;
+    }
+
     try {
       setLoading(true);
 
@@ -93,6 +100,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     // Initialize auth on mount
     initializeAuth();
+
+    // Supabaseが設定されていない場合はリスナーをスキップ
+    if (!supabase) {
+      return;
+    }
 
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -125,6 +137,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
    * Sign up with email and password
    */
   const signUp = useCallback(async (params: SignUpParams) => {
+    if (!supabase) {
+      return {
+        user: null,
+        error: { message: 'Authentication is not configured' },
+      };
+    }
+
     try {
       const { data, error } = await supabase.auth.signUp({
         email: params.email,
@@ -154,6 +173,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
    * Sign in with email and password
    */
   const signIn = useCallback(async (params: SignInParams) => {
+    if (!supabase) {
+      return {
+        user: null,
+        error: { message: 'Authentication is not configured' },
+      };
+    }
+
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email: params.email,
@@ -178,6 +204,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
    * Sign in with OAuth provider (Google, Apple)
    */
   const signInWithOAuth = useCallback(async (provider: OAuthProvider) => {
+    if (!supabase) {
+      return { error: { message: 'Authentication is not configured' } };
+    }
+
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
@@ -203,6 +233,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
    * Sign out
    */
   const signOut = useCallback(async () => {
+    if (!supabase) {
+      return { error: { message: 'Authentication is not configured' } };
+    }
+
     try {
       const { error } = await supabase.auth.signOut();
 
@@ -227,6 +261,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
    * Refresh session
    */
   const refreshSession = useCallback(async () => {
+    if (!supabase) {
+      return;
+    }
+
     try {
       const { data: { session: refreshedSession }, error } = await supabase.auth.refreshSession();
 
