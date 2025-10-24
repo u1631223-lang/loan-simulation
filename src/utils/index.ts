@@ -3,3 +3,4 @@
  */
 
 export * from './loanCalculator';
+export * from './investmentCalculator';

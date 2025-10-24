@@ -1,9 +1,18 @@
-# 技術スタック詳細仕様書 v2.0
+# 技術スタック詳細仕様書 v3.0
 
-**作成日**: 2025-10-13
-**バージョン**: 2.0
-**対象**: Phase 1（完了）+ Phase 2 Tier 1-3（計画）
-**前バージョン**: [tech-stack-v1.0-phase1.md](./archive/tech-stack-v1.0-phase1.md)
+**作成日**: 2025-10-20
+**バージョン**: 3.0
+**対象**: Phase 1-9（完了・デプロイ済み）+ Phase 10-18（有料版FP機能計画）
+**前バージョン**: v2.0 (2025-10-13)
+
+**重要な更新（v3.0）:**
+- Phase 1-9完了：無料版プロトタイプデプロイ済み ✅
+- Phase 10-18の技術スタック確定：
+  - **Supabase**: PostgreSQL, Auth (Email + Google/Apple/LINE), Storage, RLS
+  - **Stripe**: Subscription management (¥980/月)
+  - **React Query**: Server state management
+  - **Recharts**: Charting library
+  - **jsPDF + html2canvas**: PDF generation
 
 ---
 
