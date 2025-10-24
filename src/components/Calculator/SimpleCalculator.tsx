@@ -166,7 +166,8 @@ const SimpleCalculator: React.FC = () => {
 
   // ボタンのスタイル（金融機関風 - 高級感・信頼性）
   const buttonClass = (variant: 'number' | 'operator' | 'equals' | 'memory' | 'clear' = 'number') => {
-    const base = 'min-h-[68px] rounded-lg font-bold text-xl transition-all active:scale-95 touch-manipulation shadow-md';
+    // スマホ: 52px、タブレット以上: 68px
+    const base = 'min-h-[52px] md:min-h-[68px] rounded-lg font-bold text-lg md:text-xl transition-all active:scale-95 touch-manipulation shadow-md';
 
     const variants = {
       // 数字ボタン: 高級感のあるホワイト（立体感）
@@ -176,7 +177,7 @@ const SimpleCalculator: React.FC = () => {
       // イコール: ゴールドアクセント（高級感）
       equals: 'bg-gradient-to-br from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-[0_4px_12px_rgba(217,119,6,0.3)]',
       // メモリー: エレガントなダークグレー
-      memory: 'bg-gray-700 hover:bg-gray-800 text-white text-base',
+      memory: 'bg-gray-700 hover:bg-gray-800 text-white text-sm md:text-base',
       // クリア: 控えめなグレー（マットな質感）
       clear: 'bg-gray-600 hover:bg-gray-700 text-white',
     };
@@ -187,27 +188,27 @@ const SimpleCalculator: React.FC = () => {
   return (
     <div className="flex flex-col lg:flex-row gap-4">
       {/* 電卓本体 */}
-      <div className="flex-1 bg-white rounded-lg shadow-lg p-6">
+      <div className="flex-1 bg-white rounded-lg shadow-lg p-4 md:p-6">
         {/* ディスプレイ（金融機関風 - ダークネイビー） */}
-        <div className="bg-gradient-to-br from-[#1E3A5F] to-[#2C5282] rounded-lg p-6 mb-5 border-2 border-[#3A5F7F] shadow-inner">
+        <div className="bg-gradient-to-br from-[#1E3A5F] to-[#2C5282] rounded-lg p-4 md:p-6 mb-3 md:mb-5 border-2 border-[#3A5F7F] shadow-inner">
           {/* 計算式表示 */}
-          <div className="text-blue-200 text-base h-7 overflow-hidden text-right mb-3 font-medium">
+          <div className="text-blue-200 text-sm md:text-base h-5 md:h-7 overflow-hidden text-right mb-2 md:mb-3 font-medium">
             {expression || '\u00A0'}
           </div>
           {/* 計算結果表示（大きく見やすく） */}
-          <div className="text-white text-5xl sm:text-6xl font-bold text-right break-all leading-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]">
+          <div className="text-white text-3xl sm:text-4xl md:text-5xl font-bold text-right break-all leading-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]">
             {isNaN(Number(display)) ? display : Number(display).toLocaleString('ja-JP')}
           </div>
           {/* メモリー表示（ゴールドアクセント） */}
           {memory !== 0 && (
-            <div className="text-amber-300 text-sm text-right mt-3 font-semibold">
+            <div className="text-amber-300 text-xs md:text-sm text-right mt-2 md:mt-3 font-semibold">
               💾 メモリー: {memory.toLocaleString('ja-JP')}
             </div>
           )}
         </div>
 
         {/* ボタンレイアウト */}
-        <div className="grid grid-cols-4 gap-3">
+        <div className="grid grid-cols-4 gap-2 md:gap-3">
           {/* メモリー機能行 */}
           <button onClick={handleMemoryClear} className={buttonClass('memory')}>MC</button>
           <button onClick={handleMemoryRecall} className={buttonClass('memory')}>MR</button>
@@ -243,42 +244,42 @@ const SimpleCalculator: React.FC = () => {
         </div>
 
         {/* キーボード操作ヒント */}
-        <div className="mt-4 p-4 bg-blue-50 rounded-lg text-sm text-blue-900 border border-blue-200">
+        <div className="mt-3 md:mt-4 p-3 md:p-4 bg-blue-50 rounded-lg text-xs md:text-sm text-blue-900 border border-blue-200">
           <p className="font-semibold mb-1">⌨️ キーボード操作</p>
           <p className="text-xs">Enter: 計算 | Esc: クリア | Backspace: 削除</p>
         </div>
       </div>
 
       {/* 計算履歴（金融機関風） */}
-      <div className="lg:w-80 bg-white rounded-lg shadow-lg p-6 border-2 border-gray-200">
-        <div className="flex items-center justify-between mb-4 pb-3 border-b-2 border-gray-200">
-          <h3 className="text-lg font-bold text-[#1E3A5F]">📋 履歴</h3>
+      <div className="lg:w-80 bg-white rounded-lg shadow-lg p-4 md:p-6 border-2 border-gray-200">
+        <div className="flex items-center justify-between mb-3 md:mb-4 pb-2 md:pb-3 border-b-2 border-gray-200">
+          <h3 className="text-base md:text-lg font-bold text-[#1E3A5F]">📋 履歴</h3>
           {history.length > 0 && (
             <button
               onClick={handleAllClear}
-              className="text-sm text-gray-600 hover:text-gray-800 font-semibold px-3 py-1.5 rounded-md hover:bg-gray-100 transition-colors border border-gray-300"
+              className="text-xs md:text-sm text-gray-600 hover:text-gray-800 font-semibold px-2 md:px-3 py-1 md:py-1.5 rounded-md hover:bg-gray-100 transition-colors border border-gray-300"
             >
               全消去
             </button>
           )}
         </div>
 
-        <div className="space-y-3 max-h-96 overflow-y-auto">
+        <div className="space-y-2 md:space-y-3 max-h-64 md:max-h-96 overflow-y-auto">
           {history.length === 0 ? (
-            <p className="text-gray-400 text-center py-12">
+            <p className="text-gray-400 text-center py-8 md:py-12 text-sm md:text-base">
               計算履歴はありません
             </p>
           ) : (
             history.map((item, index) => (
               <div
                 key={index}
-                className="bg-gradient-to-br from-blue-50 to-blue-100 hover:from-amber-50 hover:to-amber-100 rounded-lg p-4 cursor-pointer transition-all border-2 border-blue-200 hover:border-amber-400 hover:shadow-md"
+                className="bg-gradient-to-br from-blue-50 to-blue-100 hover:from-amber-50 hover:to-amber-100 rounded-lg p-3 md:p-4 cursor-pointer transition-all border-2 border-blue-200 hover:border-amber-400 hover:shadow-md"
                 onClick={() => handleHistoryClick(item.result)}
               >
-                <div className="text-sm text-blue-800 mb-2 font-medium">
+                <div className="text-xs md:text-sm text-blue-800 mb-1 md:mb-2 font-medium">
                   {item.expression}
                 </div>
-                <div className="text-2xl font-bold text-[#1E3A5F] text-right">
+                <div className="text-xl md:text-2xl font-bold text-[#1E3A5F] text-right">
                   = {item.result.toLocaleString('ja-JP')}
                 </div>
               </div>
@@ -287,7 +288,7 @@ const SimpleCalculator: React.FC = () => {
         </div>
 
         {history.length > 0 && (
-          <p className="text-xs text-gray-500 mt-4 text-center font-medium">
+          <p className="text-xs text-gray-500 mt-3 md:mt-4 text-center font-medium">
             💡 タップして値を再利用
           </p>
         )}
