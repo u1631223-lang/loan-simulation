@@ -38,7 +38,6 @@ function AppContent() {
     <Routes>
       {/* Public routes */}
       <Route path="/" element={<Home />} />
-      <Route path="/loan-tools" element={<LoanTools />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<SignUp />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
@@ -55,6 +54,14 @@ function AppContent() {
         }
       />
       {/* Phase 13-14 実装時に有効化（現在は型エラーのため一時的に無効化）
+      <Route
+        path="/loan-tools"
+        element={
+          <ProtectedRoute>
+            <LoanTools />
+          </ProtectedRoute>
+        }
+      />
       <Route
         path="/household-budget"
         element={
