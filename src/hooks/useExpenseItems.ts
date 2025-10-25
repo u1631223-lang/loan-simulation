@@ -22,33 +22,53 @@ export type ExpenseCategory =
   | 'medical'        // 医療費
   | 'other';         // その他
 
-// 支出項目
+// 支出項目（ライフプラン用・年齢ベース）
 export interface ExpenseItem {
   id: string;
-  budgetId: string;
+  userId: string;
   category: ExpenseCategory;
-  itemName: string;
+  name: string;
   amount: number;
-  frequency: Frequency;
-  isFixed: boolean;
+  startAge?: number;
+  endAge?: number;
   createdAt?: string;
+
+  // 後方互換性のため一時的に保持（Phase 13-14 実装時に削除予定）
+  // @deprecated - Use name instead
+  itemName?: string;
+  // @deprecated - Use startAge/endAge instead
+  frequency?: Frequency;
+  isFixed?: boolean;
+  budgetId?: string;
 }
 
 // 支出項目作成パラメータ
 export interface CreateExpenseItemParams {
-  budgetId: string;
   category: ExpenseCategory;
-  itemName: string;
+  name: string;
   amount: number;
-  frequency: Frequency;
-  isFixed: boolean;
+  startAge?: number;
+  endAge?: number;
+
+  // 後方互換性のため一時的に保持（Phase 13-14 実装時に削除予定）
+  // @deprecated
+  budgetId?: string;
+  itemName?: string;
+  frequency?: Frequency;
+  isFixed?: boolean;
 }
 
 // 支出項目更新パラメータ
 export interface UpdateExpenseItemParams {
   category?: ExpenseCategory;
-  itemName?: string;
+  name?: string;
   amount?: number;
+  startAge?: number;
+  endAge?: number;
+
+  // 後方互換性のため一時的に保持（Phase 13-14 実装時に削除予定）
+  // @deprecated
+  itemName?: string;
   frequency?: Frequency;
   isFixed?: boolean;
 }
@@ -69,9 +89,15 @@ export const useExpenseItems = (budgetId?: string): UseExpenseItemsReturn => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // budgetId は後方互換性のため受け付けるが、現在は user_id ベースで動作
+  // Phase 13-14 実装時に削除予定
+  if (budgetId) {
+    console.warn('budgetId parameter is deprecated. Using user_id-based filtering instead.');
+  }
+
   // 支出項目一覧を取得
   const fetchExpenseItems = useCallback(async () => {
-    if (!budgetId || !supabase) {
+    if (!user || !supabase) {
       setExpenseItems([]);
       setLoading(false);
       return;
@@ -84,7 +110,7 @@ export const useExpenseItems = (budgetId?: string): UseExpenseItemsReturn => {
       const { data, error: fetchError } = await supabase
         .from('expense_items')
         .select('*')
-        .eq('budget_id', budgetId)
+        .eq('user_id', user.id)
         .order('created_at', { ascending: true });
 
       if (fetchError) throw fetchError;
@@ -92,12 +118,12 @@ export const useExpenseItems = (budgetId?: string): UseExpenseItemsReturn => {
       setExpenseItems(
         (data || []).map((item) => ({
           id: item.id,
-          budgetId: item.budget_id,
+          userId: item.user_id,
           category: item.category as ExpenseCategory,
-          itemName: item.item_name,
+          name: item.name,
           amount: parseFloat(item.amount),
-          frequency: item.frequency as Frequency,
-          isFixed: item.is_fixed,
+          startAge: item.start_age,
+          endAge: item.end_age,
           createdAt: item.created_at,
         }))
       );
@@ -107,7 +133,7 @@ export const useExpenseItems = (budgetId?: string): UseExpenseItemsReturn => {
     } finally {
       setLoading(false);
     }
-  }, [budgetId]);
+  }, [user]);
 
   // 支出項目作成
   const createExpenseItem = async (
@@ -124,12 +150,12 @@ export const useExpenseItems = (budgetId?: string): UseExpenseItemsReturn => {
       const { data, error: createError } = await supabase
         .from('expense_items')
         .insert({
-          budget_id: params.budgetId,
+          user_id: user.id,
           category: params.category,
-          item_name: params.itemName,
+          name: params.name,
           amount: params.amount,
-          frequency: params.frequency,
-          is_fixed: params.isFixed,
+          start_age: params.startAge,
+          end_age: params.endAge,
         })
         .select()
         .single();
@@ -138,12 +164,12 @@ export const useExpenseItems = (budgetId?: string): UseExpenseItemsReturn => {
 
       const newItem: ExpenseItem = {
         id: data.id,
-        budgetId: data.budget_id,
+        userId: data.user_id,
         category: data.category as ExpenseCategory,
-        itemName: data.item_name,
+        name: data.name,
         amount: parseFloat(data.amount),
-        frequency: data.frequency as Frequency,
-        isFixed: data.is_fixed,
+        startAge: data.start_age,
+        endAge: data.end_age,
         createdAt: data.created_at,
       };
 
@@ -171,10 +197,10 @@ export const useExpenseItems = (budgetId?: string): UseExpenseItemsReturn => {
 
       const updateData: Record<string, unknown> = {};
       if (params.category !== undefined) updateData.category = params.category;
-      if (params.itemName !== undefined) updateData.item_name = params.itemName;
+      if (params.name !== undefined) updateData.name = params.name;
       if (params.amount !== undefined) updateData.amount = params.amount;
-      if (params.frequency !== undefined) updateData.frequency = params.frequency;
-      if (params.isFixed !== undefined) updateData.is_fixed = params.isFixed;
+      if (params.startAge !== undefined) updateData.start_age = params.startAge;
+      if (params.endAge !== undefined) updateData.end_age = params.endAge;
 
       const { error: updateError } = await supabase
         .from('expense_items')

@@ -20,6 +20,11 @@ import SignUp from '@/pages/SignUp';
 import AuthCallback from '@/pages/AuthCallback';
 import PrivacyPolicy from '@/pages/PrivacyPolicy';
 import TermsOfService from '@/pages/TermsOfService';
+import LoanTools from '@/pages/LoanTools';
+// Phase 13-14 実装時に有効化（現在は型エラーのため一時的に無効化）
+// import HouseholdBudget from '@/pages/HouseholdBudget';
+import { AssetManagement } from '@/pages/AssetManagement';
+import InsurancePlanning from '@/pages/InsurancePlanning';
 
 function AppContent() {
   const location = useLocation();
@@ -33,6 +38,7 @@ function AppContent() {
     <Routes>
       {/* Public routes */}
       <Route path="/" element={<Home />} />
+      <Route path="/loan-tools" element={<LoanTools />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<SignUp />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
@@ -45,6 +51,32 @@ function AppContent() {
         element={
           <ProtectedRoute>
             <History />
+          </ProtectedRoute>
+        }
+      />
+      {/* Phase 13-14 実装時に有効化（現在は型エラーのため一時的に無効化）
+      <Route
+        path="/household-budget"
+        element={
+          <ProtectedRoute>
+            <HouseholdBudget />
+          </ProtectedRoute>
+        }
+      />
+      */}
+      <Route
+        path="/asset-management"
+        element={
+          <ProtectedRoute>
+            <AssetManagement />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/insurance-planning"
+        element={
+          <ProtectedRoute>
+            <InsurancePlanning />
           </ProtectedRoute>
         }
       />

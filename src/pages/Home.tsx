@@ -14,6 +14,8 @@ import Summary from '@/components/Result/Summary';
 import Schedule from '@/components/Result/Schedule';
 import SimpleCalculator from '@/components/Calculator/SimpleCalculator';
 import { InvestmentCalculator } from '@/components/Investment';
+import { ExportButton } from '@/components/Common/ExportButton';
+import { PDFExportButton } from '@/components/Common/PDFExportButton';
 import { useCalculator } from '@/hooks/useCalculator';
 import type { LoanParams, ReverseLoanParams, CalculationMode } from '@/types';
 
@@ -52,6 +54,8 @@ const Home: React.FC = () => {
       months: [1, 8], // デフォルト: 1月（冬）と8月（夏）
     },
   });
+
+  const exportParams = loanParams ?? currentParams;
 
   const handleCalculate = () => {
     calculate(currentParams);
@@ -185,25 +189,39 @@ const Home: React.FC = () => {
                 {loanResult && (
                   <>
                     {/* 結果サマリー */}
-                    <div className="bg-white rounded-lg shadow-md p-6">
-                      <h2 className="text-xl font-semibold text-gray-800 mb-4">
-                        計算結果
-                      </h2>
-                      <Summary result={loanResult} mode={calculationMode} />
-                    </div>
+                    <Summary
+                      result={loanResult}
+                      mode={calculationMode}
+                      className="shadow-md"
+                      actions={
+                        exportParams ? (
+                          <PDFExportButton
+                            result={loanResult}
+                            params={exportParams}
+                            className="w-full sm:w-auto"
+                          />
+                        ) : undefined
+                      }
+                    />
 
-                    {/* 返済計画表トグル */}
+                    {/* 返済計画表 */}
                     <div className="bg-white rounded-lg shadow-md p-6">
-                      <div className="flex items-center justify-between mb-4">
+                      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-4">
                         <h2 className="text-xl font-semibold text-gray-800">
                           返済計画表
                         </h2>
-                        <button
-                          onClick={() => setShowSchedule(!showSchedule)}
-                          className="text-primary hover:text-primary-dark font-medium text-sm"
-                        >
-                          {showSchedule ? '非表示' : '表示'}
-                        </button>
+                        <div className="flex flex-wrap items-center justify-end gap-2">
+                          <button
+                            onClick={() => setShowSchedule(!showSchedule)}
+                            className="text-primary hover:text-primary-dark font-medium text-sm"
+                          >
+                            {showSchedule ? '非表示' : '表示'}
+                          </button>
+                          <ExportButton
+                            schedule={loanResult.schedule}
+                            className="w-full sm:w-auto"
+                          />
+                        </div>
                       </div>
 
                       {showSchedule && (

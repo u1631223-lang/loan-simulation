@@ -3,6 +3,7 @@
  * ローン計算結果のサマリー表示
  */
 
+import type { ReactNode } from 'react';
 import type { LoanResult, CalculationMode } from '@/types';
 
 interface SummaryProps {
@@ -10,6 +11,7 @@ interface SummaryProps {
   loading?: boolean;
   className?: string;
   mode?: CalculationMode;
+  actions?: ReactNode;
 }
 
 const Summary: React.FC<SummaryProps> = ({
@@ -17,6 +19,7 @@ const Summary: React.FC<SummaryProps> = ({
   loading = false,
   className = '',
   mode = 'forward',
+  actions,
 }) => {
   const formatCurrency = (amount: number): string => {
     return new Intl.NumberFormat('ja-JP', {
@@ -52,9 +55,14 @@ const Summary: React.FC<SummaryProps> = ({
 
   return (
     <div className={`bg-white rounded-lg shadow-lg p-6 ${className}`}>
-      <h2 className="text-xl font-bold mb-6 text-gray-800 border-b pb-2">
-        💰 計算結果
-      </h2>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6 border-b pb-2">
+        <h2 className="text-xl font-bold text-gray-800">
+          💰 計算結果
+        </h2>
+        {actions && (
+          <div className="flex flex-wrap gap-2">{actions}</div>
+        )}
+      </div>
 
       {/* 逆算モード: 借入可能額を強調表示 */}
       {mode === 'reverse' && (

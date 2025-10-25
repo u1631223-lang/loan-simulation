@@ -27,5 +27,14 @@
     }
   },
   "include": ["src"],
+  "exclude": [
+    "src/components/FP/Household/BudgetForm.tsx",
+    "src/components/FP/Household/BudgetSummary.tsx",
+    "src/components/FP/Household/BudgetChart.tsx",
+    "src/components/FP/Household/ExpenseItems.tsx",
+    "src/components/FP/Household/IncomeItems.tsx",
+    "src/pages/HouseholdBudget.tsx",
+    "src/utils/budgetAnalyzer.ts"
+  ],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

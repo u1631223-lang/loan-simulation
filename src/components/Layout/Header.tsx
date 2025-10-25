@@ -12,8 +12,13 @@ const Header: React.FC = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated, signOut } = useAuth();
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showFPMenu, setShowFPMenu] = useState(false);
 
   const isActive = (path: string) => location.pathname === path;
+  const isFPActive = () => {
+    const fpPaths = ['/household-budget', '/asset-management', '/insurance-planning'];
+    return fpPaths.includes(location.pathname);
+  };
 
   const handleSignOut = async () => {
     try {
@@ -57,6 +62,72 @@ const Header: React.FC = () => {
               >
                 履歴
               </Link>
+              <Link
+                to="/loan-tools"
+                className={`px-3 py-2 rounded-lg transition font-medium ${
+                  isActive('/loan-tools')
+                    ? 'bg-white text-primary'
+                    : 'text-white hover:bg-white/10'
+                }`}
+              >
+                ローン
+              </Link>
+
+              {/* FP Tools Dropdown */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowFPMenu(!showFPMenu)}
+                  onBlur={() => setTimeout(() => setShowFPMenu(false), 200)}
+                  className={`px-3 py-2 rounded-lg transition font-medium flex items-center gap-1 ${
+                    isFPActive()
+                      ? 'bg-white text-primary'
+                      : 'text-white hover:bg-white/10'
+                  }`}
+                >
+                  FPツール
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                {showFPMenu && (
+                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg py-2 z-50">
+                    <Link
+                      to="/household-budget"
+                      className={`block px-4 py-2 text-sm transition ${
+                        isActive('/household-budget')
+                          ? 'bg-primary/10 text-primary font-semibold'
+                          : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                      onClick={() => setShowFPMenu(false)}
+                    >
+                      💰 家計収支シミュレーション
+                    </Link>
+                    <Link
+                      to="/asset-management"
+                      className={`block px-4 py-2 text-sm transition ${
+                        isActive('/asset-management')
+                          ? 'bg-primary/10 text-primary font-semibold'
+                          : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                      onClick={() => setShowFPMenu(false)}
+                    >
+                      📈 資産運用シミュレーション
+                    </Link>
+                    <Link
+                      to="/insurance-planning"
+                      className={`block px-4 py-2 text-sm transition ${
+                        isActive('/insurance-planning')
+                          ? 'bg-primary/10 text-primary font-semibold'
+                          : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                      onClick={() => setShowFPMenu(false)}
+                    >
+                      🛡️ 保険設計シミュレーション
+                    </Link>
+                  </div>
+                )}
+              </div>
             </nav>
 
             {/* User Menu */}
