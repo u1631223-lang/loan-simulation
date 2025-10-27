@@ -4,14 +4,13 @@
  */
 
 import type { LoanParams, LoanResult } from '@/types';
-import { useAuth } from '@/hooks/useAuth';
 
 export interface HistoryItem {
   id: string;
   timestamp: number;
   params: LoanParams;
   result: LoanResult;
-  customerName?: string; // 🆕 お客様名（Tier 2以上）
+  memo?: string; // 🆕 メモ（任意）
 }
 
 interface HistoryListProps {
@@ -29,7 +28,6 @@ const HistoryList: React.FC<HistoryListProps> = ({
   onClear,
   className = '',
 }) => {
-  const { tier } = useAuth();
   const formatCurrency = (amount: number): string => {
     return new Intl.NumberFormat('ja-JP', {
       style: 'currency',
@@ -138,13 +136,17 @@ const HistoryList: React.FC<HistoryListProps> = ({
               </button>
             </div>
 
-            {/* お客様名表示（Tier 2以上 & 入力されている場合のみ） */}
-            {(tier === 'registered' || tier === 'premium') && item.customerName && (
+            {/* メモ表示（入力されている場合のみ） */}
+            {(() => {
+              const displayMemo = item.memo || item.params.memo;
+              if (!displayMemo) return null;
+              return (
               <div className="mb-3 flex items-center gap-2 px-3 py-2 bg-blue-50 rounded-lg border border-blue-100">
-                <span className="text-base">👤</span>
-                <span className="font-medium text-gray-800">{item.customerName}</span>
+                <span className="text-base">📝</span>
+                <span className="font-medium text-gray-800">{displayMemo}</span>
               </div>
-            )}
+              );
+            })()}
 
             {/* メイン情報 */}
             <div className="grid grid-cols-2 gap-3 mb-3">

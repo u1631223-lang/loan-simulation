@@ -23,6 +23,9 @@ export interface IncomeParams {
 
   /** 相手の年収（万円） */
   coDebtorIncome?: number;
+
+  /** メモ（Tier 2以上で使用可能） */
+  memo?: string;
 }
 
 /**

@@ -3,15 +3,19 @@
  * 年収ベースの借入可能額計算フォーム
  */
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import type { IncomeParams, IncomeResult } from '@/types/income';
 import { calculateMaxBorrowable, validateIncomeParams } from '@/utils/incomeCalculator';
+import { useAuth } from '@/hooks/useAuth';
 
 interface IncomeFormProps {
   onDetailPlan?: (result: IncomeResult, params: IncomeParams) => void;
 }
 
 const IncomeForm: React.FC<IncomeFormProps> = ({ onDetailPlan }) => {
+  const { tier } = useAuth();
+  const showMemo = tier === 'registered' || tier === 'premium';
+
   const [params, setParams] = useState<IncomeParams>({
     primaryIncome: 500, // デフォルト: 500万円
     interestRate: 1.0,
@@ -19,10 +23,25 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onDetailPlan }) => {
     hasCoDebtor: false,
     coDebtorType: undefined,
     coDebtorIncome: 400,
+    memo: '',
   });
+  const [interestRateInput, setInterestRateInput] = useState<string>(
+    params.interestRate === 0 ? '' : params.interestRate.toFixed(2)
+  );
 
   const [result, setResult] = useState<IncomeResult | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const interestRateInputRef = useRef<HTMLInputElement | null>(null);
+  const isInterestRateEditingRef = useRef(false);
+
+  useEffect(() => {
+    if (isInterestRateEditingRef.current) return;
+    if (params.interestRate === 0) {
+      setInterestRateInput('');
+      return;
+    }
+    setInterestRateInput(params.interestRate.toFixed(2));
+  }, [params.interestRate]);
 
   const handleChange = (field: keyof IncomeParams, value: string | number | boolean) => {
     setParams(prev => ({
@@ -44,16 +63,45 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onDetailPlan }) => {
     handleChange(field, Math.max(0, newValue));
   };
 
-  // 金利を2桁の小数点でフォーマット
-  const formatInterestRate = (rate: number): string => {
-    return rate.toFixed(2);
-  };
-
   const handleInterestRateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.target.value;
     if (input === '' || /^\d*\.?\d*$/.test(input)) {
-      handleChange('interestRate', parseFloat(input) || 0);
+      isInterestRateEditingRef.current = true;
+      setInterestRateInput(input);
+      const numericValue = parseFloat(input);
+      handleChange('interestRate', Number.isNaN(numericValue) ? 0 : numericValue);
     }
+  };
+
+  const handleInterestRateBlur = () => {
+    isInterestRateEditingRef.current = false;
+    if (interestRateInput.trim() === '') {
+      setInterestRateInput('');
+      handleChange('interestRate', 0);
+      return;
+    }
+    const numericValue = parseFloat(interestRateInput);
+    if (Number.isNaN(numericValue)) {
+      setInterestRateInput('');
+      handleChange('interestRate', 0);
+      return;
+    }
+    const formatted = numericValue.toFixed(2);
+    setInterestRateInput(formatted);
+    handleChange('interestRate', numericValue);
+  };
+
+  const handleInterestRateFocus = () => {
+    isInterestRateEditingRef.current = true;
+  };
+
+  const handleInterestRateClear = () => {
+    isInterestRateEditingRef.current = true;
+    setInterestRateInput('');
+    handleChange('interestRate', 0);
+    requestAnimationFrame(() => {
+      interestRateInputRef.current?.focus();
+    });
   };
 
   const handleCalculate = () => {
@@ -98,111 +146,147 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onDetailPlan }) => {
           💰 年収から借入可能額を計算
         </h2>
 
-        <div className="space-y-4">
-          {/* 本人の年収 */}
-          <div>
-            <label htmlFor="primaryIncome" className="block text-sm font-medium text-gray-700 mb-1">
-              💰 あなたの年収
-            </label>
-            <div className="relative flex items-center gap-2">
-              <input
-                id="primaryIncome"
-                type="number"
-                value={params.primaryIncome}
-                onChange={(e) => handleChange('primaryIncome', parseFloat(e.target.value) || 0)}
-                className={inputClass(!!errors.primaryIncome)}
-              />
-              <span className="absolute right-32 text-gray-600 pointer-events-none">万円</span>
-              <button
-                type="button"
-                onClick={() => handleIncrement('primaryIncome', 10)}
-                className={buttonClass}
-              >
-                ▲
-              </button>
-              <button
-                type="button"
-                onClick={() => handleDecrement('primaryIncome', 10)}
-                className={buttonClass}
-              >
-                ▼
-              </button>
-            </div>
-            {errors.primaryIncome && (
-              <p className="mt-1 text-sm text-red-600">{errors.primaryIncome}</p>
+        {/* Input Section - 2 columns on desktop */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Left column */}
+          <div className="space-y-4">
+            {/* メモフィールド（Tier 2以上で表示） */}
+            {showMemo && (
+              <div>
+                <label htmlFor="memo" className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1">
+                  <span className="text-lg">📝</span>
+                  <span>メモ</span>
+                </label>
+                <input
+                  id="memo"
+                  type="text"
+                  value={params.memo || ''}
+                  onChange={(e) => handleChange('memo', e.target.value)}
+                  placeholder="例）新築用、山田様など"
+                  className={inputClass(false)}
+                  maxLength={50}
+                />
+              </div>
             )}
+
+            {/* 本人の年収 */}
+            <div>
+              <label htmlFor="primaryIncome" className="block text-sm font-medium text-gray-700 mb-1">
+                💰 あなたの年収
+              </label>
+              <div className="relative flex items-center gap-2">
+                <input
+                  id="primaryIncome"
+                  type="number"
+                  value={params.primaryIncome}
+                  onChange={(e) => handleChange('primaryIncome', parseFloat(e.target.value) || 0)}
+                  className={inputClass(!!errors.primaryIncome)}
+                />
+                <span className="absolute right-32 text-gray-600 pointer-events-none">万円</span>
+                <button
+                  type="button"
+                  onClick={() => handleIncrement('primaryIncome', 10)}
+                  className={buttonClass}
+                >
+                  ▲
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDecrement('primaryIncome', 10)}
+                  className={buttonClass}
+                >
+                  ▼
+                </button>
+              </div>
+              {errors.primaryIncome && (
+                <p className="mt-1 text-sm text-red-600">{errors.primaryIncome}</p>
+              )}
+            </div>
+
+            {/* 金利 */}
+            <div>
+              <label htmlFor="interestRate" className="block text-sm font-medium text-gray-700 mb-1">
+                📈 金利（年利）
+              </label>
+              <div className="flex items-center gap-2">
+                <div className="relative flex-1">
+                  <input
+                    ref={interestRateInputRef}
+                    id="interestRate"
+                    type="text"
+                    value={interestRateInput}
+                    onChange={handleInterestRateChange}
+                    onFocus={handleInterestRateFocus}
+                    onBlur={handleInterestRateBlur}
+                    className={`${inputClass(!!errors.interestRate)} pr-12`}
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none">%</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleInterestRateClear}
+                  className="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded border border-gray-300 text-xs text-gray-600"
+                  aria-label="金利をクリア"
+                >
+                  クリア
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleIncrement('interestRate', 0.01)}
+                  className={buttonClass}
+                >
+                  ▲
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDecrement('interestRate', 0.01)}
+                  className={buttonClass}
+                >
+                  ▼
+                </button>
+              </div>
+              {errors.interestRate && (
+                <p className="mt-1 text-sm text-red-600">{errors.interestRate}</p>
+              )}
+            </div>
+
+            {/* 返済期間 */}
+            <div>
+              <label htmlFor="years" className="block text-sm font-medium text-gray-700 mb-1">
+                📅 返済期間
+              </label>
+              <div className="relative flex items-center gap-2">
+                <input
+                  id="years"
+                  type="number"
+                  value={params.years}
+                  onChange={(e) => handleChange('years', parseInt(e.target.value) || 0)}
+                  className={inputClass(!!errors.years)}
+                />
+                <span className="absolute right-32 text-gray-600 pointer-events-none">年</span>
+                <button
+                  type="button"
+                  onClick={() => handleIncrement('years', 1)}
+                  className={buttonClass}
+                >
+                  ▲
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDecrement('years', 1)}
+                  className={buttonClass}
+                >
+                  ▼
+                </button>
+              </div>
+              {errors.years && (
+                <p className="mt-1 text-sm text-red-600">{errors.years}</p>
+              )}
+            </div>
           </div>
 
-          {/* 金利 */}
+          {/* Right column - 連帯債務者/保証人 */}
           <div>
-            <label htmlFor="interestRate" className="block text-sm font-medium text-gray-700 mb-1">
-              📈 金利（年利）
-            </label>
-            <div className="relative flex items-center gap-2">
-              <input
-                id="interestRate"
-                type="text"
-                value={formatInterestRate(params.interestRate)}
-                onChange={handleInterestRateChange}
-                className={inputClass(!!errors.interestRate)}
-              />
-              <span className="absolute right-32 text-gray-600 pointer-events-none">%</span>
-              <button
-                type="button"
-                onClick={() => handleIncrement('interestRate', 0.01)}
-                className={buttonClass}
-              >
-                ▲
-              </button>
-              <button
-                type="button"
-                onClick={() => handleDecrement('interestRate', 0.01)}
-                className={buttonClass}
-              >
-                ▼
-              </button>
-            </div>
-            {errors.interestRate && (
-              <p className="mt-1 text-sm text-red-600">{errors.interestRate}</p>
-            )}
-          </div>
-
-          {/* 返済期間 */}
-          <div>
-            <label htmlFor="years" className="block text-sm font-medium text-gray-700 mb-1">
-              📅 返済期間
-            </label>
-            <div className="relative flex items-center gap-2">
-              <input
-                id="years"
-                type="number"
-                value={params.years}
-                onChange={(e) => handleChange('years', parseInt(e.target.value) || 0)}
-                className={inputClass(!!errors.years)}
-              />
-              <span className="absolute right-32 text-gray-600 pointer-events-none">年</span>
-              <button
-                type="button"
-                onClick={() => handleIncrement('years', 1)}
-                className={buttonClass}
-              >
-                ▲
-              </button>
-              <button
-                type="button"
-                onClick={() => handleDecrement('years', 1)}
-                className={buttonClass}
-              >
-                ▼
-              </button>
-            </div>
-            {errors.years && (
-              <p className="mt-1 text-sm text-red-600">{errors.years}</p>
-            )}
-          </div>
-
-          {/* 連帯債務者/保証人 */}
-          <div className="mt-6 pt-6 border-t border-gray-200">
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
@@ -299,8 +383,10 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onDetailPlan }) => {
               </div>
             )}
           </div>
+        </div>
 
-          {/* 計算ボタン */}
+        {/* 計算ボタン - Full width below grid */}
+        <div className="mt-6">
           <button
             onClick={handleCalculate}
             className="w-full py-3 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold rounded-lg shadow-md hover:shadow-lg transition-all duration-200 active:scale-95"
@@ -367,7 +453,6 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onDetailPlan }) => {
             <ul className="text-sm text-yellow-900 space-y-1">
               <li>• この金額は理論上の最大値です。</li>
               <li>• 実際の借入額は、他の借入状況や審査基準により異なります。</li>
-              <li>• 一般的には年収の5〜6倍程度が安全な借入額の目安とされています。</li>
             </ul>
           </div>
 

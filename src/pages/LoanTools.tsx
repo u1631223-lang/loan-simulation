@@ -41,9 +41,6 @@ const LoanTools: React.FC = () => {
       <main className="flex-1">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
           <div className="text-center space-y-3">
-            <span className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
-              Phase 17 追加機能
-            </span>
             <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">
               ローンの詳細シミュレーション
             </h1>

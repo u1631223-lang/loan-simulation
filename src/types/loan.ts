@@ -5,9 +5,10 @@
 /**
  * 計算モード
  */
-export type CalculationMode = 'forward' | 'reverse';
+export type CalculationMode = 'forward' | 'reverse' | 'income';
 // forward = 借入額から計算（通常）
 // reverse = 返済額から計算（逆算）
+// income  = 年収から計算
 
 /**
  * 返済方式
@@ -33,7 +34,7 @@ export interface LoanParams {
   months: number;           // 返済期間（月）※yearsに加算
   repaymentType: RepaymentType; // 返済方式
   bonusPayment?: BonusPayment;  // ボーナス払い（オプション）
-  customerName?: string;    // 🆕 お客様名（Tier 2以上で使用）
+  memo?: string;            // 🆕 メモ（任意）
 }
 
 /**
@@ -55,7 +56,7 @@ export interface ReverseLoanParams {
   months: number;              // 返済期間（月）
   repaymentType: RepaymentType; // 返済方式
   bonusPayment?: ReverseBonusPayment; // ボーナス払い（オプション）
-  customerName?: string;       // 🆕 お客様名（Tier 2以上で使用）
+  memo?: string;               // 🆕 メモ（任意）
 }
 
 /**
@@ -92,7 +93,7 @@ export interface LoanHistory {
   params: LoanParams;       // 計算パラメータ
   result: LoanResult;       // 計算結果
   label?: string;           // ラベル（オプション）
-  customerName?: string;    // 🆕 お客様名（Tier 2以上の履歴のみ）
+  memo?: string;            // 🆕 メモ
 }
 
 /**

@@ -3,6 +3,7 @@
  * ローンパラメータ入力フォーム
  */
 
+import React, { useEffect, useRef, useState } from 'react';
 import type { LoanParams } from '@/types';
 import BonusSettings from './BonusSettings';
 import { useAuth } from '@/hooks/useAuth';
@@ -21,9 +22,25 @@ const LoanForm: React.FC<LoanFormProps> = ({
   errors = {},
 }) => {
   const { tier } = useAuth();
+  const showMemo = tier === 'registered' || tier === 'premium';
 
-  // Tier 2以上でのみ表示
-  const showCustomerName = tier === 'registered' || tier === 'premium';
+  // 金利入力の状態管理
+  const [interestRateInput, setInterestRateInput] = useState<string>(
+    values.interestRate === 0 ? '' : values.interestRate.toFixed(2)
+  );
+  const interestRateInputRef = useRef<HTMLInputElement | null>(null);
+  const isInterestRateEditingRef = useRef(false);
+
+  // valuesの変更を監視して、編集中でなければinterestRateInputを更新
+  useEffect(() => {
+    if (isInterestRateEditingRef.current) return;
+    if (values.interestRate === 0) {
+      setInterestRateInput('');
+      return;
+    }
+    setInterestRateInput(values.interestRate.toFixed(2));
+  }, [values.interestRate]);
+
   const handleChange = (field: keyof LoanParams, value: string | number) => {
     onChange({
       ...values,
@@ -68,16 +85,42 @@ const LoanForm: React.FC<LoanFormProps> = ({
     const input = e.target.value;
     // 数字と小数点のみ許可
     if (input === '' || /^\d*\.?\d*$/.test(input)) {
-      handleChange('interestRate', parseFloat(input) || 0);
+      isInterestRateEditingRef.current = true;
+      setInterestRateInput(input);
+      const numericValue = parseFloat(input);
+      handleChange('interestRate', Number.isNaN(numericValue) ? 0 : numericValue);
     }
   };
 
-  // 金利を2桁の小数点でフォーマット（フォーカス外れた時のみ）
-  const formatInterestRate = (rate: number | string): string => {
-    if (!rate && rate !== 0) return '';
-    const num = typeof rate === 'string' ? parseFloat(rate) : rate;
-    if (isNaN(num)) return '';
-    return num.toFixed(2);
+  const handleInterestRateBlur = () => {
+    isInterestRateEditingRef.current = false;
+    if (interestRateInput.trim() === '') {
+      setInterestRateInput('');
+      handleChange('interestRate', 0);
+      return;
+    }
+    const numericValue = parseFloat(interestRateInput);
+    if (Number.isNaN(numericValue)) {
+      setInterestRateInput('');
+      handleChange('interestRate', 0);
+      return;
+    }
+    const formatted = numericValue.toFixed(2);
+    setInterestRateInput(formatted);
+    handleChange('interestRate', numericValue);
+  };
+
+  const handleInterestRateFocus = () => {
+    isInterestRateEditingRef.current = true;
+  };
+
+  const handleInterestRateClear = () => {
+    isInterestRateEditingRef.current = true;
+    setInterestRateInput('');
+    handleChange('interestRate', 0);
+    requestAnimationFrame(() => {
+      interestRateInputRef.current?.focus();
+    });
   };
 
   // 数値の増減ハンドラ
@@ -103,19 +146,19 @@ const LoanForm: React.FC<LoanFormProps> = ({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* お客様名フィールド（Tier 2以上でのみ表示） */}
-      {showCustomerName && (
+      {/* メモフィールド（Tier 2以上で表示） */}
+      {showMemo && (
         <div>
-          <label htmlFor="customerName" className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1">
-            <span className="text-lg">👤</span>
-            <span>お客様名（任意）</span>
+          <label htmlFor="memo" className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1">
+            <span className="text-lg">📝</span>
+            <span>メモ</span>
           </label>
           <input
-            id="customerName"
+            id="memo"
             type="text"
-            value={values.customerName || ''}
-            onChange={(e) => handleChange('customerName', e.target.value)}
-            placeholder="例）山田 太郎"
+            value={values.memo || ''}
+            onChange={(e) => handleChange('memo', e.target.value)}
+            placeholder="例）新築用、山田様など"
             className={inputClass(false)}
             maxLength={50}
           />
@@ -264,19 +307,32 @@ const LoanForm: React.FC<LoanFormProps> = ({
         <label htmlFor="interestRate" className="block text-sm font-medium text-gray-700 mb-1">
           金利（年利）
         </label>
-        <div className="relative flex items-center gap-2">
-          <input
-            id="interestRate"
-            type="text"
-            inputMode="decimal"
-            value={formatInterestRate(values.interestRate)}
-            onChange={handleInterestRateChange}
-            className={`${inputClass(!!errors.interestRate)} flex-1`}
-            placeholder="1.50"
-          />
-          <span className="absolute right-14 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none">
-            %
-          </span>
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <input
+              ref={interestRateInputRef}
+              id="interestRate"
+              type="text"
+              inputMode="decimal"
+              value={interestRateInput}
+              onChange={handleInterestRateChange}
+              onFocus={handleInterestRateFocus}
+              onBlur={handleInterestRateBlur}
+              className={`${inputClass(!!errors.interestRate)} pr-12`}
+              placeholder="1.50"
+            />
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none">
+              %
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={handleInterestRateClear}
+            className="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded border border-gray-300 text-xs text-gray-600"
+            aria-label="金利をクリア"
+          >
+            クリア
+          </button>
           <div className="flex flex-col gap-1">
             <button
               type="button"

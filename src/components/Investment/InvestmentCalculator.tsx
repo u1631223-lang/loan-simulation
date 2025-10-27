@@ -5,6 +5,8 @@ import {
   formatInvestmentAmount,
 } from '@/utils/investmentCalculator';
 import InvestmentChart from './InvestmentChart';
+import InvestmentComparison from './InvestmentComparison';
+import { useAuth } from '@/hooks/useAuth';
 
 const clamp = (value: number, min: number, max: number): number => {
   if (Number.isNaN(value)) return min;
@@ -24,20 +26,27 @@ const createParams = (
 });
 
 const InvestmentCalculator: React.FC = () => {
+  const { tier } = useAuth();
+  const showComparisonMode = tier === 'registered' || tier === 'premium';
+
+  const [viewMode, setViewMode] = useState<'single' | 'comparison'>('single');
+
   const [monthlyAmount, setMonthlyAmount] = useState(3);
   const [monthlyInputValue, setMonthlyInputValue] = useState('3.0'); // 入力フィールドの表示用
   const [annualReturn, setAnnualReturn] = useState(7.0); // S&P500の長期平均リターン（保守的見積もり）
   const [returnInputValue, setReturnInputValue] = useState('7.0'); // 利回り入力フィールドの表示用
   const [years, setYears] = useState(40); // 20歳から60歳まで想定
+  const [yearsInputValue, setYearsInputValue] = useState('40'); // 期間入力フィールドの表示用
   const [initialInvestment, setInitialInvestment] = useState(0);
-  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [initialInputValue, setInitialInputValue] = useState('0'); // 初期投資額入力フィールドの表示用
   const [result, setResult] = useState<InvestmentResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const handleCalculate = () => {
-    if (!Number.isFinite(monthlyAmount) || monthlyAmount < 0.1) {
+    // 月々積立と初期投資の両方が0の場合はエラー
+    if (monthlyAmount === 0 && initialInvestment === 0) {
       setResult(null);
-      setError('月々の積立額は0.1万円以上で入力してください');
+      setError('月々の積立額または初期投資額のいずれかを入力してください');
       return;
     }
 
@@ -66,22 +75,26 @@ const InvestmentCalculator: React.FC = () => {
   const handleMonthlyChange = (value: string) => {
     setMonthlyInputValue(value);
 
-    // 空文字の場合は最小値にセット
+    // 空文字の場合は0にセット（一括投資のみのケース）
     if (value === '' || value === '.') {
-      setMonthlyAmount(0.1);
+      setMonthlyAmount(0);
       return;
     }
 
     const parsed = parseFloat(value);
     // 数値として有効な場合のみ更新
     if (!Number.isNaN(parsed)) {
-      setMonthlyAmount(clamp(parsed, 0.1, 100));
+      setMonthlyAmount(clamp(parsed, 0, 100));
     }
   };
 
   const handleMonthlyBlur = () => {
     // フォーカスが外れた時にフォーマット
-    setMonthlyInputValue(monthlyAmount.toFixed(1));
+    if (monthlyAmount === 0) {
+      setMonthlyInputValue('0');
+    } else {
+      setMonthlyInputValue(monthlyAmount.toFixed(1));
+    }
   };
 
   const handleReturnChange = (value: string) => {
@@ -106,21 +119,53 @@ const InvestmentCalculator: React.FC = () => {
   };
 
   const handleYearsChange = (value: string) => {
+    setYearsInputValue(value);
+
+    // 空文字の場合は最小値にセット
+    if (value === '') {
+      setYears(1);
+      return;
+    }
+
     const parsed = parseInt(value, 10);
-    setYears(clamp(parsed, 1, 50));
+    // 数値として有効な場合のみ更新
+    if (!Number.isNaN(parsed)) {
+      setYears(clamp(parsed, 1, 50));
+    }
+  };
+
+  const handleYearsBlur = () => {
+    // フォーカスが外れた時にフォーマット
+    setYearsInputValue(years.toString());
   };
 
   const handleInitialChange = (value: string) => {
+    setInitialInputValue(value);
+
+    // 空文字の場合は0にセット
+    if (value === '' || value === '.') {
+      setInitialInvestment(0);
+      return;
+    }
+
     const parsed = parseFloat(value);
-    setInitialInvestment(clamp(parsed, 0, 10_000));
+    // 数値として有効な場合のみ更新
+    if (!Number.isNaN(parsed)) {
+      setInitialInvestment(clamp(parsed, 0, 10_000));
+    }
+  };
+
+  const handleInitialBlur = () => {
+    // フォーカスが外れた時にフォーマット
+    setInitialInputValue(initialInvestment.toString());
   };
 
   const increment = (field: 'monthly' | 'return' | 'years' | 'initial') => {
     switch (field) {
       case 'monthly':
         setMonthlyAmount(prev => {
-          const newVal = clamp(parseFloat((prev + 0.1).toFixed(1)), 0.1, 100);
-          setMonthlyInputValue(newVal.toFixed(1));
+          const newVal = clamp(parseFloat((prev + 0.1).toFixed(1)), 0, 100);
+          setMonthlyInputValue(newVal === 0 ? '0' : newVal.toFixed(1));
           return newVal;
         });
         break;
@@ -132,10 +177,18 @@ const InvestmentCalculator: React.FC = () => {
         });
         break;
       case 'years':
-        setYears(prev => clamp(prev + 1, 1, 50));
+        setYears(prev => {
+          const newVal = clamp(prev + 1, 1, 50);
+          setYearsInputValue(newVal.toString());
+          return newVal;
+        });
         break;
       case 'initial':
-        setInitialInvestment(prev => clamp(prev + 10, 0, 10_000));
+        setInitialInvestment(prev => {
+          const newVal = clamp(prev + 10, 0, 10_000);
+          setInitialInputValue(newVal.toString());
+          return newVal;
+        });
         break;
       default:
         break;
@@ -146,8 +199,8 @@ const InvestmentCalculator: React.FC = () => {
     switch (field) {
       case 'monthly':
         setMonthlyAmount(prev => {
-          const newVal = clamp(parseFloat((prev - 0.1).toFixed(1)), 0.1, 100);
-          setMonthlyInputValue(newVal.toFixed(1));
+          const newVal = clamp(parseFloat((prev - 0.1).toFixed(1)), 0, 100);
+          setMonthlyInputValue(newVal === 0 ? '0' : newVal.toFixed(1));
           return newVal;
         });
         break;
@@ -159,10 +212,18 @@ const InvestmentCalculator: React.FC = () => {
         });
         break;
       case 'years':
-        setYears(prev => clamp(prev - 1, 1, 50));
+        setYears(prev => {
+          const newVal = clamp(prev - 1, 1, 50);
+          setYearsInputValue(newVal.toString());
+          return newVal;
+        });
         break;
       case 'initial':
-        setInitialInvestment(prev => clamp(prev - 10, 0, 10_000));
+        setInitialInvestment(prev => {
+          const newVal = clamp(prev - 10, 0, 10_000);
+          setInitialInputValue(newVal.toString());
+          return newVal;
+        });
         break;
       default:
         break;
@@ -171,12 +232,45 @@ const InvestmentCalculator: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-1">
-          <div className="rounded-lg bg-white p-6 shadow">
-            <h2 className="mb-4 text-xl font-semibold text-gray-800">
-              NISA複利シミュレーション
-            </h2>
+      {/* タブ切り替え（Tier 2以上で比較モード表示） */}
+      {showComparisonMode && (
+        <div className="flex gap-2 justify-center">
+          <button
+            type="button"
+            onClick={() => setViewMode('single')}
+            className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+              viewMode === 'single'
+                ? 'bg-primary text-white'
+                : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-300'
+            }`}
+          >
+            通常モード
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode('comparison')}
+            className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+              viewMode === 'comparison'
+                ? 'bg-primary text-white'
+                : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-300'
+            }`}
+          >
+            比較モード
+          </button>
+        </div>
+      )}
+
+      {/* 比較モード */}
+      {viewMode === 'comparison' ? (
+        <InvestmentComparison />
+      ) : (
+        /* 通常モード */
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div className="lg:col-span-1">
+            <div className="rounded-lg bg-white p-6 shadow">
+              <h2 className="mb-4 text-xl font-semibold text-gray-800">
+                NISA複利シミュレーション
+              </h2>
 
             <div className="space-y-5">
               <div>
@@ -272,13 +366,19 @@ const InvestmentCalculator: React.FC = () => {
                 </label>
                 <div className="flex items-center gap-2">
                   <input
-                    type="number"
-                    min={1}
-                    max={50}
-                    step={1}
-                    value={years}
+                    type="text"
+                    inputMode="numeric"
+                    value={yearsInputValue}
                     onChange={event => handleYearsChange(event.target.value)}
+                    onBlur={handleYearsBlur}
+                    onKeyDown={event => {
+                      // Enterキーで計算実行
+                      if (event.key === 'Enter') {
+                        handleCalculate();
+                      }
+                    }}
                     className="flex-1 rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    placeholder="40"
                   />
                   <span className="text-gray-600">年</span>
                   <div className="flex flex-col gap-1">
@@ -302,51 +402,50 @@ const InvestmentCalculator: React.FC = () => {
                 </div>
               </div>
 
+              {/* 初期投資額（全ユーザーに表示） */}
               <div>
-                <button
-                  type="button"
-                  onClick={() => setShowAdvanced(prev => !prev)}
-                  className="flex items-center gap-1 text-sm font-medium text-primary hover:text-primary-dark"
-                >
-                  {showAdvanced ? '▼' : '▶'} 詳細設定（任意）
-                </button>
-                {showAdvanced && (
-                  <div className="mt-3">
-                    <label className="mb-1 block text-sm font-medium text-gray-700">
-                      初期投資額
-                    </label>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="number"
-                        min={0}
-                        max={10_000}
-                        step={10}
-                        value={initialInvestment}
-                        onChange={event => handleInitialChange(event.target.value)}
-                        className="flex-1 rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/50"
-                      />
-                      <span className="text-gray-600">万円</span>
-                      <div className="flex flex-col gap-1">
-                        <button
-                          type="button"
-                          onClick={() => increment('initial')}
-                          className="rounded bg-gray-100 px-2 py-1 text-xs hover:bg-gray-200"
-                          aria-label="初期投資額を増やす"
-                        >
-                          ▲
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => decrement('initial')}
-                          className="rounded bg-gray-100 px-2 py-1 text-xs hover:bg-gray-200"
-                          aria-label="初期投資額を減らす"
-                        >
-                          ▼
-                        </button>
-                      </div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">
+                  初期投資額（任意）
+                </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      inputMode="decimal"
+                      value={initialInputValue}
+                      onChange={event => handleInitialChange(event.target.value)}
+                      onBlur={handleInitialBlur}
+                      onKeyDown={event => {
+                        // Enterキーで計算実行
+                        if (event.key === 'Enter') {
+                          handleCalculate();
+                        }
+                      }}
+                      className="flex-1 rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/50"
+                      placeholder="0"
+                    />
+                    <span className="text-gray-600">万円</span>
+                    <div className="flex flex-col gap-1">
+                      <button
+                        type="button"
+                        onClick={() => increment('initial')}
+                        className="rounded bg-gray-100 px-2 py-1 text-xs hover:bg-gray-200"
+                        aria-label="初期投資額を増やす"
+                      >
+                        ▲
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => decrement('initial')}
+                        className="rounded bg-gray-100 px-2 py-1 text-xs hover:bg-gray-200"
+                        aria-label="初期投資額を減らす"
+                      >
+                        ▼
+                      </button>
                     </div>
                   </div>
-                )}
+                <p className="mt-1 text-xs text-gray-500">
+                  ※ 年初一括投資や退職金運用など、まとまった資金の運用シミュレーションに
+                </p>
               </div>
 
               <button
@@ -437,8 +536,9 @@ const InvestmentCalculator: React.FC = () => {
               左側のフォームで条件を入力し「シミュレーションを実行」を押してください
             </div>
           )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

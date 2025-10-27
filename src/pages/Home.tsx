@@ -22,7 +22,7 @@ import { useCalculator } from '@/hooks/useCalculator';
 import type { LoanParams, ReverseLoanParams, CalculationMode } from '@/types';
 import type { IncomeResult } from '@/types/income';
 
-type ViewMode = 'loan' | 'calculator' | 'investment' | 'income';
+type ViewMode = 'loan' | 'calculator' | 'investment';
 
 const Home: React.FC = () => {
   const { loanParams, loanResult, error, calculate, calculateReverse } = useCalculator();
@@ -119,12 +119,12 @@ const Home: React.FC = () => {
               {viewMode === 'loan'
                 ? calculationMode === 'forward'
                   ? '借入金額と返済条件を入力して、月々の返済額を計算できます'
-                  : '月々の返済額を入力して、借入可能額を計算できます'
+                  : calculationMode === 'reverse'
+                    ? '月々の返済額を入力して、借入可能額を計算できます'
+                    : '年収から借入可能な最大額を計算できます'
                 : viewMode === 'calculator'
                   ? '坪数計算や簡易計算に便利な電卓です'
-                  : viewMode === 'investment'
-                    ? 'NISAを活用した資産運用のシミュレーションが行えます'
-                    : '年収から借入可能な最大額を計算できます'}
+                  : 'NISAを活用した資産運用のシミュレーションが行えます'}
             </p>
           </div>
 
@@ -139,16 +139,6 @@ const Home: React.FC = () => {
               }`}
             >
               💰 ローン計算
-            </button>
-            <button
-              onClick={() => setViewMode('income')}
-              className={`px-4 sm:px-6 py-3 rounded-lg font-medium transition-all whitespace-nowrap ${
-                viewMode === 'income'
-                  ? 'bg-primary text-white shadow-md'
-                  : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-300'
-              }`}
-            >
-              💵 年収から計算
             </button>
             <button
               onClick={() => setViewMode('calculator')}
@@ -195,14 +185,26 @@ const Home: React.FC = () => {
               >
                 返済額から計算
               </button>
+              <button
+                onClick={() => setCalculationMode('income')}
+                className={`px-6 py-3 rounded-lg font-medium transition-all ${
+                  calculationMode === 'income'
+                    ? 'bg-secondary text-white shadow-md'
+                    : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-300'
+                }`}
+              >
+                年収から計算
+              </button>
             </div>
           )}
 
           {/* メインコンテンツ */}
           {viewMode === 'calculator' && <SimpleCalculator />}
           {viewMode === 'investment' && <InvestmentCalculator />}
-          {viewMode === 'income' && <IncomeForm onDetailPlan={handleDetailPlan} />}
-          {viewMode === 'loan' && (
+          {viewMode === 'loan' && calculationMode === 'income' && (
+            <IncomeForm onDetailPlan={handleDetailPlan} />
+          )}
+          {viewMode === 'loan' && calculationMode !== 'income' && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* 左側: 入力フォーム */}
               <div>

@@ -32,7 +32,7 @@ const rowToHistory = (row: LoanHistoryRow): LoanHistory => ({
   params: row.params,
   result: row.result,
   label: row.label,
-  customerName: row.customer_name, // 🆕 Map from snake_case to camelCase
+  memo: row.customer_name, // 🆕 Map from snake_case to camelCase
 });
 
 /**
@@ -44,7 +44,7 @@ const historyToInsert = (history: LoanHistory, userId: string) => ({
   params: history.params,
   result: history.result,
   label: history.label,
-  customer_name: history.params.customerName || null, // 🆕 Extract from params
+  customer_name: history.params.memo || null, // 🆕 Extract from params
 });
 
 /**
