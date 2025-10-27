@@ -41,6 +41,22 @@ export const useAuth = () => {
    */
   const email = context.user?.email || '';
 
+  /**
+   * Freemium Tier Logic
+   *
+   * Tier 1 (Anonymous): !isAuthenticated
+   * Tier 2 (Registered): isAuthenticated && !isPremium
+   * Tier 3 (Premium): isAuthenticated && isPremium
+   */
+  const isAnonymous = !isAuthenticated;
+
+  /**
+   * Check if user has active premium subscription
+   * TODO: Implement actual Stripe subscription check
+   * For now, check user_metadata.is_premium flag
+   */
+  const isPremium = isAuthenticated && (context.user?.user_metadata?.is_premium === true);
+
   return {
     // Auth state
     user: context.user,
@@ -49,6 +65,11 @@ export const useAuth = () => {
     initialized: isInitialized,
     isAuthenticated,
     isEmailVerified,
+
+    // Freemium tier state
+    isAnonymous,
+    isPremium,
+    tier: isAnonymous ? 'anonymous' : isPremium ? 'premium' : 'registered',
 
     // User info helpers
     displayName,

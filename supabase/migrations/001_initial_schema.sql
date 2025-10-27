@@ -1,3 +1,3 @@
 -- Deprecated migration kept for ordering compatibility.
 -- Phase 17 以降は `20250101000000_initial_schema.sql` が完全な初期スキーマを提供します。
--- このファイルは意図的に空です。
+-- このファイルは意図的に空です。（2025-02 セキュリティ再編）

@@ -516,6 +516,7 @@ CREATE TRIGGER update_loan_comparisons_updated_at
 -- ============================================================
 -- Auto-create profile on user signup
 -- ============================================================
+-- SECURITY DEFINER で search_path を固定
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER
 LANGUAGE plpgsql

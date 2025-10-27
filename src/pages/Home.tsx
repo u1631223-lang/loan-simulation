@@ -10,16 +10,19 @@ import Header from '@/components/Layout/Header';
 import Footer from '@/components/Layout/Footer';
 import LoanForm from '@/components/Input/LoanForm';
 import ReverseLoanForm from '@/components/Input/ReverseLoanForm';
+import IncomeForm from '@/components/Input/IncomeForm';
 import Summary from '@/components/Result/Summary';
 import Schedule from '@/components/Result/Schedule';
 import SimpleCalculator from '@/components/Calculator/SimpleCalculator';
 import { InvestmentCalculator } from '@/components/Investment';
 import { ExportButton } from '@/components/Common/ExportButton';
 import { PDFExportButton } from '@/components/Common/PDFExportButton';
+import { FeatureShowcase } from '@/components/Common/FeatureShowcase';
 import { useCalculator } from '@/hooks/useCalculator';
 import type { LoanParams, ReverseLoanParams, CalculationMode } from '@/types';
+import type { IncomeResult } from '@/types/income';
 
-type ViewMode = 'loan' | 'calculator' | 'investment';
+type ViewMode = 'loan' | 'calculator' | 'investment' | 'income';
 
 const Home: React.FC = () => {
   const { loanParams, loanResult, error, calculate, calculateReverse } = useCalculator();
@@ -67,6 +70,39 @@ const Home: React.FC = () => {
     setShowSchedule(true);
   };
 
+  // 年収計算から詳細計算への遷移
+  const handleDetailPlan = (result: IncomeResult, incomeParams: any) => {
+    // 借入可能額を借入金額にセット
+    setCurrentParams({
+      principal: result.maxBorrowableAmount,
+      interestRate: incomeParams.interestRate,
+      years: incomeParams.years,
+      months: 0,
+      repaymentType: 'equal-payment',
+      bonusPayment: {
+        enabled: false,
+        amount: 15000000,
+        months: [1, 8],
+      },
+    });
+    // ローン計算モード（forward）に切り替え
+    setViewMode('loan');
+    setCalculationMode('forward');
+    // 自動計算
+    calculate({
+      principal: result.maxBorrowableAmount,
+      interestRate: incomeParams.interestRate,
+      years: incomeParams.years,
+      months: 0,
+      repaymentType: 'equal-payment',
+      bonusPayment: {
+        enabled: false,
+        amount: 15000000,
+        months: [1, 8],
+      },
+    });
+    setShowSchedule(true);
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -86,7 +122,9 @@ const Home: React.FC = () => {
                   : '月々の返済額を入力して、借入可能額を計算できます'
                 : viewMode === 'calculator'
                   ? '坪数計算や簡易計算に便利な電卓です'
-                  : 'NISAを活用した資産運用のシミュレーションが行えます'}
+                  : viewMode === 'investment'
+                    ? 'NISAを活用した資産運用のシミュレーションが行えます'
+                    : '年収から借入可能な最大額を計算できます'}
             </p>
           </div>
 
@@ -101,6 +139,16 @@ const Home: React.FC = () => {
               }`}
             >
               💰 ローン計算
+            </button>
+            <button
+              onClick={() => setViewMode('income')}
+              className={`px-4 sm:px-6 py-3 rounded-lg font-medium transition-all whitespace-nowrap ${
+                viewMode === 'income'
+                  ? 'bg-primary text-white shadow-md'
+                  : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-300'
+              }`}
+            >
+              💵 年収から計算
             </button>
             <button
               onClick={() => setViewMode('calculator')}
@@ -153,6 +201,7 @@ const Home: React.FC = () => {
           {/* メインコンテンツ */}
           {viewMode === 'calculator' && <SimpleCalculator />}
           {viewMode === 'investment' && <InvestmentCalculator />}
+          {viewMode === 'income' && <IncomeForm onDetailPlan={handleDetailPlan} />}
           {viewMode === 'loan' && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* 左側: 入力フォーム */}
@@ -254,6 +303,9 @@ const Home: React.FC = () => {
               </div>
             </div>
           )}
+
+          {/* 機能紹介セクション */}
+          <FeatureShowcase />
         </div>
       </Container>
 

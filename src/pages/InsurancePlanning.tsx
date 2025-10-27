@@ -10,6 +10,7 @@ import Footer from '@/components/Layout/Footer';
 import { InsurancePlanForm } from '@/components/FP/Insurance/InsurancePlanForm';
 import { CoverageAnalysisComponent } from '@/components/FP/Insurance/CoverageAnalysis';
 import { InsuranceRecommendationComponent } from '@/components/FP/Insurance/InsuranceRecommendation';
+import { FeatureGate } from '@/components/Common/FeatureGate';
 import { performCoverageAnalysis } from '@/utils/insuranceCalculator';
 import type {
   InsurancePlanParams,
@@ -82,9 +83,14 @@ export const InsurancePlanning = () => {
         <div className="bg-white border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
             <div className="text-center space-y-3">
-              <span className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
-                Phase 16 保険設計
-              </span>
+              <div className="flex items-center justify-center gap-3">
+                <span className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
+                  Phase 16 保険設計
+                </span>
+                <span className="inline-flex items-center rounded-full bg-gradient-to-r from-amber-500 to-orange-500 px-3 py-1 text-sm font-semibold text-white">
+                  Premium限定
+                </span>
+              </div>
               <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">
                 保険設計シミュレーション
               </h1>
@@ -95,6 +101,7 @@ export const InsurancePlanning = () => {
           </div>
         </div>
 
+        <FeatureGate tier="premium" featureName="保険設計シミュレーション">
         {/* タブナビゲーション */}
         <div className="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -215,6 +222,7 @@ export const InsurancePlanning = () => {
             </ul>
           </div>
         </div>
+        </FeatureGate>
       </main>
 
       <Footer />

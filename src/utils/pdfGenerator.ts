@@ -8,6 +8,15 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import type { LoanParams, LoanResult } from '@/types';
 import { formatCurrency } from './loanCalculator';
+import { canExportPDF, incrementPDFCount, getRemainingPDFCount } from './pdfQuota';
+
+// Re-export quota functions for convenience
+export { canExportPDF, getRemainingPDFCount, resetPDFCount } from './pdfQuota';
+
+/**
+ * ユーザーTier（Freemiumモデル）
+ */
+export type UserTier = 'anonymous' | 'authenticated' | 'premium';
 
 /**
  * PDF生成オプション
@@ -17,6 +26,13 @@ export interface PDFOptions {
   author?: string;
   subject?: string;
   keywords?: string;
+  /**
+   * ユーザーTier（透かし表示用）
+   * - anonymous: 未ログイン（PDF出力不可）
+   * - authenticated: 登録ユーザー（透かし付き、1日3回まで）
+   * - premium: プレミアムユーザー（透かしなし、無制限）
+   */
+  userTier?: UserTier;
 }
 
 /**
@@ -59,6 +75,133 @@ const addFooter = (doc: jsPDF, pageNumber: number) => {
 };
 
 /**
+ * PDFに透かしを追加（Tier 2ユーザー用）
+ *
+ * 登録ユーザー（Tier 2）のみ透かし付きで出力可能
+ * プレミアムユーザー（Tier 3）は透かしなし
+ *
+ * マーケティング最適化版（英語版）:
+ * - jsPDFは日本語フォント非対応のため英語で表示
+ * - 中央: FREE MEMBER SAMPLE（無料会員版サンプル）
+ * - 上部: ベネフィット訴求（Remove watermark + Full FP Tools）
+ * - 下部: 具体的価格とCTA（¥980/month for Pro）
+ */
+const addWatermark = (doc: jsPDF) => {
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+
+  // 中央に大きく斜め45度で配置（メインメッセージ）
+  doc.setTextColor(220, 220, 220); // 薄いグレー
+  doc.setFontSize(32);
+  doc.setFont('helvetica', 'bold');
+
+  const centerX = pageWidth / 2;
+  const centerY = pageHeight / 2;
+
+  doc.text('FREE MEMBER SAMPLE', centerX, centerY, {
+    angle: 45,
+    align: 'center',
+  });
+
+  // 上部: ベネフィット訴求（水平）
+  doc.setTextColor(180, 180, 180);
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Premium: Remove Watermark + Full FP Tools Access', pageWidth / 2, 10, {
+    align: 'center',
+  });
+
+  // 下部: 価格とCTA（水平）
+  doc.setTextColor(120, 120, 120);
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Upgrade to Pro for JPY 980/month | Learn More', pageWidth / 2, pageHeight - 5, {
+    align: 'center',
+  });
+
+  // 色を黒に戻す
+  doc.setTextColor(0, 0, 0);
+  doc.setFont('helvetica', 'normal');
+};
+
+/**
+ * HTML文字列からPDFを生成（日本語対応）
+ */
+const generatePDFFromHTML = async (
+  htmlContent: string,
+  userTier: UserTier,
+  filename: string
+): Promise<void> => {
+  // 一時的なdivを作成
+  const tempDiv = document.createElement('div');
+  tempDiv.style.position = 'absolute';
+  tempDiv.style.left = '-9999px';
+  tempDiv.style.width = '800px';
+  tempDiv.style.padding = '40px';
+  tempDiv.style.backgroundColor = 'white';
+  tempDiv.style.fontFamily = "'Noto Sans JP', 'Hiragino Sans', 'Yu Gothic', sans-serif";
+  tempDiv.innerHTML = htmlContent;
+  document.body.appendChild(tempDiv);
+
+  try {
+    // HTML→Canvas変換
+    const canvas = await html2canvas(tempDiv, {
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      backgroundColor: '#ffffff',
+    });
+
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4',
+    });
+
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = pdf.internal.pageSize.getHeight();
+    const imgWidth = canvas.width;
+    const imgHeight = canvas.height;
+    const ratio = pdfWidth / (imgWidth / 2); // scale=2で2倍になっているため調整
+    const scaledHeight = (imgHeight / 2) * (ratio / pdfWidth) * pdfWidth;
+
+    let heightLeft = scaledHeight;
+    let position = 0;
+    let page = 1;
+
+    // 1ページ目
+    pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, scaledHeight);
+    heightLeft -= pdfHeight;
+
+    // Tier 2ユーザーの場合は透かしを追加
+    if (userTier === 'authenticated') {
+      addWatermark(pdf);
+    }
+
+    // 2ページ目以降
+    while (heightLeft > 0) {
+      position = heightLeft - scaledHeight;
+      pdf.addPage();
+      page++;
+      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, scaledHeight);
+
+      // 各ページに透かしを追加（Tier 2ユーザー）
+      if (userTier === 'authenticated') {
+        addWatermark(pdf);
+      }
+
+      heightLeft -= pdfHeight;
+    }
+
+    pdf.save(filename);
+  } finally {
+    // 一時divを削除
+    document.body.removeChild(tempDiv);
+  }
+};
+
+/**
  * 住宅ローンシミュレーション結果PDF
  *
  * @param result 計算結果
@@ -70,116 +213,152 @@ export const generateLoanPDF = async (
   params: LoanParams,
   options: PDFOptions = {}
 ): Promise<void> => {
-  const doc = new jsPDF({
-    orientation: 'portrait',
-    unit: 'mm',
-    format: 'a4',
-  });
+  // ユーザーTierをチェック
+  const userTier = options.userTier || 'authenticated';
 
-  // PDFメタデータ
-  doc.setProperties({
-    title: options.title || '住宅ローンシミュレーション結果',
-    author: options.author || '住宅ローン電卓',
-    subject: options.subject || 'ローン計算結果',
-    keywords: options.keywords || 'loan,simulation,住宅ローン',
-  });
-
-  // ページ1: サマリー
-  addHeader(doc, '住宅ローンシミュレーション結果');
-
-  let y = 35;
-
-  // ローン条件
-  doc.setFontSize(14);
-  doc.text('ローン条件', 10, y);
-  y += 8;
-
-  doc.setFontSize(10);
-  doc.text(`借入金額: ${formatCurrency(params.principal)}`, 15, y);
-  y += 6;
-  doc.text(`金利: ${params.interestRate.toFixed(2)}%`, 15, y);
-  y += 6;
-  doc.text(`返済期間: ${params.years}年${params.months}ヶ月`, 15, y);
-  y += 6;
-  doc.text(`返済方式: ${params.repaymentType === 'equal-payment' ? '元利均等返済' : '元金均等返済'}`, 15, y);
-  y += 10;
-
-  if (params.bonusPayment?.enabled) {
-    doc.text(`ボーナス払い: 年${params.bonusPayment.months.length}回 ${formatCurrency(params.bonusPayment.amount)}`, 15, y);
-    y += 10;
+  // 匿名ユーザーはPDF出力不可
+  if (userTier === 'anonymous') {
+    throw new Error('PDF出力には無料登録が必要です。アカウントを作成してください。');
   }
 
-  // 計算結果
-  doc.setFontSize(14);
-  doc.text('計算結果', 10, y);
-  y += 8;
-
-  doc.setFontSize(10);
-  doc.text(`月々返済額: ${formatCurrency(result.monthlyPayment)}`, 15, y);
-  y += 6;
-
-  if (result.bonusPayment) {
-    doc.text(`ボーナス返済額: ${formatCurrency(result.bonusPayment)}`, 15, y);
-    y += 6;
+  // 登録ユーザー（Tier 2）は1日3回まで
+  if (userTier === 'authenticated' && !canExportPDF(userTier)) {
+    const remaining = getRemainingPDFCount(userTier);
+    throw new Error(
+      `PDF出力回数の上限に達しました（1日3回まで）。残り${remaining}回。プレミアムプランで無制限に！`
+    );
   }
 
-  doc.text(`総返済額: ${formatCurrency(result.totalPayment)}`, 15, y);
-  y += 6;
-  doc.text(`元金総額: ${formatCurrency(result.totalPrincipal)}`, 15, y);
-  y += 6;
-  doc.text(`利息総額: ${formatCurrency(result.totalInterest)}`, 15, y);
-  y += 10;
-
-  // 返済計画表（最初の12ヶ月と最後の12ヶ月）
-  doc.setFontSize(14);
-  doc.text('返済計画表（抜粋）', 10, y);
-  y += 8;
-
-  doc.setFontSize(9);
-  doc.text('回数', 15, y);
-  doc.text('返済額', 40, y);
-  doc.text('元金', 70, y);
-  doc.text('利息', 100, y);
-  doc.text('残高', 130, y);
-  y += 6;
-
-  // 最初の12ヶ月
+  // 返済計画表のHTMLを生成
   const firstYear = result.schedule.slice(0, 12);
-  firstYear.forEach((payment, index) => {
-    doc.text(`${index + 1}`, 15, y);
-    doc.text(formatCurrency(payment.payment), 40, y);
-    doc.text(formatCurrency(payment.principal), 70, y);
-    doc.text(formatCurrency(payment.interest), 100, y);
-    doc.text(formatCurrency(payment.balance), 130, y);
-    y += 5;
-  });
-
-  y += 5;
-  doc.text('...', 15, y);
-  y += 5;
-
-  // 最後の12ヶ月
   const lastYear = result.schedule.slice(-12);
-  lastYear.forEach((payment) => {
-    if (y > 270) {
-      addFooter(doc, 1);
-      doc.addPage();
-      addHeader(doc, '住宅ローンシミュレーション結果');
-      y = 35;
-    }
 
-    doc.text(`${payment.month}`, 15, y);
-    doc.text(formatCurrency(payment.payment), 40, y);
-    doc.text(formatCurrency(payment.principal), 70, y);
-    doc.text(formatCurrency(payment.interest), 100, y);
-    doc.text(formatCurrency(payment.balance), 130, y);
-    y += 5;
-  });
+  const scheduleRowsFirst = firstYear.map((payment, index) => `
+    <tr>
+      <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${index + 1}</td>
+      <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${formatCurrency(payment.payment)}</td>
+      <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${formatCurrency(payment.principal)}</td>
+      <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${formatCurrency(payment.interest)}</td>
+      <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${formatCurrency(payment.balance)}</td>
+    </tr>
+  `).join('');
 
-  addFooter(doc, 1);
+  const scheduleRowsLast = lastYear.map((payment) => `
+    <tr>
+      <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${payment.month}</td>
+      <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${formatCurrency(payment.payment)}</td>
+      <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${formatCurrency(payment.principal)}</td>
+      <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${formatCurrency(payment.interest)}</td>
+      <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${formatCurrency(payment.balance)}</td>
+    </tr>
+  `).join('');
 
-  // PDFを保存
-  doc.save(`loan-simulation-${Date.now()}.pdf`);
+  // HTML生成
+  const htmlContent = `
+    <div style="font-family: 'Noto Sans JP', 'Hiragino Sans', 'Yu Gothic', sans-serif; padding: 20px;">
+      <h1 style="text-align: center; font-size: 24px; margin-bottom: 10px; color: #1E40AF;">
+        住宅ローンシミュレーション結果
+      </h1>
+      <p style="text-align: right; font-size: 12px; color: #666; margin-bottom: 20px;">
+        生成日時: ${getCurrentDateTime()}
+      </p>
+      <hr style="border: none; border-top: 2px solid #1E40AF; margin-bottom: 30px;">
+
+      <h2 style="font-size: 18px; color: #1E40AF; margin-bottom: 15px; border-left: 4px solid #1E40AF; padding-left: 10px;">
+        ローン条件
+      </h2>
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
+        <tr>
+          <td style="padding: 10px; background-color: #f3f4f6; border: 1px solid #ddd; font-weight: bold; width: 35%;">借入金額</td>
+          <td style="padding: 10px; border: 1px solid #ddd;">${formatCurrency(params.principal)}</td>
+        </tr>
+        <tr>
+          <td style="padding: 10px; background-color: #f3f4f6; border: 1px solid #ddd; font-weight: bold;">金利</td>
+          <td style="padding: 10px; border: 1px solid #ddd;">${params.interestRate.toFixed(2)}%</td>
+        </tr>
+        <tr>
+          <td style="padding: 10px; background-color: #f3f4f6; border: 1px solid #ddd; font-weight: bold;">返済期間</td>
+          <td style="padding: 10px; border: 1px solid #ddd;">${params.years}年${params.months}ヶ月</td>
+        </tr>
+        <tr>
+          <td style="padding: 10px; background-color: #f3f4f6; border: 1px solid #ddd; font-weight: bold;">返済方式</td>
+          <td style="padding: 10px; border: 1px solid #ddd;">${params.repaymentType === 'equal-payment' ? '元利均等返済' : '元金均等返済'}</td>
+        </tr>
+        ${params.bonusPayment?.enabled ? `
+        <tr>
+          <td style="padding: 10px; background-color: #f3f4f6; border: 1px solid #ddd; font-weight: bold;">ボーナス払い</td>
+          <td style="padding: 10px; border: 1px solid #ddd;">年${params.bonusPayment.months.length}回 ${formatCurrency(params.bonusPayment.amount)}</td>
+        </tr>
+        ` : ''}
+      </table>
+
+      <h2 style="font-size: 18px; color: #1E40AF; margin-bottom: 15px; border-left: 4px solid #1E40AF; padding-left: 10px;">
+        計算結果
+      </h2>
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
+        <tr>
+          <td style="padding: 10px; background-color: #f3f4f6; border: 1px solid #ddd; font-weight: bold; width: 35%;">月々返済額</td>
+          <td style="padding: 10px; border: 1px solid #ddd; font-size: 18px; font-weight: bold; color: #10B981;">${formatCurrency(result.monthlyPayment)}</td>
+        </tr>
+        ${result.bonusPayment ? `
+        <tr>
+          <td style="padding: 10px; background-color: #f3f4f6; border: 1px solid #ddd; font-weight: bold;">ボーナス返済額</td>
+          <td style="padding: 10px; border: 1px solid #ddd; font-size: 16px; font-weight: bold; color: #10B981;">${formatCurrency(result.bonusPayment)}</td>
+        </tr>
+        ` : ''}
+        <tr>
+          <td style="padding: 10px; background-color: #f3f4f6; border: 1px solid #ddd; font-weight: bold;">総返済額</td>
+          <td style="padding: 10px; border: 1px solid #ddd;">${formatCurrency(result.totalPayment)}</td>
+        </tr>
+        <tr>
+          <td style="padding: 10px; background-color: #f3f4f6; border: 1px solid #ddd; font-weight: bold;">元金総額</td>
+          <td style="padding: 10px; border: 1px solid #ddd;">${formatCurrency(result.totalPrincipal)}</td>
+        </tr>
+        <tr>
+          <td style="padding: 10px; background-color: #f3f4f6; border: 1px solid #ddd; font-weight: bold;">利息総額</td>
+          <td style="padding: 10px; border: 1px solid #ddd; color: #EF4444;">${formatCurrency(result.totalInterest)}</td>
+        </tr>
+      </table>
+
+      <h2 style="font-size: 18px; color: #1E40AF; margin-bottom: 15px; border-left: 4px solid #1E40AF; padding-left: 10px;">
+        返済計画表（抜粋）
+      </h2>
+      <p style="font-size: 12px; color: #666; margin-bottom: 10px;">最初の12ヶ月と最後の12ヶ月を表示</p>
+      <table style="width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 20px;">
+        <thead>
+          <tr style="background-color: #1E40AF; color: white;">
+            <th style="padding: 10px; border: 1px solid #ddd;">回数</th>
+            <th style="padding: 10px; border: 1px solid #ddd;">返済額</th>
+            <th style="padding: 10px; border: 1px solid #ddd;">元金</th>
+            <th style="padding: 10px; border: 1px solid #ddd;">利息</th>
+            <th style="padding: 10px; border: 1px solid #ddd;">残高</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${scheduleRowsFirst}
+          <tr>
+            <td colspan="5" style="padding: 10px; text-align: center; background-color: #f9fafb; color: #666;">...</td>
+          </tr>
+          ${scheduleRowsLast}
+        </tbody>
+      </table>
+
+      <hr style="border: none; border-top: 1px solid #ddd; margin-top: 40px; margin-bottom: 10px;">
+      <p style="text-align: center; font-size: 10px; color: #999;">
+        Generated by 住宅ローン電卓 (${getCurrentDateTime()})
+      </p>
+    </div>
+  `;
+
+  // HTML→PDF変換
+  await generatePDFFromHTML(htmlContent, userTier, `loan-simulation-${Date.now()}.pdf`);
+
+  // 登録ユーザー（Tier 2）の場合、出力回数をインクリメント
+  if (userTier === 'authenticated') {
+    const newCount = incrementPDFCount();
+    const remaining = getRemainingPDFCount(userTier);
+    console.log(`PDF出力完了: 本日${newCount}回目 / 残り${remaining}回`);
+  }
 };
 
 /**

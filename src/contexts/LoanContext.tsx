@@ -18,6 +18,13 @@ import {
   calculatePrincipalFromPayment,
 } from '@/utils/loanCalculator';
 import { loadHistory, saveHistory, clearHistory as clearStorageHistory } from '@/utils/storage';
+import {
+  saveCloudHistoryItem,
+  deleteCloudHistoryItem,
+  clearCloudHistory,
+  syncHistory,
+} from '@/services/historyService';
+import { useAuth } from '@/hooks/useAuth';
 
 /**
  * Context の型定義
@@ -86,9 +93,12 @@ const MAX_HISTORY_ITEMS = 20;
  * LoanProvider コンポーネント
  */
 export const LoanProvider: React.FC<LoanProviderProps> = ({ children }) => {
+  const { isAuthenticated, user } = useAuth();
   const [loanParams, setLoanParams] = useState<LoanParams | null>(DEFAULT_LOAN_PARAMS);
   const [loanResult, setLoanResult] = useState<LoanResult | null>(null);
   const [history, setHistory] = useState<LoanHistory[]>([]);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [lastSyncedUserId, setLastSyncedUserId] = useState<string | null>(null);
 
   // 初回マウント時に履歴を読み込み
   useEffect(() => {
@@ -102,6 +112,37 @@ export const LoanProvider: React.FC<LoanProviderProps> = ({ children }) => {
       saveHistory(history);
     }
   }, [history]);
+
+  // ユーザーログイン時にクラウドと同期
+  useEffect(() => {
+    if (isAuthenticated && user?.id && user.id !== lastSyncedUserId && !isSyncing) {
+      console.log('User logged in - syncing history with cloud...');
+      setIsSyncing(true);
+      syncHistory()
+        .then((success) => {
+          if (success) {
+            console.log('History sync complete');
+            // Re-load history from localStorage (which now has merged data)
+            const syncedHistory = loadHistory();
+            setHistory(syncedHistory);
+            setLastSyncedUserId(user.id);
+          } else {
+            console.error('History sync failed');
+          }
+        })
+        .catch((error) => {
+          console.error('Unexpected error during history sync:', error);
+        })
+        .finally(() => {
+          setIsSyncing(false);
+        });
+    }
+
+    // ユーザーログアウト時に同期状態をリセット
+    if (!isAuthenticated && lastSyncedUserId) {
+      setLastSyncedUserId(null);
+    }
+  }, [isAuthenticated, user?.id, lastSyncedUserId, isSyncing]);
 
   /**
    * ローン計算を実行
@@ -192,7 +233,14 @@ export const LoanProvider: React.FC<LoanProviderProps> = ({ children }) => {
       // 最大20件まで保存
       return newHistory.slice(0, MAX_HISTORY_ITEMS);
     });
-  }, []);
+
+    // 登録ユーザーの場合、クラウドに保存
+    if (isAuthenticated) {
+      saveCloudHistoryItem(newHistoryItem).catch((error) => {
+        console.error('Failed to save to cloud:', error);
+      });
+    }
+  }, [isAuthenticated]);
 
   /**
    * 逆算計算を実行（返済額から借入可能額を計算）
@@ -352,7 +400,14 @@ export const LoanProvider: React.FC<LoanProviderProps> = ({ children }) => {
       // 最大20件まで保存
       return newHistory.slice(0, MAX_HISTORY_ITEMS);
     });
-  }, []);
+
+    // 登録ユーザーの場合、クラウドに保存
+    if (isAuthenticated) {
+      saveCloudHistoryItem(newHistoryItem).catch((error) => {
+        console.error('Failed to save to cloud:', error);
+      });
+    }
+  }, [isAuthenticated]);
 
   /**
    * 履歴から計算結果を読み込み
@@ -371,14 +426,28 @@ export const LoanProvider: React.FC<LoanProviderProps> = ({ children }) => {
   const clearHistory = useCallback(() => {
     setHistory([]);
     clearStorageHistory();
-  }, []);
+
+    // 登録ユーザーの場合、クラウドもクリア
+    if (isAuthenticated) {
+      clearCloudHistory().catch((error) => {
+        console.error('Failed to clear cloud history:', error);
+      });
+    }
+  }, [isAuthenticated]);
 
   /**
    * 履歴から特定の項目を削除
    */
   const removeHistoryItem = useCallback((historyId: string) => {
     setHistory((prevHistory) => prevHistory.filter((item) => item.id !== historyId));
-  }, []);
+
+    // 登録ユーザーの場合、クラウドからも削除
+    if (isAuthenticated) {
+      deleteCloudHistoryItem(historyId).catch((error) => {
+        console.error('Failed to delete from cloud:', error);
+      });
+    }
+  }, [isAuthenticated]);
 
   /**
    * パラメータをリセット

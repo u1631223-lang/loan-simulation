@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { PortfolioManager } from '@/components/FP/Asset/PortfolioManager';
 import { InvestmentSimulator } from '@/components/FP/Asset/InvestmentSimulator';
 import { RiskReturnChart } from '@/components/FP/Asset/RiskReturnChart';
+import { FeatureGate } from '@/components/Common/FeatureGate';
 import type { AssetAllocation } from '@/types/investment';
 
 type TabType = 'simulator' | 'portfolio' | 'analysis';
@@ -53,11 +54,15 @@ export const AssetManagement = () => {
                 積立投資・ポートフォリオ管理・リスク分析
               </p>
             </div>
+            <span className="inline-flex items-center rounded-full bg-gradient-to-r from-amber-500 to-orange-500 px-3 py-1 text-sm font-semibold text-white">
+              Premium限定
+            </span>
           </div>
         </div>
       </div>
 
-      {/* タブナビゲーション */}
+      <FeatureGate tier="premium" featureName="資産運用シミュレーション">
+        {/* タブナビゲーション */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <nav className="flex space-x-8" aria-label="Tabs">
@@ -133,6 +138,7 @@ export const AssetManagement = () => {
           </ul>
         </div>
       </div>
+      </FeatureGate>
     </div>
   );
 };

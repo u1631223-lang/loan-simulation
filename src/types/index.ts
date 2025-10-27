@@ -24,6 +24,11 @@ export type {
 } from './investment';
 
 export type {
+  IncomeParams,
+  IncomeResult,
+} from './income';
+
+export type {
   AuthState,
   SignUpParams,
   SignInParams,

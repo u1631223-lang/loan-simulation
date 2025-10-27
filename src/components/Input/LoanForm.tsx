@@ -5,6 +5,7 @@
 
 import type { LoanParams } from '@/types';
 import BonusSettings from './BonusSettings';
+import { useAuth } from '@/hooks/useAuth';
 
 interface LoanFormProps {
   values: LoanParams;
@@ -19,6 +20,10 @@ const LoanForm: React.FC<LoanFormProps> = ({
   onSubmit,
   errors = {},
 }) => {
+  const { tier } = useAuth();
+
+  // Tier 2以上でのみ表示
+  const showCustomerName = tier === 'registered' || tier === 'premium';
   const handleChange = (field: keyof LoanParams, value: string | number) => {
     onChange({
       ...values,
@@ -98,6 +103,25 @@ const LoanForm: React.FC<LoanFormProps> = ({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {/* お客様名フィールド（Tier 2以上でのみ表示） */}
+      {showCustomerName && (
+        <div>
+          <label htmlFor="customerName" className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1">
+            <span className="text-lg">👤</span>
+            <span>お客様名（任意）</span>
+          </label>
+          <input
+            id="customerName"
+            type="text"
+            value={values.customerName || ''}
+            onChange={(e) => handleChange('customerName', e.target.value)}
+            placeholder="例）山田 太郎"
+            className={inputClass(false)}
+            maxLength={50}
+          />
+        </div>
+      )}
+
       {/* 借入金額 */}
       <div>
         <label htmlFor="principal" className="block text-sm font-medium text-gray-700 mb-1">

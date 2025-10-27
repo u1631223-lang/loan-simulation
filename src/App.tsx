@@ -25,6 +25,7 @@ import LoanTools from '@/pages/LoanTools';
 // import HouseholdBudget from '@/pages/HouseholdBudget';
 import { AssetManagement } from '@/pages/AssetManagement';
 import InsurancePlanning from '@/pages/InsurancePlanning';
+import FeatureGateTest from '@/pages/FeatureGateTest';
 
 function AppContent() {
   const location = useLocation();
@@ -43,6 +44,7 @@ function AppContent() {
       <Route path="/auth/callback" element={<AuthCallback />} />
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       <Route path="/terms-of-service" element={<TermsOfService />} />
+      <Route path="/feature-gate-test" element={<FeatureGateTest />} />
 
       {/* Protected routes (require authentication) */}
       <Route
@@ -55,14 +57,6 @@ function AppContent() {
       />
       {/* Phase 13-14 実装時に有効化（現在は型エラーのため一時的に無効化）
       <Route
-        path="/loan-tools"
-        element={
-          <ProtectedRoute>
-            <LoanTools />
-          </ProtectedRoute>
-        }
-      />
-      <Route
         path="/household-budget"
         element={
           <ProtectedRoute>
@@ -71,6 +65,10 @@ function AppContent() {
         }
       />
       */}
+      <Route
+        path="/loan-tools"
+        element={<LoanTools />}
+      />
       <Route
         path="/asset-management"
         element={

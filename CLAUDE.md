@@ -703,6 +703,20 @@ See `docs/TROUBLESHOOTING.md` for details.
 - 詳細: `docs/NISA_FEATURE_SPEC.md`, `docs/TICKETS_NISA.md`, `docs/DEVELOPMENT_PLAN.md#phase-95`
 - 総見積時間: 約7.5時間（18チケット）
 
+**✅ Phase 9.8 - 年収ベースMAX借入額計算機能（完了）**
+- 無料版機能拡張として、年収から借入可能額を計算する機能を追加 ✅
+- アンカリング効果を活用したマーケティング戦略 ✅
+- 連帯債務者・連帯保証人対応（100%/50%合算） ✅
+- 返済負担率30%/35%自動判定（年収400万円基準） ✅
+- 「詳しい返済計画を立てる」CTAでローン計算へ自然に誘導 ✅
+- **実装ファイル**:
+  - `src/types/income.ts` - 型定義
+  - `src/utils/incomeCalculator.ts` - 計算ロジック
+  - `src/components/Input/IncomeForm.tsx` - UIコンポーネント
+  - `tests/unit/incomeCalculator.test.ts` - 17テスト全合格 ✅
+- 詳細: `docs/FEATURE_MAX_BORROWING.md`, `docs/TICKETS_INCOME_CALCULATOR.md`
+- 総見積時間: 約5時間（10チケット）
+
 **🚨 Phase 10 デプロイ時の重要な教訓 (2025-10-21)**
 
 Vercelビルドが失敗した原因と対策：
