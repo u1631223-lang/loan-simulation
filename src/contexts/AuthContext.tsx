@@ -145,6 +145,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
 
     try {
+      const emailRedirectTo = typeof window !== 'undefined'
+        ? `${window.location.origin}/auth/callback`
+        : undefined;
+
       const { data, error } = await supabase.auth.signUp({
         email: params.email,
         password: params.password,
@@ -152,6 +156,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           data: {
             display_name: params.displayName,
           },
+          emailRedirectTo,
         },
       });
 

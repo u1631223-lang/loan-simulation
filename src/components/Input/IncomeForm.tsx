@@ -125,7 +125,7 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onDetailPlan }) => {
   };
 
   const inputClass = (hasError: boolean) => `
-    w-full px-4 py-2 rounded-lg border-2
+    w-full px-3 py-2 rounded-lg border-2 text-sm
     ${hasError ? 'border-red-500 bg-red-50' : 'border-gray-300 bg-white'}
     focus:outline-none focus:ring-2 focus:ring-primary/50
     disabled:bg-gray-100 disabled:cursor-not-allowed
@@ -133,16 +133,16 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onDetailPlan }) => {
   `;
 
   const buttonClass = `
-    px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded
+    w-9 h-9 bg-gray-100 hover:bg-gray-200 rounded-lg border border-gray-200
     transition-colors duration-150 active:scale-95
-    font-medium text-gray-700
+    flex items-center justify-center text-base font-semibold text-gray-700
   `;
 
   return (
     <div className="space-y-6">
       {/* 基本入力フォーム */}
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">
+      <div className="bg-white rounded-lg shadow-md p-5 sm:p-6">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">
           💰 年収から借入可能額を計算
         </h2>
 
@@ -170,32 +170,36 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onDetailPlan }) => {
             )}
 
             {/* 本人の年収 */}
-            <div>
+            <div className="space-y-2">
               <label htmlFor="primaryIncome" className="block text-sm font-medium text-gray-700 mb-1">
                 💰 あなたの年収
               </label>
-              <div className="relative flex items-center gap-2">
-                <input
-                  id="primaryIncome"
-                  type="number"
-                  value={params.primaryIncome}
-                  onChange={(e) => handleChange('primaryIncome', parseFloat(e.target.value) || 0)}
-                  className={inputClass(!!errors.primaryIncome)}
-                />
-                <span className="absolute right-32 text-gray-600 pointer-events-none">万円</span>
+              <div className="flex items-center gap-2">
+                <div className="relative flex-1">
+                  <input
+                    id="primaryIncome"
+                    type="number"
+                    value={params.primaryIncome}
+                    onChange={(e) => handleChange('primaryIncome', parseFloat(e.target.value) || 0)}
+                    className={`${inputClass(!!errors.primaryIncome)} pr-14`}
+                  />
+                  <span className="absolute inset-y-0 right-3 flex items-center text-xs text-gray-500">
+                    万円
+                  </span>
+                </div>
                 <button
                   type="button"
                   onClick={() => handleIncrement('primaryIncome', 10)}
                   className={buttonClass}
                 >
-                  ▲
+                  ＋
                 </button>
                 <button
                   type="button"
                   onClick={() => handleDecrement('primaryIncome', 10)}
                   className={buttonClass}
                 >
-                  ▼
+                  －
                 </button>
               </div>
               {errors.primaryIncome && (
@@ -204,7 +208,7 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onDetailPlan }) => {
             </div>
 
             {/* 金利 */}
-            <div>
+            <div className="space-y-2">
               <label htmlFor="interestRate" className="block text-sm font-medium text-gray-700 mb-1">
                 📈 金利（年利）
               </label>
@@ -218,31 +222,35 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onDetailPlan }) => {
                     onChange={handleInterestRateChange}
                     onFocus={handleInterestRateFocus}
                     onBlur={handleInterestRateBlur}
-                    className={`${inputClass(!!errors.interestRate)} pr-12`}
+                    className={`${inputClass(!!errors.interestRate)} pr-16`}
                   />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none">%</span>
+                  <span className="absolute inset-y-0 right-3 flex items-center text-xs text-gray-500">
+                    %
+                  </span>
+                  {interestRateInput && (
+                    <button
+                      type="button"
+                      onClick={handleInterestRateClear}
+                      className="absolute inset-y-0 right-10 flex items-center text-xs text-gray-400 hover:text-gray-600"
+                      aria-label="金利入力をクリア"
+                    >
+                      クリア
+                    </button>
+                  )}
                 </div>
-                <button
-                  type="button"
-                  onClick={handleInterestRateClear}
-                  className="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded border border-gray-300 text-xs text-gray-600"
-                  aria-label="金利をクリア"
-                >
-                  クリア
-                </button>
                 <button
                   type="button"
                   onClick={() => handleIncrement('interestRate', 0.01)}
                   className={buttonClass}
                 >
-                  ▲
+                  ＋
                 </button>
                 <button
                   type="button"
                   onClick={() => handleDecrement('interestRate', 0.01)}
                   className={buttonClass}
                 >
-                  ▼
+                  －
                 </button>
               </div>
               {errors.interestRate && (
@@ -251,32 +259,36 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onDetailPlan }) => {
             </div>
 
             {/* 返済期間 */}
-            <div>
+            <div className="space-y-2">
               <label htmlFor="years" className="block text-sm font-medium text-gray-700 mb-1">
                 📅 返済期間
               </label>
-              <div className="relative flex items-center gap-2">
-                <input
-                  id="years"
-                  type="number"
-                  value={params.years}
-                  onChange={(e) => handleChange('years', parseInt(e.target.value) || 0)}
-                  className={inputClass(!!errors.years)}
-                />
-                <span className="absolute right-32 text-gray-600 pointer-events-none">年</span>
+              <div className="flex items-center gap-2">
+                <div className="relative flex-1">
+                  <input
+                    id="years"
+                    type="number"
+                    value={params.years}
+                    onChange={(e) => handleChange('years', parseInt(e.target.value) || 0)}
+                    className={`${inputClass(!!errors.years)} pr-14`}
+                  />
+                  <span className="absolute inset-y-0 right-3 flex items-center text-xs text-gray-500">
+                    年
+                  </span>
+                </div>
                 <button
                   type="button"
                   onClick={() => handleIncrement('years', 1)}
                   className={buttonClass}
                 >
-                  ▲
+                  ＋
                 </button>
                 <button
                   type="button"
                   onClick={() => handleDecrement('years', 1)}
                   className={buttonClass}
                 >
-                  ▼
+                  －
                 </button>
               </div>
               {errors.years && (
@@ -286,81 +298,96 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onDetailPlan }) => {
           </div>
 
           {/* Right column - 連帯債務者/保証人 */}
-          <div>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={params.hasCoDebtor}
-                onChange={(e) => handleChange('hasCoDebtor', e.target.checked)}
-                className="w-5 h-5 text-primary focus:ring-primary rounded"
-              />
-              <span className="text-sm font-medium text-gray-700">
-                連帯債務者または連帯保証人がいる
-              </span>
-            </label>
+          <div className="bg-gray-50 rounded-lg border border-gray-100 p-4 space-y-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold text-gray-800">
+                  👥 共働き / 連帯保証人
+                </p>
+                <p className="text-xs text-gray-500">
+                  同時返済者がいる場合はオンにすると借入可能額を試算できます。
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => handleChange('hasCoDebtor', !params.hasCoDebtor)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  params.hasCoDebtor ? 'bg-primary' : 'bg-gray-300'
+                }`}
+                aria-pressed={params.hasCoDebtor}
+              >
+                <span
+                  className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
+                    params.hasCoDebtor ? 'translate-x-5' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
 
             {params.hasCoDebtor && (
-              <div className="mt-4 pl-6 border-l-2 border-blue-300 space-y-4">
+              <div className="space-y-4">
                 {/* ラジオボタン */}
-                <div className="space-y-2">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="coDebtorType"
-                      value="joint-debtor"
-                      checked={params.coDebtorType === 'joint-debtor'}
-                      onChange={(e) => handleChange('coDebtorType', e.target.value as 'joint-debtor')}
-                      className="w-4 h-4 text-primary focus:ring-primary"
-                    />
-                    <span className="text-sm text-gray-700">
-                      連帯債務者（年収を<span className="font-bold text-blue-600">100%</span>合算）
-                    </span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="coDebtorType"
-                      value="guarantor"
-                      checked={params.coDebtorType === 'guarantor'}
-                      onChange={(e) => handleChange('coDebtorType', e.target.value as 'guarantor')}
-                      className="w-4 h-4 text-primary focus:ring-primary"
-                    />
-                    <span className="text-sm text-gray-700">
-                      連帯保証人（年収を<span className="font-bold text-green-600">50%</span>合算）
-                    </span>
-                  </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleChange('coDebtorType', 'joint-debtor')}
+                    className={`rounded-lg border px-3 py-2 text-sm text-left transition-colors ${
+                      params.coDebtorType === 'joint-debtor'
+                        ? 'border-primary bg-white shadow-sm'
+                        : 'border-gray-200 bg-gray-100 hover:border-gray-300'
+                    }`}
+                  >
+                    <p className="font-semibold text-gray-800">連帯債務者</p>
+                    <p className="text-xs text-gray-500">年収を100%合算</p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleChange('coDebtorType', 'guarantor')}
+                    className={`rounded-lg border px-3 py-2 text-sm text-left transition-colors ${
+                      params.coDebtorType === 'guarantor'
+                        ? 'border-primary bg-white shadow-sm'
+                        : 'border-gray-200 bg-gray-100 hover:border-gray-300'
+                    }`}
+                  >
+                    <p className="font-semibold text-gray-800">連帯保証人</p>
+                    <p className="text-xs text-gray-500">年収を50%合算</p>
+                  </button>
                 </div>
                 {errors.coDebtorType && (
                   <p className="text-sm text-red-600">{errors.coDebtorType}</p>
                 )}
 
                 {/* 相手の年収 */}
-                <div>
+                <div className="space-y-2">
                   <label htmlFor="coDebtorIncome" className="block text-sm font-medium text-gray-700 mb-1">
-                    相手の年収
+                    同時返済者の年収
                   </label>
-                  <div className="relative flex items-center gap-2">
-                    <input
-                      id="coDebtorIncome"
-                      type="number"
-                      value={params.coDebtorIncome || ''}
-                      onChange={(e) => handleChange('coDebtorIncome', parseFloat(e.target.value) || 0)}
-                      className={inputClass(!!errors.coDebtorIncome)}
-                    />
-                    <span className="absolute right-32 text-gray-600 pointer-events-none">万円</span>
+                  <div className="flex items-center gap-2">
+                    <div className="relative flex-1">
+                      <input
+                        id="coDebtorIncome"
+                        type="number"
+                        value={params.coDebtorIncome || ''}
+                        onChange={(e) => handleChange('coDebtorIncome', parseFloat(e.target.value) || 0)}
+                        className={`${inputClass(!!errors.coDebtorIncome)} pr-14`}
+                      />
+                      <span className="absolute inset-y-0 right-3 flex items-center text-xs text-gray-500">
+                        万円
+                      </span>
+                    </div>
                     <button
                       type="button"
                       onClick={() => handleIncrement('coDebtorIncome', 10)}
                       className={buttonClass}
                     >
-                      ▲
+                      ＋
                     </button>
                     <button
                       type="button"
                       onClick={() => handleDecrement('coDebtorIncome', 10)}
                       className={buttonClass}
                     >
-                      ▼
+                      －
                     </button>
                   </div>
                   {errors.coDebtorIncome && (
@@ -369,14 +396,14 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onDetailPlan }) => {
                 </div>
 
                 {/* 説明 */}
-                <div className="p-3 bg-blue-50 rounded-lg text-sm text-blue-900">
+                <div className="p-3 bg-blue-50 rounded-lg text-xs sm:text-sm text-blue-900">
                   <p className="font-medium mb-1">💡 違いについて</p>
-                  <ul className="list-disc list-inside space-y-1 text-xs">
+                  <ul className="list-disc list-inside space-y-1">
                     <li>
-                      <span className="font-medium">連帯債務者</span>: 主債務者と同等の返済義務（夫婦で住宅ローンなど）
+                      <span className="font-semibold">連帯債務者</span>: 主債務者と同等の返済義務（夫婦で住宅ローンなど）
                     </li>
                     <li>
-                      <span className="font-medium">連帯保証人</span>: 主債務者が返済不能時に代わりに返済（親が保証人など）
+                      <span className="font-semibold">連帯保証人</span>: 主債務者が返済不能時に代わりに返済（親が保証人など）
                     </li>
                   </ul>
                 </div>

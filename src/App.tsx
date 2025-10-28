@@ -18,6 +18,7 @@ import History from '@/pages/History';
 import Login from '@/pages/Login';
 import SignUp from '@/pages/SignUp';
 import AuthCallback from '@/pages/AuthCallback';
+import CheckEmail from '@/pages/CheckEmail';
 import PrivacyPolicy from '@/pages/PrivacyPolicy';
 import TermsOfService from '@/pages/TermsOfService';
 import LoanTools from '@/pages/LoanTools';
@@ -41,6 +42,7 @@ function AppContent() {
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<SignUp />} />
+      <Route path="/check-email" element={<CheckEmail />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       <Route path="/terms-of-service" element={<TermsOfService />} />

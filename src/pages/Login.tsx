@@ -9,23 +9,38 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/useToast';
 
+interface LocationState {
+  from?: {
+    pathname?: string;
+  };
+  email?: string;
+}
+
 const Login: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const locationState = (location.state as LocationState | null) ?? null;
+  const stateEmail = locationState?.email;
+  const redirectPath = locationState?.from?.pathname || '/';
   const { signIn, signInWithOAuth, isAuthenticated } = useAuth();
   const { showToast } = useToast();
 
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(stateEmail ?? '');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+
+  React.useEffect(() => {
+    if (stateEmail) {
+      setEmail(stateEmail);
+    }
+  }, [stateEmail]);
 
   // Redirect if already authenticated
   React.useEffect(() => {
     if (isAuthenticated) {
-      const from = (location.state as any)?.from?.pathname || '/';
-      navigate(from, { replace: true });
+      navigate(redirectPath, { replace: true });
     }
-  }, [isAuthenticated, navigate, location]);
+  }, [isAuthenticated, navigate, redirectPath]);
 
   /**
    * Handle email/password login
@@ -44,14 +59,22 @@ const Login: React.FC = () => {
       const { user, error } = await signIn({ email, password });
 
       if (error) {
-        showToast(error.message, 'error');
+        const lowered = error.message.toLowerCase();
+        if (lowered.includes('confirm')) {
+          showToast(
+            'メールアドレスの確認が完了していません。確認メール内のリンクをクリックしてください。',
+            'error'
+          );
+          navigate('/check-email', { state: { email } });
+        } else {
+          showToast(error.message, 'error');
+        }
         return;
       }
 
       if (user) {
         showToast('ログインしました', 'success');
-        const from = (location.state as any)?.from?.pathname || '/';
-        navigate(from, { replace: true });
+        navigate(redirectPath, { replace: true });
       }
     } catch (err) {
       showToast('ログインに失敗しました', 'error');

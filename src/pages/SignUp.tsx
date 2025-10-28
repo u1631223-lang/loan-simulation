@@ -52,16 +52,22 @@ const SignUp: React.FC = () => {
       });
 
       if (error) {
-        showToast(error.message, 'error');
+        const lowered = error.message.toLowerCase();
+        if (error.code === 'user_already_exists' || lowered.includes('already registered')) {
+          showToast('このメールアドレスは既に登録されています。ログインページからお試しください。', 'error');
+          navigate('/login', { state: { email } });
+        } else {
+          showToast(error.message, 'error');
+        }
         return;
       }
 
       if (user) {
-        showToast(
-          'アカウントを作成しました。確認メールをご確認ください。',
-          'success'
-        );
-        navigate('/login');
+        showToast('確認メールを送信しました。メールをご確認ください。', 'success');
+        navigate('/check-email', {
+          replace: true,
+          state: { email },
+        });
       }
     } catch (err) {
       showToast('アカウント作成に失敗しました', 'error');

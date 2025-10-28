@@ -482,13 +482,15 @@ npm run dev
 ### 8-2. リダイレクトURL設定
 
 1. Supabase Dashboard → Authentication → URL Configuration
-2. 以下を追加：
+2. 以下を設定：
    ```
-   Site URL: https://your-app.vercel.app
+   Site URL: http://localhost:5173         # 開発中
+   Site URL (本番): https://your-app.vercel.app
    Redirect URLs:
-   - http://localhost:5173/**
-   - https://your-app.vercel.app/**
+   - http://localhost:5173/auth/callback
+   - https://your-app.vercel.app/auth/callback
    ```
+   ※ Site URL を更新するとメールテンプレート内のリンクに反映されます。Create React App の既定値（http://localhost:3000）のままだと、確認メールから 3000 に飛んでしまうので必ず変更してください。
 
 ---
 

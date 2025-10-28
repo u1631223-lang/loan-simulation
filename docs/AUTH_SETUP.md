@@ -38,13 +38,15 @@ The app supports the following authentication methods:
 
 ## Step 3: Configure Email Authentication
 
-Email/password authentication works out of the box with Supabase. However, you should configure email templates:
+Email/password authentication works out of the box with Supabase. However, you should configure email templates so that users clearly understand the confirmation steps:
 
 1. Go to **Authentication → Email Templates** in Supabase dashboard
 2. Customize the email templates for:
-   - Confirmation email (sent when user signs up)
+   - Confirmation email (sent when user signs up). 推奨: 日本語で「アカウント確認のお願い」と明記し、クリックするボタン/リンクが分かりやすいテキストになるよう編集。
    - Password reset
    - Email change confirmation
+3. テンプレート文面のサンプルは `docs/AUTH_EMAIL_TEMPLATES.md` を参照してください。
+4. テンプレート内で使われる `{{ .SiteURL }}` などの変数は Supabase ダッシュボードの **URL Configuration** にある値が入ります。開発環境で `localhost:3000` に飛んでしまう場合は、後述の Site URL を Vite のポート（既定で 5173）に合わせて更新してください。
 
 ## Step 4: Configure Google OAuth
 
@@ -73,9 +75,12 @@ Email/password authentication works out of the box with Supabase. However, you s
 ## Step 6: Configure Redirect URLs
 
 1. Go to **Authentication → URL Configuration** in Supabase dashboard
-2. Add the following URLs to **Redirect URLs**:
-   - `http://localhost:5173/auth/callback` (for local development)
-   - `https://your-production-domain.com/auth/callback` (for production)
+2. Update **Site URL** so that the confirmation email redirect uses the correct domain.
+   - 開発環境で Vite を使う場合は `http://localhost:5173`
+   - 本番環境はデプロイ先ドメイン（例: `https://your-production-domain.com`）
+3. Add the following URLs to **Redirect URLs**:
+   - `http://localhost:5173/auth/callback`
+   - `https://your-production-domain.com/auth/callback`
 
 ## Implementation Details
 
@@ -94,6 +99,7 @@ src/
 ├── pages/
 │   ├── Login.tsx                # Login page
 │   ├── SignUp.tsx               # Sign up page
+│   ├── CheckEmail.tsx           # Sign up後のメール確認案内ページ
 │   └── AuthCallback.tsx         # OAuth callback handler
 └── components/
     └── Auth/

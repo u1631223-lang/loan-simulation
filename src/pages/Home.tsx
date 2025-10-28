@@ -104,6 +104,21 @@ const Home: React.FC = () => {
     setShowSchedule(true);
   };
 
+  const viewModeButtonClass = (mode: ViewMode) => `
+    w-full h-14 sm:h-16 rounded-xl border transition-all text-sm sm:text-base font-semibold
+    ${viewMode === mode
+      ? 'bg-primary text-white shadow-lg border-primary'
+      : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'}
+  `;
+
+  const calculationModeButtonClass = (mode: CalculationMode) => `
+    flex flex-col items-center justify-center rounded-xl border text-xs sm:text-sm font-semibold tracking-wide
+    transition-all h-20 sm:h-24
+    ${calculationMode === mode
+      ? 'bg-secondary text-white shadow-md border-secondary'
+      : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}
+  `;
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
@@ -129,34 +144,22 @@ const Home: React.FC = () => {
           </div>
 
           {/* 表示モード切り替え */}
-          <div className="flex flex-wrap gap-2 mb-6 justify-center">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6 max-w-xl mx-auto w-full">
             <button
               onClick={() => setViewMode('loan')}
-              className={`px-4 sm:px-6 py-3 rounded-lg font-medium transition-all whitespace-nowrap ${
-                viewMode === 'loan'
-                  ? 'bg-primary text-white shadow-md'
-                  : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-300'
-              }`}
+              className={viewModeButtonClass('loan')}
             >
               💰 ローン計算
             </button>
             <button
               onClick={() => setViewMode('calculator')}
-              className={`px-4 sm:px-6 py-3 rounded-lg font-medium transition-all whitespace-nowrap ${
-                viewMode === 'calculator'
-                  ? 'bg-primary text-white shadow-md'
-                  : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-300'
-              }`}
+              className={viewModeButtonClass('calculator')}
             >
               🧮 電卓
             </button>
             <button
               onClick={() => setViewMode('investment')}
-              className={`px-4 sm:px-6 py-3 rounded-lg font-medium transition-all whitespace-nowrap ${
-                viewMode === 'investment'
-                  ? 'bg-primary text-white shadow-md'
-                  : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-300'
-              }`}
+              className={viewModeButtonClass('investment')}
             >
               📈 資産運用
             </button>
@@ -164,36 +167,27 @@ const Home: React.FC = () => {
 
           {/* ローンモード時の計算タイプ切り替え */}
           {viewMode === 'loan' && (
-            <div className="flex gap-2 mb-8 justify-center">
+            <div className="grid grid-cols-3 gap-3 mb-8 max-w-xl mx-auto w-full">
               <button
                 onClick={() => setCalculationMode('forward')}
-                className={`px-6 py-3 rounded-lg font-medium transition-all ${
-                  calculationMode === 'forward'
-                    ? 'bg-secondary text-white shadow-md'
-                    : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-300'
-                }`}
+                className={calculationModeButtonClass('forward')}
               >
-                借入額から計算
+                <span className="text-lg">🏠</span>
+                借入額
               </button>
               <button
                 onClick={() => setCalculationMode('reverse')}
-                className={`px-6 py-3 rounded-lg font-medium transition-all ${
-                  calculationMode === 'reverse'
-                    ? 'bg-secondary text-white shadow-md'
-                    : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-300'
-                }`}
+                className={calculationModeButtonClass('reverse')}
               >
-                返済額から計算
+                <span className="text-lg">💳</span>
+                返済額
               </button>
               <button
                 onClick={() => setCalculationMode('income')}
-                className={`px-6 py-3 rounded-lg font-medium transition-all ${
-                  calculationMode === 'income'
-                    ? 'bg-secondary text-white shadow-md'
-                    : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-300'
-                }`}
+                className={calculationModeButtonClass('income')}
               >
-                年収から計算
+                <span className="text-lg">💼</span>
+                年収
               </button>
             </div>
           )}

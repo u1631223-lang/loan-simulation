@@ -36,3 +36,4 @@ coverage
 android/
 ios/
 *.orig
+.vercel
