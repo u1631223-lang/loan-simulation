@@ -22,10 +22,11 @@ import CheckEmail from '@/pages/CheckEmail';
 import PrivacyPolicy from '@/pages/PrivacyPolicy';
 import TermsOfService from '@/pages/TermsOfService';
 import LoanTools from '@/pages/LoanTools';
+import ComingSoon from '@/pages/ComingSoon';
 // Phase 13-14 実装時に有効化（現在は型エラーのため一時的に無効化）
 // import HouseholdBudget from '@/pages/HouseholdBudget';
-import { AssetManagement } from '@/pages/AssetManagement';
-import InsurancePlanning from '@/pages/InsurancePlanning';
+// import { AssetManagement } from '@/pages/AssetManagement';
+// import InsurancePlanning from '@/pages/InsurancePlanning';
 import FeatureGateTest from '@/pages/FeatureGateTest';
 
 function AppContent() {
@@ -57,7 +58,17 @@ function AppContent() {
           </ProtectedRoute>
         }
       />
-      {/* Phase 13-14 実装時に有効化（現在は型エラーのため一時的に無効化）
+      <Route
+        path="/loan-tools"
+        element={<LoanTools />}
+      />
+
+      {/* 有料版機能 - 開発完了までComing Soonページを表示 */}
+      <Route path="/household-budget" element={<ComingSoon />} />
+      <Route path="/asset-management" element={<ComingSoon />} />
+      <Route path="/insurance-planning" element={<ComingSoon />} />
+
+      {/* Phase 13-14 開発完了後に有効化
       <Route
         path="/household-budget"
         element={
@@ -65,11 +76,6 @@ function AppContent() {
             <HouseholdBudget />
           </ProtectedRoute>
         }
-      />
-      */}
-      <Route
-        path="/loan-tools"
-        element={<LoanTools />}
       />
       <Route
         path="/asset-management"
@@ -87,6 +93,7 @@ function AppContent() {
           </ProtectedRoute>
         }
       />
+      */}
 
       {/* Catch all - redirect to home */}
       <Route path="*" element={<Navigate to="/" replace />} />

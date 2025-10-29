@@ -12,14 +12,15 @@ const Header: React.FC = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated, signOut } = useAuth();
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const [showFPMenu, setShowFPMenu] = useState(false);
+  // const [showFPMenu, setShowFPMenu] = useState(false); // FPツール開発完了時に有効化
   const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   const isActive = (path: string) => location.pathname === path;
-  const isFPActive = () => {
-    const fpPaths = ['/household-budget', '/asset-management', '/insurance-planning'];
-    return fpPaths.includes(location.pathname);
-  };
+  // FPツール開発完了時に有効化
+  // const isFPActive = () => {
+  //   const fpPaths = ['/household-budget', '/asset-management', '/insurance-planning'];
+  //   return fpPaths.includes(location.pathname);
+  // };
 
   const handleSignOut = async () => {
     try {
@@ -76,7 +77,8 @@ const Header: React.FC = () => {
                 ローン
               </Link>
 
-              {/* FP Tools Dropdown */}
+              {/* FP Tools Dropdown - 開発完了までコメントアウト */}
+              {/*
               <div className="relative">
                 <button
                   onClick={() => setShowFPMenu(!showFPMenu)}
@@ -132,6 +134,7 @@ const Header: React.FC = () => {
                   </div>
                 )}
               </div>
+              */}
             </nav>
 
             {/* User Menu */}
@@ -254,7 +257,8 @@ const Header: React.FC = () => {
                 🏦 ローンツール
               </Link>
 
-              {/* FP Tools in Mobile */}
+              {/* FP Tools in Mobile - 開発完了までコメントアウト */}
+              {/*
               <div className="border-t border-white/20 pt-2 mt-2">
                 <p className="px-4 py-2 text-sm font-semibold text-white/70">
                   FPツール
@@ -293,6 +297,7 @@ const Header: React.FC = () => {
                   🛡️ 保険設計
                 </Link>
               </div>
+              */}
 
               {/* Auth Buttons in Mobile */}
               {!isAuthenticated && (

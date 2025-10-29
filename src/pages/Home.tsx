@@ -14,7 +14,7 @@ import IncomeForm from '@/components/Input/IncomeForm';
 import Summary from '@/components/Result/Summary';
 import Schedule from '@/components/Result/Schedule';
 import SimpleCalculator from '@/components/Calculator/SimpleCalculator';
-import { InvestmentCalculator } from '@/components/Investment';
+// import { InvestmentCalculator } from '@/components/Investment'; // 資産運用モード開発完了後に有効化
 import { ExportButton } from '@/components/Common/ExportButton';
 import { PDFExportButton } from '@/components/Common/PDFExportButton';
 import { FeatureShowcase } from '@/components/Common/FeatureShowcase';
@@ -144,7 +144,7 @@ const Home: React.FC = () => {
           </div>
 
           {/* 表示モード切り替え */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6 max-w-xl mx-auto w-full">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6 max-w-xl mx-auto w-full">
             <button
               onClick={() => setViewMode('loan')}
               className={viewModeButtonClass('loan')}
@@ -157,12 +157,15 @@ const Home: React.FC = () => {
             >
               🧮 電卓
             </button>
+            {/* 資産運用モード - 開発完了後に有効化 */}
+            {/*
             <button
               onClick={() => setViewMode('investment')}
               className={viewModeButtonClass('investment')}
             >
               📈 資産運用
             </button>
+            */}
           </div>
 
           {/* ローンモード時の計算タイプ切り替え */}
@@ -194,7 +197,8 @@ const Home: React.FC = () => {
 
           {/* メインコンテンツ */}
           {viewMode === 'calculator' && <SimpleCalculator />}
-          {viewMode === 'investment' && <InvestmentCalculator />}
+          {/* 資産運用モード - 開発完了後に有効化 */}
+          {/* {viewMode === 'investment' && <InvestmentCalculator />} */}
           {viewMode === 'loan' && calculationMode === 'income' && (
             <IncomeForm onDetailPlan={handleDetailPlan} />
           )}
