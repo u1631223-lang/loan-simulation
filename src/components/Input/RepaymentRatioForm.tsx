@@ -191,7 +191,10 @@ export const RepaymentRatioForm: React.FC<RepaymentRatioFormProps> = ({ onCalcul
             </button>
           </div>
           <p className="text-sm text-gray-600 mt-1">
-            無理のない返済計画の目安: 25%以下
+            無理のない返済計画の目安: 25%
+          </p>
+          <p className="text-xs text-gray-500 mt-1">
+            ※ あくまで目安であり、住宅のランニングコストによっては、無理のない返済計画の目安が前後します
           </p>
           {errors.repaymentRatio && (
             <p className="text-red-500 text-sm mt-1">{errors.repaymentRatio}</p>
