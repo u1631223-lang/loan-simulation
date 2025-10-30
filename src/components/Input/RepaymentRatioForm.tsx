@@ -16,8 +16,9 @@ interface RepaymentRatioFormProps {
 export const RepaymentRatioForm: React.FC<RepaymentRatioFormProps> = ({ onCalculate }) => {
   const [primaryIncome, setPrimaryIncome] = useState<string>('');
   const [coDebtorIncome, setCoDebtorIncome] = useState<string>('');
+  const [repaymentRatio, setRepaymentRatio] = useState<number>(25); // デフォルト25%
   const [interestRate, setInterestRate] = useState<number>(1.0);
-  const [years, setYears] = useState<number>(35);
+  const [years, setYears] = useState<number>(40); // デフォルト40年
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   const incrementValue = (
@@ -55,6 +56,10 @@ export const RepaymentRatioForm: React.FC<RepaymentRatioFormProps> = ({ onCalcul
       newErrors.coDebtorIncome = '連帯債務者年収は9999万円以下で入力してください';
     }
 
+    if (repaymentRatio < 10 || repaymentRatio > 50) {
+      newErrors.repaymentRatio = '返済負担率は10%〜50%で入力してください';
+    }
+
     if (interestRate < 0.01 || interestRate > 10) {
       newErrors.interestRate = '金利は0.01%〜10.0%で入力してください';
     }
@@ -75,7 +80,7 @@ export const RepaymentRatioForm: React.FC<RepaymentRatioFormProps> = ({ onCalcul
     const params: RepaymentRatioParams = {
       primaryIncome: Number(primaryIncome) || 0,
       coDebtorIncome: Number(coDebtorIncome) || 0,
-      repaymentRatio: 0.25, // 無料版は25%固定
+      repaymentRatio: repaymentRatio / 100, // %を小数に変換（例：25% → 0.25）
       interestRate,
       years,
     };
@@ -148,17 +153,45 @@ export const RepaymentRatioForm: React.FC<RepaymentRatioFormProps> = ({ onCalcul
           )}
         </div>
 
-        {/* 返済負担率（固定表示） */}
+        {/* 返済負担率（編集可能） */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             返済負担率
           </label>
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <p className="font-semibold text-lg text-primary">25% （推奨）</p>
-            <p className="text-sm text-gray-600 mt-1">
-              無理のない返済計画の目安です
-            </p>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => decrementValue(setRepaymentRatio, repaymentRatio, 1, 10)}
+              className="w-10 h-10 flex items-center justify-center bg-gray-200 hover:bg-gray-300 rounded-lg transition active:scale-95"
+            >
+              ▼
+            </button>
+            <input
+              type="number"
+              value={repaymentRatio}
+              onChange={(e) => setRepaymentRatio(Number(e.target.value))}
+              onKeyPress={handleKeyPress}
+              min="10"
+              max="50"
+              className={`flex-1 px-4 py-2 border rounded-lg text-center focus:ring-2 focus:ring-primary focus:border-transparent ${
+                errors.repaymentRatio ? 'border-red-500' : 'border-gray-300'
+              }`}
+            />
+            <span className="text-gray-700 font-medium">%</span>
+            <button
+              type="button"
+              onClick={() => incrementValue(setRepaymentRatio, repaymentRatio, 1, 50)}
+              className="w-10 h-10 flex items-center justify-center bg-gray-200 hover:bg-gray-300 rounded-lg transition active:scale-95"
+            >
+              ▲
+            </button>
           </div>
+          <p className="text-sm text-gray-600 mt-1">
+            無理のない返済計画の目安: 25%以下
+          </p>
+          {errors.repaymentRatio && (
+            <p className="text-red-500 text-sm mt-1">{errors.repaymentRatio}</p>
+          )}
         </div>
 
         {/* 金利 */}
