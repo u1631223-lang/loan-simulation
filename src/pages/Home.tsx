@@ -11,8 +11,10 @@ import Footer from '@/components/Layout/Footer';
 import LoanForm from '@/components/Input/LoanForm';
 import ReverseLoanForm from '@/components/Input/ReverseLoanForm';
 import IncomeForm from '@/components/Input/IncomeForm';
+import { RepaymentRatioForm } from '@/components/Input/RepaymentRatioForm';
 import Summary from '@/components/Result/Summary';
 import Schedule from '@/components/Result/Schedule';
+import { RepaymentRatioSummary } from '@/components/Result/RepaymentRatioSummary';
 import SimpleCalculator from '@/components/Calculator/SimpleCalculator';
 import { InvestmentCalculator } from '@/components/Investment';
 import { ExportButton } from '@/components/Common/ExportButton';
@@ -21,6 +23,7 @@ import { FeatureShowcase } from '@/components/Common/FeatureShowcase';
 import { useCalculator } from '@/hooks/useCalculator';
 import type { LoanParams, ReverseLoanParams, CalculationMode } from '@/types';
 import type { IncomeResult } from '@/types/income';
+import type { RepaymentRatioResult } from '@/types/repaymentRatio';
 
 type ViewMode = 'loan' | 'calculator' | 'investment';
 
@@ -58,6 +61,11 @@ const Home: React.FC = () => {
     },
   });
 
+  // 返済負担率計算の状態
+  const [repaymentRatioResult, setRepaymentRatioResult] = useState<RepaymentRatioResult | null>(
+    null
+  );
+
   const exportParams = loanParams ?? currentParams;
 
   const handleCalculate = () => {
@@ -68,6 +76,11 @@ const Home: React.FC = () => {
   const handleReverseCalculate = () => {
     calculateReverse(reverseParams);
     setShowSchedule(true);
+  };
+
+  // 返済負担率計算のハンドラー
+  const handleRepaymentRatioCalculate = (result: RepaymentRatioResult) => {
+    setRepaymentRatioResult(result);
   };
 
   // 年収計算から詳細計算への遷移
@@ -167,7 +180,7 @@ const Home: React.FC = () => {
 
           {/* ローンモード時の計算タイプ切り替え */}
           {viewMode === 'loan' && (
-            <div className="grid grid-cols-3 gap-3 mb-8 max-w-xl mx-auto w-full">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8 max-w-4xl mx-auto w-full">
               <button
                 onClick={() => setCalculationMode('forward')}
                 className={calculationModeButtonClass('forward')}
@@ -183,11 +196,18 @@ const Home: React.FC = () => {
                 返済額
               </button>
               <button
+                onClick={() => setCalculationMode('repayment-ratio')}
+                className={calculationModeButtonClass('repayment-ratio')}
+              >
+                <span className="text-lg">💰</span>
+                返済負担率
+              </button>
+              <button
                 onClick={() => setCalculationMode('income')}
                 className={calculationModeButtonClass('income')}
               >
                 <span className="text-lg">💼</span>
-                年収
+                年収MAX
               </button>
             </div>
           )}
@@ -198,7 +218,15 @@ const Home: React.FC = () => {
           {viewMode === 'loan' && calculationMode === 'income' && (
             <IncomeForm onDetailPlan={handleDetailPlan} />
           )}
-          {viewMode === 'loan' && calculationMode !== 'income' && (
+          {viewMode === 'loan' && calculationMode === 'repayment-ratio' && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <RepaymentRatioForm onCalculate={handleRepaymentRatioCalculate} />
+              {repaymentRatioResult && (
+                <RepaymentRatioSummary result={repaymentRatioResult} />
+              )}
+            </div>
+          )}
+          {viewMode === 'loan' && calculationMode !== 'income' && calculationMode !== 'repayment-ratio' && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* 左側: 入力フォーム */}
               <div>

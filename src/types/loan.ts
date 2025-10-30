@@ -5,10 +5,11 @@
 /**
  * 計算モード
  */
-export type CalculationMode = 'forward' | 'reverse' | 'income';
+export type CalculationMode = 'forward' | 'reverse' | 'repayment-ratio' | 'income';
 // forward = 借入額から計算（通常）
 // reverse = 返済額から計算（逆算）
-// income  = 年収から計算
+// repayment-ratio = 返済負担率から計算
+// income  = 年収MAX借入から計算
 
 /**
  * 返済方式

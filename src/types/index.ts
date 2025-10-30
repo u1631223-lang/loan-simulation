@@ -29,6 +29,11 @@ export type {
 } from './income';
 
 export type {
+  RepaymentRatioParams,
+  RepaymentRatioResult,
+} from './repaymentRatio';
+
+export type {
   AuthState,
   SignUpParams,
   SignInParams,
