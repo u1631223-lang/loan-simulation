@@ -27,7 +27,9 @@ export const RepaymentRatioForm: React.FC<RepaymentRatioFormProps> = ({ onCalcul
     step: number,
     max: number
   ) => {
-    setter(Math.min(value + step, max));
+    const newValue = Math.min(value + step, max);
+    // 浮動小数点エラー回避: 小数点2桁に丸める
+    setter(Math.round(newValue * 100) / 100);
   };
 
   const decrementValue = (
@@ -36,7 +38,9 @@ export const RepaymentRatioForm: React.FC<RepaymentRatioFormProps> = ({ onCalcul
     step: number,
     min: number
   ) => {
-    setter(Math.max(value - step, min));
+    const newValue = Math.max(value - step, min);
+    // 浮動小数点エラー回避: 小数点2桁に丸める
+    setter(Math.round(newValue * 100) / 100);
   };
 
   const validate = (): boolean => {
@@ -209,8 +213,13 @@ export const RepaymentRatioForm: React.FC<RepaymentRatioFormProps> = ({ onCalcul
             </button>
             <input
               type="number"
-              value={interestRate}
-              onChange={(e) => setInterestRate(Number(e.target.value))}
+              value={interestRate.toFixed(2)}
+              onChange={(e) => {
+                const val = parseFloat(e.target.value);
+                if (!isNaN(val)) {
+                  setInterestRate(Math.round(val * 100) / 100);
+                }
+              }}
               onKeyPress={handleKeyPress}
               step="0.01"
               min="0.01"
