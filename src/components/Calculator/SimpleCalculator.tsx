@@ -94,6 +94,20 @@ const SimpleCalculator: React.FC = () => {
     setDisplay(String(-currentValue));
   };
 
+  // 坪ボタン（平米 → 坪 変換: ×0.3025）
+  const handleTsubo = () => {
+    const currentValue = parseFloat(display);
+    const tsubo = currentValue * 0.3025;
+    setDisplay(String(tsubo));
+  };
+
+  // 税込ボタン（×1.1で10%税込計算）
+  const handleTaxIncluded = () => {
+    const currentValue = parseFloat(display);
+    const taxIncluded = currentValue * 1.1;
+    setDisplay(String(Math.round(taxIncluded))); // 整数に丸める
+  };
+
   // 式を計算
   const calculateExpression = (expr: string): number => {
     try {
@@ -242,13 +256,13 @@ const SimpleCalculator: React.FC = () => {
           <button onClick={handleMemoryRecall} className={buttonClass('memory')}>MR</button>
           <button onClick={handleMemoryAdd} className={buttonClass('memory')}>M+</button>
           <button onClick={handleMemorySubtract} className={buttonClass('memory')}>M-</button>
-          <div></div> {/* 空白 */}
+          <button onClick={handleTsubo} className={buttonClass('operator')}>坪</button>
 
-          {/* 2行目: ±, GT, %, 税, ÷ */}
+          {/* 2行目: ±, %, %, 税込, ÷ */}
           <button onClick={handlePlusMinus} className={buttonClass('operator')}>±</button>
-          <button onClick={handleMemoryClear} className={buttonClass('memory')}>GT</button>
           <button onClick={handlePercent} className={buttonClass('operator')}>%</button>
-          <button onClick={handlePercent} className={buttonClass('memory')}>税</button>
+          <button onClick={handlePercent} className={buttonClass('operator')}>%</button>
+          <button onClick={handleTaxIncluded} className={buttonClass('memory')}>税込</button>
           <button onClick={() => handleOperatorClick('÷')} className={buttonClass('operator')}>÷</button>
 
           {/* 3行目: ⌫, 7, 8, 9, × */}
