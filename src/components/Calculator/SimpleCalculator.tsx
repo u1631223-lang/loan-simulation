@@ -88,6 +88,12 @@ const SimpleCalculator: React.FC = () => {
     setDisplay(String(result));
   };
 
+  // ±ボタン（符号反転）
+  const handlePlusMinus = () => {
+    const currentValue = parseFloat(display);
+    setDisplay(String(-currentValue));
+  };
+
   // 式を計算
   const calculateExpression = (expr: string): number => {
     try {
@@ -229,43 +235,49 @@ const SimpleCalculator: React.FC = () => {
           )}
         </div>
 
-        {/* ボタンレイアウト */}
-        <div className="grid grid-cols-4 gap-2 md:gap-3">
-          {/* メモリー機能行 */}
+        {/* ボタンレイアウト - Casio BF-850-N風 5列グリッド */}
+        <div className="grid grid-cols-5 gap-2 md:gap-3">
+          {/* 1行目: メモリー機能 */}
           <button onClick={handleMemoryClear} className={buttonClass('memory')}>MC</button>
           <button onClick={handleMemoryRecall} className={buttonClass('memory')}>MR</button>
           <button onClick={handleMemoryAdd} className={buttonClass('memory')}>M+</button>
           <button onClick={handleMemorySubtract} className={buttonClass('memory')}>M-</button>
+          <div></div> {/* 空白 */}
 
-          {/* クリア・操作行 */}
-          <button onClick={handleAllClear} className={buttonClass('clear')}>AC</button>
-          <button onClick={handleClear} className={buttonClass('clear')}>C</button>
+          {/* 2行目: ±, GT, %, 税, ÷ */}
+          <button onClick={handlePlusMinus} className={buttonClass('operator')}>±</button>
+          <button onClick={handleMemoryClear} className={buttonClass('memory')}>GT</button>
           <button onClick={handlePercent} className={buttonClass('operator')}>%</button>
+          <button onClick={handlePercent} className={buttonClass('memory')}>税</button>
           <button onClick={() => handleOperatorClick('÷')} className={buttonClass('operator')}>÷</button>
 
-          {/* 数字・演算子 */}
+          {/* 3行目: ⌫, 7, 8, 9, × */}
+          <button onClick={handleBackspace} className={buttonClass('operator')}>⌫</button>
           <button onClick={() => handleNumberClick('7')} className={buttonClass('number')}>7</button>
           <button onClick={() => handleNumberClick('8')} className={buttonClass('number')}>8</button>
           <button onClick={() => handleNumberClick('9')} className={buttonClass('number')}>9</button>
           <button onClick={() => handleOperatorClick('×')} className={buttonClass('operator')}>×</button>
 
+          {/* 4行目: C, 4, 5, 6, - */}
+          <button onClick={handleClear} className={buttonClass('clear')}>C</button>
           <button onClick={() => handleNumberClick('4')} className={buttonClass('number')}>4</button>
           <button onClick={() => handleNumberClick('5')} className={buttonClass('number')}>5</button>
           <button onClick={() => handleNumberClick('6')} className={buttonClass('number')}>6</button>
           <button onClick={() => handleOperatorClick('-')} className={buttonClass('operator')}>-</button>
 
+          {/* 5行目: AC, 1, 2, 3, + (縦長の上半分) */}
+          <button onClick={handleAllClear} className={buttonClass('clear')}>AC</button>
           <button onClick={() => handleNumberClick('1')} className={buttonClass('number')}>1</button>
           <button onClick={() => handleNumberClick('2')} className={buttonClass('number')}>2</button>
           <button onClick={() => handleNumberClick('3')} className={buttonClass('number')}>3</button>
-          <button onClick={() => handleOperatorClick('+')} className={buttonClass('operator')}>+</button>
+          <button onClick={() => handleOperatorClick('+')} className={`${buttonClass('operator')} row-span-2`}>+</button>
 
+          {/* 6行目: 0, 00, ., = */}
           <button onClick={() => handleNumberClick('0')} className={buttonClass('number')}>0</button>
           <button onClick={() => handleNumberClick('00')} className={buttonClass('number')}>00</button>
           <button onClick={() => handleNumberClick('.')} className={buttonClass('number')}>.</button>
           <button onClick={handleEquals} className={buttonClass('equals')}>=</button>
-
-          {/* Backspaceボタン（最下行に追加） */}
-          <button onClick={handleBackspace} className={`${buttonClass('operator')} col-span-4`}>⌫ 1文字削除</button>
+          {/* +の下半分は row-span-2 で自動的に占有 */}
         </div>
 
         {/* キーボード操作ヒント */}
