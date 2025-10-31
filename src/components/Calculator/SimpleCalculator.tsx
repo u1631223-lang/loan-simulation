@@ -16,6 +16,7 @@ const SimpleCalculator: React.FC = () => {
   const [memory, setMemory] = useState(0);
   const [history, setHistory] = useState<CalculationHistory[]>([]);
   const [waitingForOperand, setWaitingForOperand] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   // キーボード入力対応
   const handleKeyPress = useCallback((event: KeyboardEvent) => {
@@ -80,6 +81,13 @@ const SimpleCalculator: React.FC = () => {
     setWaitingForOperand(true);
   };
 
+  // %ボタン（現在の値を100で割る）
+  const handlePercent = () => {
+    const currentValue = parseFloat(display);
+    const result = currentValue / 100;
+    setDisplay(String(result));
+  };
+
   // 式を計算
   const calculateExpression = (expr: string): number => {
     try {
@@ -122,13 +130,17 @@ const SimpleCalculator: React.FC = () => {
     setWaitingForOperand(false);
   };
 
-  // ACボタン（すべてクリア：履歴も含む）
+  // ACボタン（現在の計算をクリア、履歴は残す）
   const handleAllClear = () => {
     setDisplay('0');
     setExpression('');
     setWaitingForOperand(false);
+    // 履歴とメモリーは残す
+  };
+
+  // 履歴削除ボタン
+  const handleClearHistory = () => {
     setHistory([]);
-    setMemory(0);
   };
 
   // Backspace（1文字削除）
@@ -186,9 +198,19 @@ const SimpleCalculator: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row gap-4">
-      {/* 電卓本体 */}
-      <div className="flex-1 bg-white rounded-lg shadow-lg p-4 md:p-6">
+    <div className={`${isFullscreen ? 'fixed inset-0 z-50 bg-gray-900/95 p-4 overflow-auto' : ''}`}>
+      <div className={`flex flex-col lg:flex-row gap-4 ${isFullscreen ? 'max-w-7xl mx-auto' : ''}`}>
+        {/* 電卓本体 */}
+        <div className="flex-1 bg-white rounded-lg shadow-lg p-4 md:p-6">
+          {/* フルスクリーンボタン */}
+          <div className="flex justify-end mb-2">
+            <button
+              onClick={() => setIsFullscreen(!isFullscreen)}
+              className="text-xs md:text-sm px-3 py-1.5 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold transition-colors border border-gray-300"
+            >
+              {isFullscreen ? '✕ 閉じる' : '⛶ 全画面表示'}
+            </button>
+          </div>
         {/* ディスプレイ（金融機関風 - ダークネイビー） */}
         <div className="bg-gradient-to-br from-[#1E3A5F] to-[#2C5282] rounded-lg p-4 md:p-6 mb-3 md:mb-5 border-2 border-[#3A5F7F] shadow-inner">
           {/* 計算式表示 */}
@@ -218,7 +240,7 @@ const SimpleCalculator: React.FC = () => {
           {/* クリア・操作行 */}
           <button onClick={handleAllClear} className={buttonClass('clear')}>AC</button>
           <button onClick={handleClear} className={buttonClass('clear')}>C</button>
-          <button onClick={handleBackspace} className={buttonClass('operator')}>⌫</button>
+          <button onClick={handlePercent} className={buttonClass('operator')}>%</button>
           <button onClick={() => handleOperatorClick('÷')} className={buttonClass('operator')}>÷</button>
 
           {/* 数字・演算子 */}
@@ -241,6 +263,9 @@ const SimpleCalculator: React.FC = () => {
           <button onClick={() => handleNumberClick('00')} className={buttonClass('number')}>00</button>
           <button onClick={() => handleNumberClick('.')} className={buttonClass('number')}>.</button>
           <button onClick={handleEquals} className={buttonClass('equals')}>=</button>
+
+          {/* Backspaceボタン（最下行に追加） */}
+          <button onClick={handleBackspace} className={`${buttonClass('operator')} col-span-4`}>⌫ 1文字削除</button>
         </div>
 
         {/* キーボード操作ヒント */}
@@ -256,10 +281,10 @@ const SimpleCalculator: React.FC = () => {
           <h3 className="text-base md:text-lg font-bold text-[#1E3A5F]">📋 履歴</h3>
           {history.length > 0 && (
             <button
-              onClick={handleAllClear}
-              className="text-xs md:text-sm text-gray-600 hover:text-gray-800 font-semibold px-2 md:px-3 py-1 md:py-1.5 rounded-md hover:bg-gray-100 transition-colors border border-gray-300"
+              onClick={handleClearHistory}
+              className="text-xs md:text-sm text-red-600 hover:text-red-800 font-semibold px-2 md:px-3 py-1 md:py-1.5 rounded-md hover:bg-red-50 transition-colors border border-red-300"
             >
-              全消去
+              履歴削除
             </button>
           )}
         </div>
@@ -292,6 +317,7 @@ const SimpleCalculator: React.FC = () => {
             💡 タップして値を再利用
           </p>
         )}
+      </div>
       </div>
     </div>
   );
