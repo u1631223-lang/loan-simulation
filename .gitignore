@@ -37,3 +37,8 @@ android/
 ios/
 *.orig
 .vercel
+
+# .gitignore
+docs/
+*.md
+!README.md

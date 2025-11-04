@@ -52,4 +52,13 @@ export type {
   SubscriptionContextType,
 } from './subscription';
 
+export type {
+  RiskLevel,
+  AILoanAdvice,
+  LoanAnalysisParams,
+  AIAdviceError,
+  AIAdviceStatus,
+  AIAdviceResult,
+} from './aiAdvice';
+
 export type { Database } from './database.types';

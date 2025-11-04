@@ -24,6 +24,7 @@
     "@capacitor/cli": "^7.4.3",
     "@capacitor/core": "^7.4.3",
     "@capacitor/ios": "^7.4.3",
+    "@google/generative-ai": "^0.24.1",
     "@stripe/stripe-js": "^8.1.0",
     "@supabase/supabase-js": "^2.75.1",
     "html2canvas": "^1.4.1",

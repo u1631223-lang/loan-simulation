@@ -1361,3 +1361,90 @@ const increment = (field: 'monthly') => {
 - ✅ 有料版との差別化ポイント整理
 
 ---
+
+## Phase 19-20: Advanced & Enterprise Features（チケット化完了）
+
+**Status**: 📝 詳細チケット化完了・実装待ち
+
+### Phase 19: Advanced Features（18チケット、2週間）
+
+**総見積時間**: 約80時間
+
+詳細は **`docs/TICKETS_PHASE_19.md`** を参照。
+
+**3つの主要機能:**
+1. **AI-Powered Recommendations（7チケット）**
+   - Google Gemini API統合
+   - パーソナライズされたローンアドバイス
+   - リスク評価・改善提案の自動生成
+   - 7日間のキャッシング
+
+2. **White-Label Mode（6チケット）**
+   - FP事務所向けカスタムブランディング
+   - カスタムドメイン + SSL自動取得
+   - ロゴ・カラー・会社情報の動的切り替え
+   - ¥9,800/月プラン
+
+3. **Team Collaboration（5チケット）**
+   - 計算結果の共有とリアルタイム同期
+   - 組織・メンバー管理（admin/editor/viewer）
+   - アクティビティフィード
+   - メール招待とJITプロビジョニング
+
+**技術スタック:**
+- Google Gemini API
+- Supabase Realtime
+- Custom domains
+- Stripe（White-Labelプラン）
+
+**並列実行可能**: 6チケット（33%）
+
+---
+
+### Phase 20: Enterprise Features（22チケット、2.5週間）
+
+**総見積時間**: 約100時間
+
+詳細は **`docs/TICKETS_PHASE_20.md`** を参照。
+
+**3つの主要機能:**
+1. **SSO Integration（8チケット）**
+   - SAML 2.0対応（Express.js + passport-saml）
+   - Azure AD、Okta、Google Workspace連携
+   - JIT（Just-In-Time）プロビジョニング
+   - グループベースの組織割り当て
+
+2. **Compliance & Audit（7チケット）**
+   - 全アクションの監査ログ（who, what, when, where）
+   - GDPR対応（データポータビリティ、削除権）
+   - ISO 27001準拠の暗号化
+   - コンプライアンスレポート
+
+3. **API Platform（7チケット）**
+   - RESTful API提供（OpenAPI 3.0）
+   - API Key認証 + レート制限（Redis）
+   - Webhook通知（計算完了、データ更新）
+   - Swagger UIドキュメント
+
+**技術スタック:**
+- passport-saml (SSO)
+- Express.js (API server)
+- Redis (rate limiting)
+- OpenAPI/Swagger (API docs)
+
+**並列実行可能**: 7チケット（32%）
+
+**Enterpriseプラン**: ¥49,800/月〜（見積もり制）
+
+---
+
+## 全体進捗サマリー
+
+| Phase | チケット数 | 完了 | ステータス |
+|-------|-----------|------|----------|
+| Phase 1-18 | 119 | 119 | ✅ 完了 |
+| Phase 19 | 18 | 0 | 📝 チケット化完了 |
+| Phase 20 | 22 | 0 | 📝 チケット化完了 |
+| **合計** | **159** | **119** | **75%完了** |
+
+---

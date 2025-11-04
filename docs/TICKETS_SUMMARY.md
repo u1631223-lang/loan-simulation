@@ -9,7 +9,7 @@
 
 | Phase | 内容 | チケット数 | 完了 | ステータス |
 |-------|------|-----------|------|----------|
-| **Phase 1-9** | 無料版（住宅ローン計算機） | 50 | 27 | ✅ 完了・デプロイ済み |
+| **Phase 1-9** | 無料版（住宅ローン計算機） | 50 | 50 | ✅ 完了・デプロイ済み |
 | **Phase 9.5** | NISA複利計算ツール | 18 | 18 | ✅ 完了 |
 | **Phase 9.8** | 年収ベースMAX借入額計算 | 10 | 10 | ✅ 完了 |
 | **Phase 9.9** | お客様名登録（Tier 2価値向上） | 1 | 1 | ✅ 完了 |
@@ -21,12 +21,12 @@
 | **Phase 16** | 保険設計シミュレーション | 4 | 4 | ✅ 完了 |
 | **Phase 17** | バグ修正とリファクタリング | 4 | 4 | ✅ 完了 |
 | **Phase 18** | Freemium戦略実装 | 7 | 7 | ✅ 完了 |
-| **Phase 19** | Advanced Features | TBD | 0 | 🔜 計画中 |
-| **Phase 20** | Enterprise Features | TBD | 0 | 🔜 計画中 |
+| **Phase 19** | Advanced Features（AI/White-Label/Team） | 18 | 0 | 📝 チケット化完了・実装待ち |
+| **Phase 20** | Enterprise Features（SSO/Compliance/API） | 22 | 0 | 📝 チケット化完了・実装待ち |
 
-**全体進捗**: 99/136 チケット完了 (73%) 🎉
+**全体進捗**: 119/159 チケット完了 (75%) 🎉
 
-**現在の完成度**: 約 91%（Phase 18 + 9.8 + 9.9 完了）
+**現在の完成度**: 約 75%（Phase 18完了、Phase 19-20はチケット化のみ完了）
 
 ---
 
@@ -397,48 +397,113 @@ Agent 4: TICKET-206 (Summary)
 
 ---
 
-## 🚀 次のPhase（計画中）
+## 🚀 Phase 19-20: Advanced & Enterprise Features（計画完了・実装待ち）
 
-### Phase 19: Advanced Features (予定: 2ヶ月)
+### Phase 19: Advanced Features ✅ チケット化完了（2週間）
+
+**総チケット数**: 18（詳細は `docs/TICKETS_PHASE_19.md` 参照）
+**総見積時間**: 約80時間
+
+#### Feature 1: AI-Powered Recommendations（7チケット、24時間）
+- TICKET-1901: Gemini API セットアップ
+- TICKET-1902: ローン分析プロンプト設計
+- TICKET-1903: AIアドバイス型定義とパーサー
+- TICKET-1904: AIアドバイスコンポーネント (UI) 🤖
+- TICKET-1905: Home ページへのAI統合
+- TICKET-1906: AIアドバイスキャッシング
+- TICKET-1907: AIアドバイスユニットテスト 🤖
 
 **主要機能**:
-1. **AI-Powered Recommendations**
-   - Gemini API統合
-   - パーソナライズされたローンアドバイス
-   - リスク評価
+- Google Gemini API統合
+- パーソナライズされたローンアドバイス（リスク評価、改善提案）
+- JSON構造化レスポンス
+- 7日間のキャッシング（Supabase）
 
-2. **White-Label Mode**
-   - FP事務所向けカスタムブランディング
-   - サブドメインホスティング
-   - 料金: ¥9,800/月（Premium の 10倍）
+#### Feature 2: White-Label Mode（6チケット、29時間）
+- TICKET-1908: ブランディングデータベーススキーマ
+- TICKET-1909: ブランディング設定UI 🤖
+- TICKET-1910: カスタムドメイン対応
+- TICKET-1911: ブランディング動的適用
+- TICKET-1912: White-Label価格設定とStripe連携（¥9,800/月）
+- TICKET-1913: White-Labelドキュメント作成 🤖
 
-3. **Team Collaboration**
-   - 計算結果の共有
-   - リアルタイム共同編集
-   - アクティビティフィード
+**主要機能**:
+- FP事務所向けカスタムブランディング
+- カスタムドメイン + SSL自動取得
+- ロゴ、カラー、会社情報の動的切り替え
+- Stripe White-Labelプラン
 
-**想定チケット数**: 15-20
+#### Feature 3: Team Collaboration（5チケット、26時間）
+- TICKET-1914: チーム機能データベーススキーマ
+- TICKET-1915: リアルタイム同期機能（Supabase Realtime）
+- TICKET-1916: 共有計算結果UI 🤖
+- TICKET-1917: アクティビティフィード
+- TICKET-1918: チーム管理UI 🤖
+
+**主要機能**:
+- 計算結果の共有とリアルタイム同期
+- 組織・メンバー管理（admin/editor/viewer）
+- アクティビティフィード（誰が何をしたか）
+- メール招待とJITプロビジョニング
+
+**並列実行可能**: 6チケット（33%）
 
 ---
 
-### Phase 20: Enterprise Features (予定: 3ヶ月)
+### Phase 20: Enterprise Features ✅ チケット化完了（2.5週間）
+
+**総チケット数**: 22（詳細は `docs/TICKETS_PHASE_20.md` 参照）
+**総見積時間**: 約100時間
+
+#### Feature 1: SSO Integration（8チケット、38時間）
+- TICKET-2001: SAML 2.0 基盤セットアップ（Express.js + passport-saml）
+- TICKET-2002: Azure AD連携 🤖
+- TICKET-2003: Okta連携 🤖
+- TICKET-2004: Google Workspace連携 🤖
+- TICKET-2005: SSOプロバイダー管理UI
+- TICKET-2006: SSO JIT（Just-In-Time）プロビジョニング
+- TICKET-2007: SSO統合テスト 🤖
+- TICKET-2008: SSOドキュメント作成 🤖
 
 **主要機能**:
-1. **SSO Integration**
-   - SAML 2.0対応
-   - Azure AD, Okta, Google Workspace
+- SAML 2.0対応（Azure AD、Okta、Google Workspace）
+- JITプロビジョニング（初回ログイン時のユーザー自動作成）
+- グループベースの組織割り当て
+- エンタープライズ対応
 
-2. **Compliance Reports**
-   - 監査ログ
-   - GDPR対応
-   - ISO 27001準拠
+#### Feature 2: Compliance & Audit（7チケット、32時間）
+- TICKET-2009: 監査ログシステム
+- TICKET-2010: 監査ログUI 🤖
+- TICKET-2011: GDPRコンプライアンス機能
+- TICKET-2012: データエクスポート機能（個人データ）
+- TICKET-2013: データ削除機能（Right to be Forgotten）
+- TICKET-2014: 暗号化強化（フィールドレベル暗号化）
+- TICKET-2015: GDPRドキュメント作成 🤖
 
-3. **API Access**
-   - REST API提供
-   - Webhook通知
-   - レート制限（100 req/min）
+**主要機能**:
+- 全アクションの監査ログ（who, what, when, where）
+- GDPR対応（データポータビリティ、削除権）
+- ISO 27001準拠の暗号化
+- コンプライアンスレポート
 
-**想定チケット数**: 20-25
+#### Feature 3: API Platform（7チケット、30時間）
+- TICKET-2016: REST API設計（OpenAPI/Swagger）
+- TICKET-2017: API認証（API Key + JWT）
+- TICKET-2018: レート制限（Redis）
+- TICKET-2019: Webhook機能
+- TICKET-2020: APIドキュメント生成（Swagger UI）
+- TICKET-2021: API統合テスト
+- TICKET-2022: API利用ガイド作成
+
+**主要機能**:
+- RESTful API提供（計算、データ取得、Webhook）
+- API Key認証 + レート制限（100 req/min）
+- Webhook通知（計算完了、データ更新）
+- OpenAPI 3.0仕様書
+
+**並列実行可能**: 7チケット（32%）
+
+**Enterpriseプラン**: ¥49,800/月〜（見積もり制）
 
 ---
 

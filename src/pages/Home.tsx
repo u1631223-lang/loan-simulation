@@ -20,10 +20,15 @@ import { InvestmentCalculator } from '@/components/Investment';
 import { ExportButton } from '@/components/Common/ExportButton';
 import { PDFExportButton } from '@/components/Common/PDFExportButton';
 import { FeatureShowcase } from '@/components/Common/FeatureShowcase';
+import { AIAdviceCard } from '@/components/AI/AIAdviceCard';
 import { useCalculator } from '@/hooks/useCalculator';
+import { generateAdvice, isGeminiAvailable } from '@/services/geminiClient';
+import { generateLoanAnalysisPrompt, createAnalysisContext } from '@/utils/promptTemplates';
+import { parseAIAdvice, isAIAdviceError } from '@/utils/aiAdviceParser';
 import type { LoanParams, ReverseLoanParams, CalculationMode } from '@/types';
 import type { IncomeResult } from '@/types/income';
 import type { RepaymentRatioResult } from '@/types/repaymentRatio';
+import type { AILoanAdvice, AIAdviceError } from '@/types/aiAdvice';
 
 type ViewMode = 'loan' | 'calculator' | 'investment';
 
@@ -66,6 +71,12 @@ const Home: React.FC = () => {
     null
   );
 
+  // AI アドバイスの状態
+  const [aiAdvice, setAiAdvice] = useState<AILoanAdvice | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState<AIAdviceError | null>(null);
+  const [showAiAdvice, setShowAiAdvice] = useState(false);
+
   const exportParams = loanParams ?? currentParams;
 
   const handleCalculate = () => {
@@ -81,6 +92,64 @@ const Home: React.FC = () => {
   // 返済負担率計算のハンドラー
   const handleRepaymentRatioCalculate = (result: RepaymentRatioResult) => {
     setRepaymentRatioResult(result);
+  };
+
+  // AI アドバイス生成
+  const handleGenerateAIAdvice = async () => {
+    if (!loanResult) return;
+
+    // Gemini API が利用可能かチェック
+    if (!isGeminiAvailable()) {
+      setAiError({
+        type: 'api_error',
+        message: 'Gemini API キーが設定されていません。.env ファイルに VITE_GEMINI_API_KEY を設定してください。',
+      });
+      setShowAiAdvice(true);
+      return;
+    }
+
+    setAiLoading(true);
+    setAiError(null);
+    setShowAiAdvice(true);
+
+    try {
+      // デフォルト値で分析コンテキストを作成
+      // TODO: 実際のユーザー入力から取得（Phase 13以降で実装）
+      const analysisContext = createAnalysisContext(
+        currentParams,
+        loanResult,
+        600, // デフォルト年収: 600万円
+        3,   // デフォルト家族人数: 3人
+        1    // デフォルト子供人数: 1人
+      );
+
+      // プロンプト生成
+      const prompt = generateLoanAnalysisPrompt(analysisContext);
+
+      // Gemini API 呼び出し
+      const response = await generateAdvice(prompt);
+
+      // レスポンスをパース
+      const parsedResult = parseAIAdvice(response);
+
+      if (isAIAdviceError(parsedResult)) {
+        setAiError(parsedResult);
+        setAiAdvice(null);
+      } else {
+        setAiAdvice(parsedResult);
+        setAiError(null);
+      }
+    } catch (error) {
+      console.error('AI advice generation error:', error);
+      setAiError({
+        type: 'api_error',
+        message: error instanceof Error ? error.message : '予期しないエラーが発生しました',
+        originalError: error instanceof Error ? error : undefined,
+      });
+      setAiAdvice(null);
+    } finally {
+      setAiLoading(false);
+    }
   };
 
   // 年収計算から詳細計算への遷移
@@ -267,15 +336,47 @@ const Home: React.FC = () => {
                       mode={calculationMode}
                       className="shadow-md"
                       actions={
-                        exportParams ? (
-                          <PDFExportButton
-                            result={loanResult}
-                            params={exportParams}
-                            className="w-full sm:w-auto"
-                          />
-                        ) : undefined
+                        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                          {/* AI アドバイスボタン */}
+                          <button
+                            onClick={handleGenerateAIAdvice}
+                            disabled={aiLoading}
+                            className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                          >
+                            {aiLoading ? (
+                              <>
+                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                <span>分析中...</span>
+                              </>
+                            ) : (
+                              <>
+                                <span>🤖</span>
+                                <span>AIアドバイス</span>
+                              </>
+                            )}
+                          </button>
+
+                          {/* PDF エクスポートボタン */}
+                          {exportParams && (
+                            <PDFExportButton
+                              result={loanResult}
+                              params={exportParams}
+                              className="w-full sm:w-auto"
+                            />
+                          )}
+                        </div>
                       }
                     />
+
+                    {/* AI アドバイスカード */}
+                    {showAiAdvice && (
+                      <AIAdviceCard
+                        advice={aiAdvice}
+                        loading={aiLoading}
+                        error={aiError}
+                        onRegenerate={handleGenerateAIAdvice}
+                      />
+                    )}
 
                     {/* 返済計画表 */}
                     <div className="bg-white rounded-lg shadow-md p-6">
