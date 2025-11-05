@@ -38,7 +38,6 @@ ios/
 *.orig
 .vercel
 
-# .gitignore
-docs/
-*.md
-!README.md
+# Documentation (allow all docs and md files)
+# docs/ - REMOVED: now tracking all documentation
+# *.md - REMOVED: now tracking all markdown files

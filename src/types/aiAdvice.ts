@@ -52,6 +52,30 @@ export interface LoanAnalysisParams {
 }
 
 /**
+ * Supabase に保存された AI アドバイス
+ */
+export interface SavedAIAdvice {
+  id: string;
+  user_id: string;
+  principal: number;
+  interest_rate: number;
+  years: number;
+  monthly_payment: number;
+  repayment_ratio: number;
+  annual_income: number | null;
+  family_size: number | null;
+  children_count: number | null;
+  risk_level: RiskLevel;
+  analysis: string;
+  recommendations: string[];
+  warnings: string[];
+  model_name: string;
+  prompt_version: string;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
  * AIアドバイスエラー
  */
 export interface AIAdviceError {

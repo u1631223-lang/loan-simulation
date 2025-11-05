@@ -22,18 +22,20 @@ import { PDFExportButton } from '@/components/Common/PDFExportButton';
 import { FeatureShowcase } from '@/components/Common/FeatureShowcase';
 import { AIAdviceCard } from '@/components/AI/AIAdviceCard';
 import { useCalculator } from '@/hooks/useCalculator';
+import { useAIAdvice } from '@/hooks/useAIAdvice';
 import { generateAdvice, isGeminiAvailable } from '@/services/geminiClient';
 import { generateLoanAnalysisPrompt, createAnalysisContext } from '@/utils/promptTemplates';
 import { parseAIAdvice, isAIAdviceError } from '@/utils/aiAdviceParser';
 import type { LoanParams, ReverseLoanParams, CalculationMode } from '@/types';
 import type { IncomeResult } from '@/types/income';
 import type { RepaymentRatioResult } from '@/types/repaymentRatio';
-import type { AILoanAdvice, AIAdviceError } from '@/types/aiAdvice';
+import type { AILoanAdvice, AIAdviceError, LoanAnalysisParams } from '@/types/aiAdvice';
 
 type ViewMode = 'loan' | 'calculator' | 'investment';
 
 const Home: React.FC = () => {
   const { loanParams, loanResult, error, calculate, calculateReverse } = useCalculator();
+  const { saveAdvice } = useAIAdvice();
   const [showSchedule, setShowSchedule] = useState(false);
   const [calculationMode, setCalculationMode] = useState<CalculationMode>('forward');
   const [viewMode, setViewMode] = useState<ViewMode>('loan');
@@ -115,7 +117,7 @@ const Home: React.FC = () => {
     try {
       // デフォルト値で分析コンテキストを作成
       // TODO: 実際のユーザー入力から取得（Phase 13以降で実装）
-      const analysisContext = createAnalysisContext(
+      const analysisContext: LoanAnalysisParams = createAnalysisContext(
         currentParams,
         loanResult,
         600, // デフォルト年収: 600万円
@@ -138,6 +140,17 @@ const Home: React.FC = () => {
       } else {
         setAiAdvice(parsedResult);
         setAiError(null);
+
+        // Supabase に保存（ログイン済みの場合）
+        try {
+          await saveAdvice({
+            advice: parsedResult,
+            analysisParams: analysisContext,
+          });
+        } catch (saveError) {
+          console.warn('AI advice save failed (non-critical):', saveError);
+          // 保存失敗してもアドバイスは表示する
+        }
       }
     } catch (error) {
       console.error('AI advice generation error:', error);
