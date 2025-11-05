@@ -100,16 +100,6 @@ const Home: React.FC = () => {
   const handleGenerateAIAdvice = async () => {
     if (!loanResult) return;
 
-    // Gemini API が利用可能かチェック
-    if (!isGeminiAvailable()) {
-      setAiError({
-        type: 'api_error',
-        message: 'Gemini API キーが設定されていません。.env ファイルに VITE_GEMINI_API_KEY を設定してください。',
-      });
-      setShowAiAdvice(true);
-      return;
-    }
-
     setAiLoading(true);
     setAiError(null);
     setShowAiAdvice(true);
@@ -124,6 +114,47 @@ const Home: React.FC = () => {
         3,   // デフォルト家族人数: 3人
         1    // デフォルト子供人数: 1人
       );
+
+      // Gemini API が利用可能かチェック
+      if (!isGeminiAvailable()) {
+        // テストモード: モックデータを使用
+        console.info('🧪 テストモード: Gemini APIキー未設定のため、モックデータを表示します');
+
+        // ローディング演出のため少し待つ
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        // 返済負担率からリスクレベルを判定
+        const repaymentRatio = analysisContext.repaymentRatio;
+        let riskLevel: 'low' | 'medium' | 'high' = 'medium';
+        if (repaymentRatio <= 25) riskLevel = 'low';
+        else if (repaymentRatio > 35) riskLevel = 'high';
+
+        // モックアドバイスを生成
+        const mockAdvice: AILoanAdvice = {
+          riskLevel,
+          analysis: `【テストモード】年収${analysisContext.annualIncome}万円に対して${(analysisContext.principal / 10000).toLocaleString()}万円の借入は、返済負担率が${repaymentRatio.toFixed(1)}%となります。${
+            riskLevel === 'low' ? '比較的安全な範囲内での借入と言えます。' :
+            riskLevel === 'medium' ? '標準的な範囲ですが、余裕を持った資金計画が重要です。' :
+            '負担率がやや高めです。慎重な検討をお勧めします。'
+          }金利上昇リスクや教育費・老後資金の準備も含めた総合的な計画を立てましょう。実際のAI分析を利用するには、Gemini APIキーを設定してください（詳細: docs/GEMINI_SETUP.md）。`,
+          recommendations: [
+            `返済期間を${analysisContext.years + 5}年に延長することで、月々の返済額を約${Math.round((analysisContext.monthlyPayment * 0.15) / 1000) * 1000}円軽減できます`,
+            `ボーナス時に年間${Math.round((analysisContext.principal * 0.01) / 10000) * 10000}円の繰上返済を行うことで、総返済額を約${Math.round((analysisContext.principal * 0.05) / 100000) * 10}万円削減可能です`,
+            `つみたてNISAで月3万円の積立投資を並行し、${analysisContext.childrenCount > 0 ? '教育費と' : ''}老後資金を準備しましょう`,
+          ],
+          warnings: [
+            `変動金利の場合、金利が1%上昇すると月々の返済額が約${Math.round((analysisContext.principal * 0.01 / 12) / 1000) * 1000}円増加します`,
+            analysisContext.childrenCount > 0
+              ? '10年後に子供の大学進学費用が必要になる時期と返済のピークが重なる可能性があります'
+              : '将来のライフイベント（結婚、出産など）による支出増加に備えた資金計画が必要です',
+          ],
+          generatedAt: new Date().toISOString(),
+        };
+
+        setAiAdvice(mockAdvice);
+        setAiError(null);
+        return;
+      }
 
       // プロンプト生成
       const prompt = generateLoanAnalysisPrompt(analysisContext);
