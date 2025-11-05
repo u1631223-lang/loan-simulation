@@ -63,12 +63,7 @@ function AppContent() {
         element={<LoanTools />}
       />
 
-      {/* 有料版機能 - 開発完了までComing Soonページを表示 */}
-      <Route path="/household-budget" element={<ComingSoon />} />
-      <Route path="/asset-management" element={<ComingSoon />} />
-      <Route path="/insurance-planning" element={<ComingSoon />} />
-
-      {/* Phase 13-14 開発完了後に有効化
+      {/* 有料版機能 - Phase 13-18 */}
       <Route
         path="/household-budget"
         element={
@@ -93,7 +88,6 @@ function AppContent() {
           </ProtectedRoute>
         }
       />
-      */}
 
       {/* Catch all - redirect to home */}
       <Route path="*" element={<Navigate to="/" replace />} />
