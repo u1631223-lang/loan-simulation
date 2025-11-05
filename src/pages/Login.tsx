@@ -56,6 +56,27 @@ const Login: React.FC = () => {
     setLoading(true);
 
     try {
+      // 🧪 テスト用ログイン（開発環境のみ）
+      const testEmail = import.meta.env.VITE_TEST_EMAIL;
+      const testPassword = import.meta.env.VITE_TEST_PASSWORD;
+
+      if (import.meta.env.DEV && testEmail && testPassword &&
+          email === testEmail && password === testPassword) {
+        // テストユーザーとしてログイン状態を模擬
+        showToast('🧪 テストモード: ログインしました', 'success');
+        // localStorageにテストユーザー情報を保存
+        localStorage.setItem('test_user', JSON.stringify({
+          id: 'test-user-id',
+          email: testEmail,
+          user_metadata: {
+            full_name: 'テストユーザー',
+          },
+        }));
+        // 擬似的に認証状態を作成するためにページをリロード
+        window.location.href = redirectPath;
+        return;
+      }
+
       const { user, error } = await signIn({ email, password });
 
       if (error) {

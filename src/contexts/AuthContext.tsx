@@ -63,6 +63,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
    * Initialize auth state from Supabase session
    */
   const initializeAuth = useCallback(async () => {
+    // 🧪 テストモード: localStorageからテストユーザーを読み込む
+    if (import.meta.env.DEV) {
+      const testUserStr = localStorage.getItem('test_user');
+      if (testUserStr) {
+        try {
+          const testUser = JSON.parse(testUserStr);
+          setUser(testUser as User);
+          setLoading(false);
+          setInitialized(true);
+          return;
+        } catch (e) {
+          // パースエラーの場合は無視して通常フローへ
+          localStorage.removeItem('test_user');
+        }
+      }
+    }
+
     // Supabaseが設定されていない場合はスキップ
     if (!supabase) {
       setLoading(false);
@@ -238,6 +255,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
    * Sign out
    */
   const signOut = useCallback(async () => {
+    // 🧪 テストモード: localStorageのテストユーザーを削除
+    if (import.meta.env.DEV) {
+      const testUserStr = localStorage.getItem('test_user');
+      if (testUserStr) {
+        localStorage.removeItem('test_user');
+        setUser(null);
+        setSession(null);
+        return { error: null };
+      }
+    }
+
     if (!supabase) {
       return { error: { message: 'Authentication is not configured' } };
     }
