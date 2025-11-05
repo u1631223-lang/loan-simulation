@@ -23,10 +23,9 @@ import PrivacyPolicy from '@/pages/PrivacyPolicy';
 import TermsOfService from '@/pages/TermsOfService';
 import LoanTools from '@/pages/LoanTools';
 import ComingSoon from '@/pages/ComingSoon';
-// Phase 13-14 実装時に有効化（現在は型エラーのため一時的に無効化）
-// import HouseholdBudget from '@/pages/HouseholdBudget';
-// import { AssetManagement } from '@/pages/AssetManagement';
-// import InsurancePlanning from '@/pages/InsurancePlanning';
+// import HouseholdBudget from '@/pages/HouseholdBudget'; // TODO: Fix type errors
+// import { AssetManagement } from '@/pages/AssetManagement'; // TODO: Fix type errors
+import { InsurancePlanning } from '@/pages/InsurancePlanning';
 import FeatureGateTest from '@/pages/FeatureGateTest';
 
 function AppContent() {
@@ -64,22 +63,11 @@ function AppContent() {
       />
 
       {/* 有料版機能 - Phase 13-18 */}
-      <Route
-        path="/household-budget"
-        element={
-          <ProtectedRoute>
-            <HouseholdBudget />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/asset-management"
-        element={
-          <ProtectedRoute>
-            <AssetManagement />
-          </ProtectedRoute>
-        }
-      />
+      {/* 家計収支・資産運用: 型エラー修正中 */}
+      <Route path="/household-budget" element={<ComingSoon />} />
+      <Route path="/asset-management" element={<ComingSoon />} />
+
+      {/* 保険設計: 実装完了 */}
       <Route
         path="/insurance-planning"
         element={
