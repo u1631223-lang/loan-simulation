@@ -20,14 +20,17 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onDetailPlan }) => {
     primaryIncome: 500, // デフォルト: 500万円
     interestRate: 1.0,
     years: 35,
-    hasCoDebtor: false,
-    coDebtorType: undefined,
+    hasCoDebtor: true, // デフォルト: ON
+    coDebtorType: 'joint-debtor', // デフォルト: 連帯債務者
     coDebtorIncome: 400,
     memo: '',
   });
   const [interestRateInput, setInterestRateInput] = useState<string>(
     params.interestRate === 0 ? '' : params.interestRate.toFixed(2)
   );
+  const [primaryIncomeInput, setPrimaryIncomeInput] = useState<string>('500');
+  const [yearsInput, setYearsInput] = useState<string>('35');
+  const [coDebtorIncomeInput, setCoDebtorIncomeInput] = useState<string>('400');
 
   const [result, setResult] = useState<IncomeResult | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -53,14 +56,32 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onDetailPlan }) => {
   // 数値の増減ハンドラ
   const handleIncrement = (field: keyof IncomeParams, step: number) => {
     const currentValue = params[field] as number;
-    const newValue = currentValue + step;
-    handleChange(field, Math.max(0, newValue));
+    const newValue = Math.max(0, currentValue + step);
+    handleChange(field, newValue);
+
+    // 表示用の状態も更新
+    if (field === 'primaryIncome') {
+      setPrimaryIncomeInput(newValue.toString());
+    } else if (field === 'years') {
+      setYearsInput(newValue.toString());
+    } else if (field === 'coDebtorIncome') {
+      setCoDebtorIncomeInput(newValue.toString());
+    }
   };
 
   const handleDecrement = (field: keyof IncomeParams, step: number) => {
     const currentValue = params[field] as number;
-    const newValue = currentValue - step;
-    handleChange(field, Math.max(0, newValue));
+    const newValue = Math.max(0, currentValue - step);
+    handleChange(field, newValue);
+
+    // 表示用の状態も更新
+    if (field === 'primaryIncome') {
+      setPrimaryIncomeInput(newValue.toString());
+    } else if (field === 'years') {
+      setYearsInput(newValue.toString());
+    } else if (field === 'coDebtorIncome') {
+      setCoDebtorIncomeInput(newValue.toString());
+    }
   };
 
   const handleInterestRateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -102,6 +123,74 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onDetailPlan }) => {
     requestAnimationFrame(() => {
       interestRateInputRef.current?.focus();
     });
+  };
+
+  // 本人年収のハンドラー
+  const handlePrimaryIncomeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // 空文字または数字（小数点含む）のみ許可
+    if (value === '' || /^\d*\.?\d*$/.test(value)) {
+      setPrimaryIncomeInput(value);
+      const num = parseFloat(value);
+      if (!isNaN(num) && num > 0) {
+        handleChange('primaryIncome', num);
+      }
+    }
+  };
+
+  const handlePrimaryIncomeBlur = () => {
+    // 空文字の場合、デフォルト値に戻す
+    if (primaryIncomeInput === '' || isNaN(parseFloat(primaryIncomeInput))) {
+      const defaultIncome = params.primaryIncome || 500;
+      setPrimaryIncomeInput(defaultIncome.toString());
+      handleChange('primaryIncome', defaultIncome);
+    }
+  };
+
+  // 返済期間のハンドラー
+  const handleYearsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // 空文字または数字のみ許可
+    if (value === '' || /^\d+$/.test(value)) {
+      setYearsInput(value);
+      const num = parseInt(value);
+      if (!isNaN(num) && num > 0) {
+        handleChange('years', num);
+      }
+    }
+  };
+
+  const handleYearsBlur = () => {
+    // 空文字の場合、デフォルト値に戻す
+    if (yearsInput === '' || isNaN(parseInt(yearsInput))) {
+      const defaultYears = params.years || 35;
+      setYearsInput(defaultYears.toString());
+      handleChange('years', defaultYears);
+    }
+  };
+
+  // 連帯債務者年収のハンドラー
+  const handleCoDebtorIncomeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // 空文字または数字（小数点含む）のみ許可
+    if (value === '' || /^\d*\.?\d*$/.test(value)) {
+      setCoDebtorIncomeInput(value);
+      const num = parseFloat(value);
+      if (!isNaN(num) && num > 0) {
+        handleChange('coDebtorIncome', num);
+      } else if (value === '') {
+        handleChange('coDebtorIncome', 0);
+      }
+    }
+  };
+
+  const handleCoDebtorIncomeBlur = () => {
+    // 空文字の場合、デフォルト値に戻す
+    if (coDebtorIncomeInput === '' || isNaN(parseFloat(coDebtorIncomeInput))) {
+      const defaultIncome = params.coDebtorIncome || 400;
+      setCoDebtorIncomeInput(defaultIncome.toString());
+      handleChange('coDebtorIncome', defaultIncome);
+    }
   };
 
   const handleCalculate = () => {
@@ -178,9 +267,11 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onDetailPlan }) => {
                 <div className="relative flex-1">
                   <input
                     id="primaryIncome"
-                    type="number"
-                    value={params.primaryIncome}
-                    onChange={(e) => handleChange('primaryIncome', parseFloat(e.target.value) || 0)}
+                    type="text"
+                    inputMode="decimal"
+                    value={primaryIncomeInput}
+                    onChange={handlePrimaryIncomeChange}
+                    onBlur={handlePrimaryIncomeBlur}
                     className={`${inputClass(!!errors.primaryIncome)} pr-14`}
                   />
                   <span className="absolute inset-y-0 right-3 flex items-center text-xs text-gray-500">
@@ -267,9 +358,11 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onDetailPlan }) => {
                 <div className="relative flex-1">
                   <input
                     id="years"
-                    type="number"
-                    value={params.years}
-                    onChange={(e) => handleChange('years', parseInt(e.target.value) || 0)}
+                    type="text"
+                    inputMode="numeric"
+                    value={yearsInput}
+                    onChange={handleYearsChange}
+                    onBlur={handleYearsBlur}
                     className={`${inputClass(!!errors.years)} pr-14`}
                   />
                   <span className="absolute inset-y-0 right-3 flex items-center text-xs text-gray-500">
@@ -366,9 +459,11 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onDetailPlan }) => {
                     <div className="relative flex-1">
                       <input
                         id="coDebtorIncome"
-                        type="number"
-                        value={params.coDebtorIncome || ''}
-                        onChange={(e) => handleChange('coDebtorIncome', parseFloat(e.target.value) || 0)}
+                        type="text"
+                        inputMode="decimal"
+                        value={coDebtorIncomeInput}
+                        onChange={handleCoDebtorIncomeChange}
+                        onBlur={handleCoDebtorIncomeBlur}
                         className={`${inputClass(!!errors.coDebtorIncome)} pr-14`}
                       />
                       <span className="absolute inset-y-0 right-3 flex items-center text-xs text-gray-500">

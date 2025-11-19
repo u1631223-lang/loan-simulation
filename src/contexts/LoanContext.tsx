@@ -78,7 +78,7 @@ const DEFAULT_LOAN_PARAMS: LoanParams = {
   months: 0,
   repaymentType: 'equal-payment',
   bonusPayment: {
-    enabled: false,
+    enabled: true, // デフォルト: ON
     amount: 10000000, // 1000万円
     months: [1, 8], // デフォルト: 1月（冬）と8月（夏）
   },

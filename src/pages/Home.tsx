@@ -48,7 +48,7 @@ const Home: React.FC = () => {
       months: 0,
       repaymentType: 'equal-payment',
       bonusPayment: {
-        enabled: false,
+        enabled: true, // デフォルト: ON
         amount: 15000000, // デフォルト: 1500万円
         months: [1, 8], // デフォルト: 1月（冬）と8月（夏）
       },
@@ -62,7 +62,7 @@ const Home: React.FC = () => {
     months: 0,
     repaymentType: 'equal-payment',
     bonusPayment: {
-      enabled: false,
+      enabled: true, // デフォルト: ON
       payment: 200000,
       months: [1, 8], // デフォルト: 1月（冬）と8月（夏）
     },

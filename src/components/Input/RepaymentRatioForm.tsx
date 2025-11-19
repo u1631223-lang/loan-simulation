@@ -17,30 +17,49 @@ export const RepaymentRatioForm: React.FC<RepaymentRatioFormProps> = ({ onCalcul
   const [primaryIncome, setPrimaryIncome] = useState<string>('');
   const [coDebtorIncome, setCoDebtorIncome] = useState<string>('');
   const [repaymentRatio, setRepaymentRatio] = useState<number>(25); // デフォルト25%
+  const [repaymentRatioInput, setRepaymentRatioInput] = useState<string>('25'); // 表示用
   const [interestRate, setInterestRate] = useState<number>(1.0);
+  const [interestRateInput, setInterestRateInput] = useState<string>('1.00'); // 表示用
   const [years, setYears] = useState<number>(40); // デフォルト40年
+  const [yearsInput, setYearsInput] = useState<string>('40'); // 表示用
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
-  const incrementValue = (
-    setter: React.Dispatch<React.SetStateAction<number>>,
-    value: number,
-    step: number,
-    max: number
-  ) => {
-    const newValue = Math.min(value + step, max);
-    // 浮動小数点エラー回避: 小数点2桁に丸める
-    setter(Math.round(newValue * 100) / 100);
+  const incrementRepaymentRatio = () => {
+    const newValue = Math.min(repaymentRatio + 1, 50);
+    setRepaymentRatio(newValue);
+    setRepaymentRatioInput(newValue.toString());
   };
 
-  const decrementValue = (
-    setter: React.Dispatch<React.SetStateAction<number>>,
-    value: number,
-    step: number,
-    min: number
-  ) => {
-    const newValue = Math.max(value - step, min);
-    // 浮動小数点エラー回避: 小数点2桁に丸める
-    setter(Math.round(newValue * 100) / 100);
+  const decrementRepaymentRatio = () => {
+    const newValue = Math.max(repaymentRatio - 1, 10);
+    setRepaymentRatio(newValue);
+    setRepaymentRatioInput(newValue.toString());
+  };
+
+  const incrementInterestRate = () => {
+    const newValue = Math.min(interestRate + 0.01, 10.0);
+    const rounded = Math.round(newValue * 100) / 100;
+    setInterestRate(rounded);
+    setInterestRateInput(rounded.toFixed(2));
+  };
+
+  const decrementInterestRate = () => {
+    const newValue = Math.max(interestRate - 0.01, 0.01);
+    const rounded = Math.round(newValue * 100) / 100;
+    setInterestRate(rounded);
+    setInterestRateInput(rounded.toFixed(2));
+  };
+
+  const incrementYears = () => {
+    const newValue = Math.min(years + 1, 50);
+    setYears(newValue);
+    setYearsInput(newValue.toString());
+  };
+
+  const decrementYears = () => {
+    const newValue = Math.max(years - 1, 1);
+    setYears(newValue);
+    setYearsInput(newValue.toString());
   };
 
   const validate = (): boolean => {
@@ -96,6 +115,78 @@ export const RepaymentRatioForm: React.FC<RepaymentRatioFormProps> = ({ onCalcul
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       handleCalculate();
+    }
+  };
+
+  // 返済負担率のハンドラー
+  const handleRepaymentRatioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // 空文字または数字（小数点含む）のみ許可
+    if (value === '' || /^\d*\.?\d*$/.test(value)) {
+      setRepaymentRatioInput(value);
+      const num = parseFloat(value);
+      if (!isNaN(num) && num > 0) {
+        setRepaymentRatio(num);
+      }
+    }
+  };
+
+  const handleRepaymentRatioBlur = () => {
+    // 空文字または無効な値の場合、25%（基本値）に戻す
+    if (repaymentRatioInput === '' || isNaN(parseFloat(repaymentRatioInput))) {
+      setRepaymentRatioInput('25');
+      setRepaymentRatio(25);
+    } else {
+      // 有効な値の場合、実数値で表示を更新
+      setRepaymentRatioInput(repaymentRatio.toString());
+    }
+  };
+
+  // 金利のハンドラー
+  const handleInterestRateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // 空文字または数字（小数点含む）のみ許可
+    if (value === '' || /^\d*\.?\d*$/.test(value)) {
+      setInterestRateInput(value);
+      const num = parseFloat(value);
+      if (!isNaN(num) && num > 0) {
+        setInterestRate(Math.round(num * 100) / 100);
+      }
+    }
+  };
+
+  const handleInterestRateBlur = () => {
+    // 空文字の場合、デフォルト値に戻す
+    if (interestRateInput === '' || isNaN(parseFloat(interestRateInput))) {
+      const defaultRate = interestRate || 1.0;
+      setInterestRateInput(defaultRate.toFixed(2));
+      setInterestRate(defaultRate);
+    } else {
+      setInterestRateInput(interestRate.toFixed(2));
+    }
+  };
+
+  // 返済期間のハンドラー
+  const handleYearsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // 空文字または数字のみ許可
+    if (value === '' || /^\d+$/.test(value)) {
+      setYearsInput(value);
+      const num = parseInt(value);
+      if (!isNaN(num) && num > 0) {
+        setYears(num);
+      }
+    }
+  };
+
+  const handleYearsBlur = () => {
+    // 空文字の場合、デフォルト値に戻す
+    if (yearsInput === '' || isNaN(parseInt(yearsInput))) {
+      const defaultYears = years || 40;
+      setYearsInput(defaultYears.toString());
+      setYears(defaultYears);
+    } else {
+      setYearsInput(years.toString());
     }
   };
 
@@ -165,18 +256,18 @@ export const RepaymentRatioForm: React.FC<RepaymentRatioFormProps> = ({ onCalcul
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => decrementValue(setRepaymentRatio, repaymentRatio, 1, 10)}
+              onClick={decrementRepaymentRatio}
               className="w-10 h-10 flex items-center justify-center bg-gray-200 hover:bg-gray-300 rounded-lg transition active:scale-95"
             >
               ▼
             </button>
             <input
-              type="number"
-              value={repaymentRatio}
-              onChange={(e) => setRepaymentRatio(Number(e.target.value))}
+              type="text"
+              inputMode="decimal"
+              value={repaymentRatioInput}
+              onChange={handleRepaymentRatioChange}
+              onBlur={handleRepaymentRatioBlur}
               onKeyPress={handleKeyPress}
-              min="10"
-              max="50"
               className={`flex-1 px-4 py-2 border rounded-lg text-center focus:ring-2 focus:ring-primary focus:border-transparent ${
                 errors.repaymentRatio ? 'border-red-500' : 'border-gray-300'
               }`}
@@ -184,7 +275,7 @@ export const RepaymentRatioForm: React.FC<RepaymentRatioFormProps> = ({ onCalcul
             <span className="text-gray-700 font-medium">%</span>
             <button
               type="button"
-              onClick={() => incrementValue(setRepaymentRatio, repaymentRatio, 1, 50)}
+              onClick={incrementRepaymentRatio}
               className="w-10 h-10 flex items-center justify-center bg-gray-200 hover:bg-gray-300 rounded-lg transition active:scale-95"
             >
               ▲
@@ -209,24 +300,18 @@ export const RepaymentRatioForm: React.FC<RepaymentRatioFormProps> = ({ onCalcul
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => decrementValue(setInterestRate, interestRate, 0.01, 0.01)}
+              onClick={decrementInterestRate}
               className="w-10 h-10 flex items-center justify-center bg-gray-200 hover:bg-gray-300 rounded-lg transition active:scale-95"
             >
               ▼
             </button>
             <input
-              type="number"
-              value={interestRate.toFixed(2)}
-              onChange={(e) => {
-                const val = parseFloat(e.target.value);
-                if (!isNaN(val)) {
-                  setInterestRate(Math.round(val * 100) / 100);
-                }
-              }}
+              type="text"
+              inputMode="decimal"
+              value={interestRateInput}
+              onChange={handleInterestRateChange}
+              onBlur={handleInterestRateBlur}
               onKeyPress={handleKeyPress}
-              step="0.01"
-              min="0.01"
-              max="10.0"
               className={`flex-1 px-4 py-2 border rounded-lg text-center focus:ring-2 focus:ring-primary focus:border-transparent ${
                 errors.interestRate ? 'border-red-500' : 'border-gray-300'
               }`}
@@ -234,7 +319,7 @@ export const RepaymentRatioForm: React.FC<RepaymentRatioFormProps> = ({ onCalcul
             <span className="text-gray-700 font-medium">%</span>
             <button
               type="button"
-              onClick={() => incrementValue(setInterestRate, interestRate, 0.01, 10.0)}
+              onClick={incrementInterestRate}
               className="w-10 h-10 flex items-center justify-center bg-gray-200 hover:bg-gray-300 rounded-lg transition active:scale-95"
             >
               ▲
@@ -253,18 +338,18 @@ export const RepaymentRatioForm: React.FC<RepaymentRatioFormProps> = ({ onCalcul
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => decrementValue(setYears, years, 1, 1)}
+              onClick={decrementYears}
               className="w-10 h-10 flex items-center justify-center bg-gray-200 hover:bg-gray-300 rounded-lg transition active:scale-95"
             >
               ▼
             </button>
             <input
-              type="number"
-              value={years}
-              onChange={(e) => setYears(Number(e.target.value))}
+              type="text"
+              inputMode="numeric"
+              value={yearsInput}
+              onChange={handleYearsChange}
+              onBlur={handleYearsBlur}
               onKeyPress={handleKeyPress}
-              min="1"
-              max="50"
               className={`flex-1 px-4 py-2 border rounded-lg text-center focus:ring-2 focus:ring-primary focus:border-transparent ${
                 errors.years ? 'border-red-500' : 'border-gray-300'
               }`}
@@ -272,7 +357,7 @@ export const RepaymentRatioForm: React.FC<RepaymentRatioFormProps> = ({ onCalcul
             <span className="text-gray-700 font-medium">年</span>
             <button
               type="button"
-              onClick={() => incrementValue(setYears, years, 1, 50)}
+              onClick={incrementYears}
               className="w-10 h-10 flex items-center justify-center bg-gray-200 hover:bg-gray-300 rounded-lg transition active:scale-95"
             >
               ▲
