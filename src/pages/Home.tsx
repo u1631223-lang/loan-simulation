@@ -17,6 +17,7 @@ import Schedule from '@/components/Result/Schedule';
 import { RepaymentRatioSummary } from '@/components/Result/RepaymentRatioSummary';
 import SimpleCalculator from '@/components/Calculator/SimpleCalculator';
 import { InvestmentCalculator } from '@/components/Investment';
+import GuideViewer from '@/components/Guide/GuideViewer';
 import { ExportButton } from '@/components/Common/ExportButton';
 import { PDFExportButton } from '@/components/Common/PDFExportButton';
 import { FeatureShowcase } from '@/components/Common/FeatureShowcase';
@@ -31,7 +32,7 @@ import type { IncomeResult } from '@/types/income';
 import type { RepaymentRatioResult } from '@/types/repaymentRatio';
 import type { AILoanAdvice, AIAdviceError, LoanAnalysisParams } from '@/types/aiAdvice';
 
-type ViewMode = 'loan' | 'calculator' | 'investment';
+type ViewMode = 'loan' | 'calculator' | 'investment' | 'guide';
 
 const Home: React.FC = () => {
   const { loanParams, loanResult, error, calculate, calculateReverse } = useCalculator();
@@ -265,12 +266,14 @@ const Home: React.FC = () => {
                     : '年収から借入可能な最大額を計算できます'
                 : viewMode === 'calculator'
                   ? '坪数計算や簡易計算に便利な電卓です'
-                  : 'NISAを活用した資産運用のシミュレーションが行えます'}
+                  : viewMode === 'investment'
+                    ? 'NISAを活用した資産運用のシミュレーションが行えます'
+                    : '住宅ローンに関する基礎知識や活用方法を図解で分かりやすく解説します'}
             </p>
           </div>
 
           {/* 表示モード切り替え */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6 max-w-xl mx-auto w-full">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6 max-w-4xl mx-auto w-full">
             <button
               onClick={() => setViewMode('loan')}
               className={viewModeButtonClass('loan')}
@@ -288,6 +291,12 @@ const Home: React.FC = () => {
               className={viewModeButtonClass('investment')}
             >
               📈 資産運用（NISA）
+            </button>
+            <button
+              onClick={() => setViewMode('guide')}
+              className={viewModeButtonClass('guide')}
+            >
+              📚 解説
             </button>
           </div>
 
@@ -328,6 +337,7 @@ const Home: React.FC = () => {
           {/* メインコンテンツ */}
           {viewMode === 'calculator' && <SimpleCalculator />}
           {viewMode === 'investment' && <InvestmentCalculator />}
+          {viewMode === 'guide' && <GuideViewer />}
           {viewMode === 'loan' && calculationMode === 'income' && (
             <IncomeForm onDetailPlan={handleDetailPlan} />
           )}
