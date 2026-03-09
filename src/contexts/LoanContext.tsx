@@ -16,6 +16,8 @@ import {
   calculateTotalInterestFromSchedule,
   roundFinancial,
   calculatePrincipalFromPayment,
+  calculatePrincipalFromPeriodicPayment,
+  getMonthlyRate,
 } from '@/utils/loanCalculator';
 import { loadHistory, saveHistory, clearHistory as clearStorageHistory } from '@/utils/storage';
 import {
@@ -277,10 +279,14 @@ export const LoanProvider: React.FC<LoanProviderProps> = ({ children }) => {
       );
 
       // Step 2: ボーナス追加返済額から「ボーナス分の借入可能額」を計算
-      // ボーナス返済は年2回（80回）で分割返済
-      calculatedBonusAmount = calculatePrincipalFromPayment(
+      // 支払周期（年2回など）に対応した利率で逆算する
+      const monthlyRate = getMonthlyRate(params.interestRate);
+      const monthsPerBonusPayment = 12 / bonusTimesPerYear;
+      const bonusPeriodicRate = Math.pow(1 + monthlyRate, monthsPerBonusPayment) - 1;
+
+      calculatedBonusAmount = calculatePrincipalFromPeriodicPayment(
         params.bonusPayment.payment,
-        params.interestRate,
+        bonusPeriodicRate,
         totalBonusPayments
       );
 

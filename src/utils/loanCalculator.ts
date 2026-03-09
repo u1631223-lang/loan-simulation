@@ -193,6 +193,119 @@ export const calculateEqualPayment = (
 };
 
 /**
+ * 任意の支払周期における返済額（PMT）を計算
+ * @param principal 元金
+ * @param periodicRate 1支払期間あたりの利率（小数）
+ * @param periods 支払回数
+ */
+export const calculatePeriodicPayment = (
+  principal: number,
+  periodicRate: number,
+  periods: number
+): number => {
+  if (periodicRate === 0) {
+    return Math.round(principal / periods);
+  }
+
+  const numerator = periodicRate * Math.pow(1 + periodicRate, periods);
+  const denominator = Math.pow(1 + periodicRate, periods) - 1;
+  const payment = principal * (numerator / denominator);
+  return Math.round(payment);
+};
+
+/**
+ * 任意の支払周期で返済額から借入可能額を逆算
+ */
+export const calculatePrincipalFromPeriodicPayment = (
+  payment: number,
+  periodicRate: number,
+  periods: number
+): number => {
+  if (periodicRate === 0) {
+    return Math.round(payment * periods);
+  }
+
+  const numerator = Math.pow(1 + periodicRate, periods) - 1;
+  const denominator = periodicRate * Math.pow(1 + periodicRate, periods);
+  const principal = payment * (numerator / denominator);
+  return Math.round(principal);
+};
+
+/**
+ * 任意の支払周期の元利均等スケジュールを生成
+ */
+export const generatePeriodicEqualPaymentSchedule = (
+  principal: number,
+  periodicRate: number,
+  periods: number
+): PaymentSchedule[] => {
+  const schedule: PaymentSchedule[] = [];
+  const payment = calculatePeriodicPayment(principal, periodicRate, periods);
+  let remainingBalance = principal;
+
+  for (let period = 1; period <= periods; period++) {
+    const interestPayment = Math.round(remainingBalance * periodicRate);
+    let principalPayment = payment - interestPayment;
+
+    if (period === periods) {
+      principalPayment = remainingBalance;
+      const finalPayment = principalPayment + interestPayment;
+      schedule.push({
+        month: period,
+        payment: finalPayment,
+        principal: principalPayment,
+        interest: interestPayment,
+        balance: 0,
+      });
+      break;
+    }
+
+    remainingBalance -= principalPayment;
+    if (remainingBalance < 0) remainingBalance = 0;
+
+    schedule.push({
+      month: period,
+      payment,
+      principal: principalPayment,
+      interest: interestPayment,
+      balance: remainingBalance,
+    });
+  }
+
+  return schedule;
+};
+
+/**
+ * 任意の支払周期の元金均等スケジュールを生成
+ */
+export const generatePeriodicEqualPrincipalSchedule = (
+  principal: number,
+  periodicRate: number,
+  periods: number
+): PaymentSchedule[] => {
+  const schedule: PaymentSchedule[] = [];
+  const periodicPrincipal = principal / periods;
+  let remainingBalance = principal;
+
+  for (let period = 1; period <= periods; period++) {
+    const interest = remainingBalance * periodicRate;
+    const currentPrincipal = period === periods ? remainingBalance : periodicPrincipal;
+    const payment = currentPrincipal + interest;
+    remainingBalance -= currentPrincipal;
+
+    schedule.push({
+      month: period,
+      payment: roundFinancial(payment),
+      principal: roundFinancial(currentPrincipal),
+      interest: roundFinancial(interest),
+      balance: roundFinancial(Math.max(0, remainingBalance)),
+    });
+  }
+
+  return schedule;
+};
+
+/**
  * 月々返済額から借入可能額を逆算（元利均等返済）
  * P = PMT × ((1 + r)^n - 1) / (r × (1 + r)^n)
  *
@@ -368,8 +481,15 @@ export const calculatePrincipalWithBonus = (
   // 月次返済分の借入可能額
   const regularPrincipal = calculatePrincipalFromPayment(monthlyPayment, annualRate, totalMonths);
 
-  // ボーナス返済分の借入可能額
-  const bonusPrincipal = calculatePrincipalFromPayment(bonusPayment, annualRate, totalBonusPayments);
+  // ボーナス返済分の借入可能額（支払周期に合わせた利率）
+  const monthlyRate = getMonthlyRate(annualRate);
+  const monthsPerBonusPayment = 12 / bonusTimesPerYear;
+  const bonusPeriodicRate = Math.pow(1 + monthlyRate, monthsPerBonusPayment) - 1;
+  const bonusPrincipal = calculatePrincipalFromPeriodicPayment(
+    bonusPayment,
+    bonusPeriodicRate,
+    totalBonusPayments
+  );
 
   // 合計
   return Math.round(regularPrincipal + bonusPrincipal);
@@ -424,14 +544,30 @@ export const calculateWithBonus = (
   }
 
   // Step 3: ボーナス返済額の計算（1回あたり）
+  // ボーナス返済は月次ではないため、支払周期に対応した利率を使う
   let bonusPaymentPerTime: number;
   let bonusSchedule: PaymentSchedule[];
+  const monthlyRate = getMonthlyRate(annualRate);
+  const monthsPerBonusPayment = 12 / bonusTimesPerYear;
+  const bonusPeriodicRate = Math.pow(1 + monthlyRate, monthsPerBonusPayment) - 1;
 
   if (repaymentType === 'equal-payment') {
-    bonusPaymentPerTime = calculateEqualPayment(bonusPrincipal, annualRate, totalBonusPayments);
-    bonusSchedule = generateEqualPaymentSchedule(bonusPrincipal, annualRate, totalBonusPayments);
+    bonusPaymentPerTime = calculatePeriodicPayment(
+      bonusPrincipal,
+      bonusPeriodicRate,
+      totalBonusPayments
+    );
+    bonusSchedule = generatePeriodicEqualPaymentSchedule(
+      bonusPrincipal,
+      bonusPeriodicRate,
+      totalBonusPayments
+    );
   } else {
-    bonusSchedule = calculateEqualPrincipal(bonusPrincipal, annualRate, totalBonusPayments);
+    bonusSchedule = generatePeriodicEqualPrincipalSchedule(
+      bonusPrincipal,
+      bonusPeriodicRate,
+      totalBonusPayments
+    );
     bonusPaymentPerTime = bonusSchedule[0]?.payment || 0;
   }
 

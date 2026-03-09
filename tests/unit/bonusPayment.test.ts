@@ -23,9 +23,9 @@ describe('calculateWithBonus - ボーナス払い計算', () => {
       expect(result.monthlyPayment).toBeGreaterThan(70000);
       expect(result.monthlyPayment).toBeLessThan(80000);
 
-      // ボーナス返済額のチェック（500万円を70回で返済）
-      expect(result.bonusPayment).toBeGreaterThan(70000);
-      expect(result.bonusPayment).toBeLessThan(80000);
+      // ボーナス返済額のチェック（500万円を70回、半年複利ベースで返済）
+      expect(result.bonusPayment).toBeGreaterThan(90000);
+      expect(result.bonusPayment).toBeLessThan(95000);
 
       // 返済計画表の長さ
       expect(result.schedule).toHaveLength(420);
