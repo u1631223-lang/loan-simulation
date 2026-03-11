@@ -27,6 +27,7 @@ import { useAIAdvice } from '@/hooks/useAIAdvice';
 import { generateAdvice, isGeminiAvailable } from '@/services/geminiClient';
 import { generateLoanAnalysisPrompt, createAnalysisContext } from '@/utils/promptTemplates';
 import { parseAIAdvice, isAIAdviceError } from '@/utils/aiAdviceParser';
+import InterestRateComparisonPanel from '@/components/Input/InterestRateComparisonPanel';
 import type { LoanParams, ReverseLoanParams, CalculationMode } from '@/types';
 import type { IncomeResult } from '@/types/income';
 import type { RepaymentRatioResult } from '@/types/repaymentRatio';
@@ -81,6 +82,8 @@ const Home: React.FC = () => {
   const [showAiAdvice, setShowAiAdvice] = useState(false);
 
   const exportParams = loanParams ?? currentParams;
+  // 比較パネルは表示中の結果と同じパラメータを使う
+  const comparisonParams = loanParams ?? currentParams;
 
   const handleCalculate = () => {
     calculate(currentParams);
@@ -429,6 +432,14 @@ const Home: React.FC = () => {
                         loading={aiLoading}
                         error={aiError}
                         onRegenerate={handleGenerateAIAdvice}
+                      />
+                    )}
+
+                    {/* 金利上昇比較パネル */}
+                    {calculationMode === 'forward' && (
+                      <InterestRateComparisonPanel
+                        baseParams={comparisonParams}
+                        baseResult={loanResult}
                       />
                     )}
 
