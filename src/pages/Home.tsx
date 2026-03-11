@@ -27,6 +27,7 @@ import { useAIAdvice } from '@/hooks/useAIAdvice';
 import { generateAdvice, isGeminiAvailable } from '@/services/geminiClient';
 import { generateLoanAnalysisPrompt, createAnalysisContext } from '@/utils/promptTemplates';
 import { parseAIAdvice, isAIAdviceError } from '@/utils/aiAdviceParser';
+import InterestRateComparisonPanel from '@/components/Result/InterestRateComparisonPanel';
 import type { LoanParams, ReverseLoanParams, CalculationMode } from '@/types';
 import type { IncomeResult } from '@/types/income';
 import type { RepaymentRatioResult } from '@/types/repaymentRatio';
@@ -79,6 +80,7 @@ const Home: React.FC = () => {
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState<AIAdviceError | null>(null);
   const [showAiAdvice, setShowAiAdvice] = useState(false);
+  const [showInterestComparison, setShowInterestComparison] = useState(false);
 
   const exportParams = loanParams ?? currentParams;
 
@@ -421,6 +423,27 @@ const Home: React.FC = () => {
                         </div>
                       }
                     />
+
+                    {/* 金利上昇比較パネル */}
+                    {calculationMode === 'forward' && (
+                      <div className="bg-white rounded-lg shadow-md p-6">
+                        <button
+                          onClick={() => setShowInterestComparison((prev) => !prev)}
+                          className="w-full sm:w-auto px-4 py-2 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+                        >
+                          {showInterestComparison ? '金利上昇比較を閉じる' : '金利上昇時を比較'}
+                        </button>
+
+                        {showInterestComparison && (
+                          <div className="mt-4">
+                            <InterestRateComparisonPanel
+                              baseParams={currentParams}
+                              baseResult={loanResult}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     {/* AI アドバイスカード */}
                     {showAiAdvice && (
