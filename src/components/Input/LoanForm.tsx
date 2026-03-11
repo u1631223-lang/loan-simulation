@@ -6,6 +6,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import type { LoanParams } from '@/types';
 import BonusSettings from './BonusSettings';
+import InterestRateQuickButtons from './InterestRateQuickButtons';
 import { useAuth } from '@/hooks/useAuth';
 
 interface LoanFormProps {
@@ -355,6 +356,12 @@ const LoanForm: React.FC<LoanFormProps> = ({
         {errors.interestRate && (
           <p className="text-red-500 text-sm mt-1">{errors.interestRate}</p>
         )}
+
+        {/* 金利プリセットボタン */}
+        <InterestRateQuickButtons
+          value={values.interestRate}
+          onChange={(nextRate) => onChange({ ...values, interestRate: nextRate })}
+        />
       </div>
 
       {/* 返済方式 */}
