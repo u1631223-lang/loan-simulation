@@ -4,33 +4,13 @@
  */
 
 import React, { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
+import { Link, useLocation } from 'react-router-dom';
 
 const Header: React.FC = () => {
   const location = useLocation();
-  const navigate = useNavigate();
-  const { user, isAuthenticated, signOut } = useAuth();
-  const [showUserMenu, setShowUserMenu] = useState(false);
-  // const [showFPMenu, setShowFPMenu] = useState(false); // FPツール開発完了時に有効化
   const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   const isActive = (path: string) => location.pathname === path;
-  // FPツール開発完了時に有効化
-  // const isFPActive = () => {
-  //   const fpPaths = ['/household-budget', '/asset-management', '/insurance-planning'];
-  //   return fpPaths.includes(location.pathname);
-  // };
-
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-      setShowUserMenu(false);
-      navigate('/');
-    } catch (error) {
-      console.error('Sign out error:', error);
-    }
-  };
 
   return (
     <header className="bg-primary text-white shadow-lg">
@@ -137,55 +117,6 @@ const Header: React.FC = () => {
               */}
             </nav>
 
-            {/* User Menu */}
-            {isAuthenticated ? (
-              <div className="relative">
-                <button
-                  onClick={() => setShowUserMenu(!showUserMenu)}
-                  className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-white/10 transition"
-                >
-                  <span className="text-sm font-medium hidden lg:inline">
-                    {user?.email?.split('@')[0] || 'ユーザー'}
-                  </span>
-                  <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                    <span className="text-sm font-bold">
-                      {user?.email?.[0]?.toUpperCase() || 'U'}
-                    </span>
-                  </div>
-                </button>
-
-                {showUserMenu && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50">
-                    <div className="px-4 py-2 border-b border-gray-200">
-                      <p className="text-sm font-medium text-gray-900 truncate">
-                        {user?.email}
-                      </p>
-                    </div>
-                    <button
-                      onClick={handleSignOut}
-                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    >
-                      ログアウト
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="flex space-x-2">
-                <Link
-                  to="/login"
-                  className="px-3 py-2 rounded-lg text-white hover:bg-white/10 transition font-medium text-sm"
-                >
-                  ログイン
-                </Link>
-                <Link
-                  to="/signup"
-                  className="px-3 py-2 rounded-lg bg-white text-primary hover:bg-gray-100 transition font-medium text-sm whitespace-nowrap"
-                >
-                  登録
-                </Link>
-              </div>
-            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -299,43 +230,6 @@ const Header: React.FC = () => {
               </div>
               */}
 
-              {/* Auth Buttons in Mobile */}
-              {!isAuthenticated && (
-                <div className="border-t border-white/20 pt-2 mt-2 flex flex-col space-y-2">
-                  <Link
-                    to="/login"
-                    className="px-4 py-2 rounded-lg text-white hover:bg-white/10 transition font-medium text-center"
-                    onClick={() => setShowMobileMenu(false)}
-                  >
-                    ログイン
-                  </Link>
-                  <Link
-                    to="/signup"
-                    className="px-4 py-2 rounded-lg bg-white text-primary hover:bg-gray-100 transition font-medium text-center"
-                    onClick={() => setShowMobileMenu(false)}
-                  >
-                    新規登録
-                  </Link>
-                </div>
-              )}
-
-              {/* User info in Mobile */}
-              {isAuthenticated && (
-                <div className="border-t border-white/20 pt-2 mt-2">
-                  <div className="px-4 py-2 text-sm text-white/90">
-                    {user?.email}
-                  </div>
-                  <button
-                    onClick={() => {
-                      handleSignOut();
-                      setShowMobileMenu(false);
-                    }}
-                    className="w-full text-left px-4 py-2 rounded-lg text-white hover:bg-white/10 transition font-medium"
-                  >
-                    ログアウト
-                  </button>
-                </div>
-              )}
             </nav>
           </div>
         )}
