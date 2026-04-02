@@ -5,28 +5,44 @@
  * 既存コンポーネントの互換性を維持するため、常にアクセス可能な状態を返す。
  */
 
-const noop = async () => {};
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const noop = async (..._args: any[]): Promise<any> => ({});
 
-export const useAuth = () => {
+export const useAuth = (): {
+  user: null;
+  session: null;
+  loading: boolean;
+  initialized: boolean;
+  isAuthenticated: boolean;
+  isEmailVerified: boolean;
+  isAnonymous: boolean;
+  isPremium: boolean;
+  tier: 'anonymous' | 'registered' | 'premium';
+  displayName: string;
+  email: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  signUp: (...args: any[]) => Promise<any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  signIn: (...args: any[]) => Promise<any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  signInWithOAuth: (...args: any[]) => Promise<any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  signOut: (...args: any[]) => Promise<any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  refreshSession: (...args: any[]) => Promise<any>;
+} => {
   return {
-    // Auth state - 常にアクセス可能
     user: null,
     session: null,
     loading: false,
     initialized: true,
     isAuthenticated: true,
     isEmailVerified: true,
-
-    // Freemium tier - 全機能開放
     isAnonymous: false,
     isPremium: true,
-    tier: 'premium' as const,
-
-    // User info
+    tier: 'premium',
     displayName: 'ゲスト',
     email: '',
-
-    // Auth methods - no-op
     signUp: noop,
     signIn: noop,
     signInWithOAuth: noop,
@@ -34,8 +50,3 @@ export const useAuth = () => {
     refreshSession: noop,
   };
 };
-
-/**
- * Re-export types for convenience
- */
-export type { SignUpParams, SignInParams, OAuthProvider, AuthError } from '@/types/auth';

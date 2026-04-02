@@ -6,7 +6,6 @@ import {
 } from '@/utils/investmentCalculator';
 import InvestmentChart from './InvestmentChart';
 import InvestmentComparison from './InvestmentComparison';
-import { useAuth } from '@/hooks/useAuth';
 
 const clamp = (value: number, min: number, max: number): number => {
   if (Number.isNaN(value)) return min;
@@ -26,8 +25,7 @@ const createParams = (
 });
 
 const InvestmentCalculator: React.FC = () => {
-  const { tier } = useAuth();
-  const showComparisonMode = tier === 'registered' || tier === 'premium';
+  const showComparisonMode = true;
 
   const [viewMode, setViewMode] = useState<'single' | 'comparison'>('single');
 

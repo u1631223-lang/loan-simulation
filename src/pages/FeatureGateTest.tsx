@@ -7,7 +7,7 @@ import { FeatureGate } from '@/components/Common/FeatureGate';
 import { useAuth } from '@/hooks/useAuth';
 
 const FeatureGateTest: React.FC = () => {
-  const { tier, isAnonymous, isPremium, user } = useAuth();
+  const { tier, isAnonymous, isPremium } = useAuth();
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -20,7 +20,7 @@ const FeatureGateTest: React.FC = () => {
           <p><strong>Tier:</strong> {tier}</p>
           <p><strong>isAnonymous:</strong> {isAnonymous ? '✅ Yes' : '❌ No'}</p>
           <p><strong>isPremium:</strong> {isPremium ? '✅ Yes' : '❌ No'}</p>
-          <p><strong>User:</strong> {user?.email || '未ログイン'}</p>
+          <p><strong>User:</strong> {'ゲスト（認証なし）'}</p>
         </div>
       </div>
 
