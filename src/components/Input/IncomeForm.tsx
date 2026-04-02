@@ -6,15 +6,13 @@
 import React, { useEffect, useRef, useState } from 'react';
 import type { IncomeParams, IncomeResult } from '@/types/income';
 import { calculateMaxBorrowable, validateIncomeParams } from '@/utils/incomeCalculator';
-import { useAuth } from '@/hooks/useAuth';
 
 interface IncomeFormProps {
   onDetailPlan?: (result: IncomeResult, params: IncomeParams) => void;
 }
 
 const IncomeForm: React.FC<IncomeFormProps> = ({ onDetailPlan }) => {
-  const { tier } = useAuth();
-  const showMemo = tier === 'registered' || tier === 'premium';
+  const showMemo = true;
 
   const [params, setParams] = useState<IncomeParams>({
     primaryIncome: 500, // デフォルト: 500万円

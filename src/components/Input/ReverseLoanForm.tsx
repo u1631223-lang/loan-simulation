@@ -6,7 +6,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import type { ReverseLoanParams } from '@/types';
 import ReverseBonusSettings from './ReverseBonusSettings';
-import { useAuth } from '@/hooks/useAuth';
 
 interface ReverseLoanFormProps {
   values: ReverseLoanParams;
@@ -21,8 +20,7 @@ const ReverseLoanForm: React.FC<ReverseLoanFormProps> = ({
   onSubmit,
   errors = {},
 }) => {
-  const { tier } = useAuth();
-  const showMemo = tier === 'registered' || tier === 'premium';
+  const showMemo = true;
 
   const handleChange = (field: keyof ReverseLoanParams, value: string | number) => {
     onChange({

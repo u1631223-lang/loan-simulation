@@ -7,7 +7,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import type { LoanParams } from '@/types';
 import BonusSettings from './BonusSettings';
 import InterestRatePresets from './InterestRatePresets';
-import { useAuth } from '@/hooks/useAuth';
 
 interface LoanFormProps {
   values: LoanParams;
@@ -22,8 +21,7 @@ const LoanForm: React.FC<LoanFormProps> = ({
   onSubmit,
   errors = {},
 }) => {
-  const { tier } = useAuth();
-  const showMemo = tier === 'registered' || tier === 'premium';
+  const showMemo = true;
 
   // 金利入力の状態管理
   const [interestRateInput, setInterestRateInput] = useState<string>(
