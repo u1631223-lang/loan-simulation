@@ -1,86 +1,37 @@
 /**
  * useAuth - Custom hook for authentication
  *
- * Provides convenient access to auth state and methods
+ * 認証機能を撤廃し、全機能を未登録ユーザーにも開放。
+ * 既存コンポーネントの互換性を維持するため、常にアクセス可能な状態を返す。
  */
 
-import { useAuthContext } from '@/contexts/AuthContext';
+const noop = async () => {};
 
-/**
- * useAuth hook
- *
- * Usage:
- * ```tsx
- * const { user, loading, signIn, signOut } = useAuth();
- *
- * if (loading) return <div>Loading...</div>;
- * if (!user) return <LoginForm onSubmit={signIn} />;
- * return <div>Welcome, {user.email}</div>;
- * ```
- */
 export const useAuth = () => {
-  const context = useAuthContext();
-
-  // Derived state
-  const isAuthenticated = !!context.user;
-  const isLoading = context.loading;
-  const isInitialized = context.initialized;
-
-  /**
-   * Helper: Check if user email is verified
-   */
-  const isEmailVerified = context.user?.email_confirmed_at != null;
-
-  /**
-   * Helper: Get user display name
-   */
-  const displayName = context.user?.user_metadata?.display_name || context.user?.email || 'User';
-
-  /**
-   * Helper: Get user email
-   */
-  const email = context.user?.email || '';
-
-  /**
-   * Freemium Tier Logic
-   *
-   * Tier 1 (Anonymous): !isAuthenticated
-   * Tier 2 (Registered): isAuthenticated && !isPremium
-   * Tier 3 (Premium): isAuthenticated && isPremium
-   */
-  const isAnonymous = !isAuthenticated;
-
-  /**
-   * Check if user has active premium subscription
-   * TODO: Implement actual Stripe subscription check
-   * For now, check user_metadata.is_premium flag
-   */
-  const isPremium = isAuthenticated && (context.user?.user_metadata?.is_premium === true);
-
   return {
-    // Auth state
-    user: context.user,
-    session: context.session,
-    loading: isLoading,
-    initialized: isInitialized,
-    isAuthenticated,
-    isEmailVerified,
+    // Auth state - 常にアクセス可能
+    user: null,
+    session: null,
+    loading: false,
+    initialized: true,
+    isAuthenticated: true,
+    isEmailVerified: true,
 
-    // Freemium tier state
-    isAnonymous,
-    isPremium,
-    tier: isAnonymous ? 'anonymous' : isPremium ? 'premium' : 'registered',
+    // Freemium tier - 全機能開放
+    isAnonymous: false,
+    isPremium: true,
+    tier: 'premium' as const,
 
-    // User info helpers
-    displayName,
-    email,
+    // User info
+    displayName: 'ゲスト',
+    email: '',
 
-    // Auth methods
-    signUp: context.signUp,
-    signIn: context.signIn,
-    signInWithOAuth: context.signInWithOAuth,
-    signOut: context.signOut,
-    refreshSession: context.refreshSession,
+    // Auth methods - no-op
+    signUp: noop,
+    signIn: noop,
+    signInWithOAuth: noop,
+    signOut: noop,
+    refreshSession: noop,
   };
 };
 
