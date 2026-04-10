@@ -17,6 +17,7 @@ import TermsOfService from '@/pages/TermsOfService';
 import LoanTools from '@/pages/LoanTools';
 import ComingSoon from '@/pages/ComingSoon';
 import { InsurancePlanning } from '@/pages/InsurancePlanning';
+import SubsidyManagement from '@/pages/SubsidyManagement';
 
 function AppContent() {
   const location = useLocation();
@@ -36,6 +37,7 @@ function AppContent() {
       <Route path="/household-budget" element={<ComingSoon />} />
       <Route path="/asset-management" element={<ComingSoon />} />
       <Route path="/insurance-planning" element={<InsurancePlanning />} />
+      <Route path="/subsidy" element={<SubsidyManagement />} />
 
       {/* Catch all - redirect to home */}
       <Route path="*" element={<Navigate to="/" replace />} />

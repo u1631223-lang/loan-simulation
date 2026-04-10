@@ -56,6 +56,16 @@ const Header: React.FC = () => {
               >
                 ローン
               </Link>
+              <Link
+                to="/subsidy"
+                className={`px-3 py-2 rounded-lg transition font-medium text-sm lg:text-base ${
+                  isActive('/subsidy')
+                    ? 'bg-white text-primary'
+                    : 'text-white hover:bg-white/10'
+                }`}
+              >
+                補助金
+              </Link>
 
               {/* FP Tools Dropdown - 開発完了までコメントアウト */}
               {/*
@@ -186,6 +196,17 @@ const Header: React.FC = () => {
                 onClick={() => setShowMobileMenu(false)}
               >
                 🏦 ローンツール
+              </Link>
+              <Link
+                to="/subsidy"
+                className={`px-4 py-2 rounded-lg transition font-medium ${
+                  isActive('/subsidy')
+                    ? 'bg-white text-primary'
+                    : 'text-white hover:bg-white/10'
+                }`}
+                onClick={() => setShowMobileMenu(false)}
+              >
+                🏗️ 補助金
               </Link>
 
               {/* FP Tools in Mobile - 開発完了までコメントアウト */}

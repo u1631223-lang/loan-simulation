@@ -61,4 +61,20 @@ export type {
   AIAdviceResult,
 } from './aiAdvice';
 
+export type {
+  SubsidyCategoryType,
+  ApplicationStatus,
+  DemolitionType,
+  Municipality,
+  SubsidyProgram,
+  SubsidyAmount,
+  SubsidyRequiredDocument,
+  SubsidyApplication,
+  ApplicationSubsidy,
+  ApplicationDocument,
+  SubsidyCalculationParams,
+  SubsidyCalculationResult,
+  SubsidyBreakdownItem,
+} from './subsidy';
+
 export type { Database } from './database.types';
