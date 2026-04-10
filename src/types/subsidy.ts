@@ -288,6 +288,8 @@ export const INAZAWA_SUBSIDY_DATA = {
   // customer_guide: お客様向けのわかりやすい案内
   // how_to_get: どこで・どうやって入手するか
   // who_prepares: 'customer'=お客様, 'contractor'=工事業者, 'both'=両方
+  // contractor_guide: 業者向けの案内（何をすればいいか）
+  // contractor_timing: いつまでに用意するか
   required_documents: [
     {
       order: 1,
@@ -297,6 +299,8 @@ export const INAZAWA_SUBSIDY_DATA = {
       customer_guide: '浄化槽を設置するための届出書のコピーです',
       how_to_get: '工事業者が手続きします。届出済みの書類のコピーをもらってください',
       who_prepares: 'contractor' as const,
+      contractor_guide: '県に提出した浄化槽設置届出書のコピー、又は建築確認申請時の浄化槽確認書のコピーを用意',
+      contractor_timing: '届出後・確認済み後すぐ',
     },
     {
       order: 2,
@@ -306,6 +310,8 @@ export const INAZAWA_SUBSIDY_DATA = {
       customer_guide: 'お家の敷地のどこに浄化槽を置くか、の図面です',
       how_to_get: '工事業者が作成します。お客様の準備は不要です',
       who_prepares: 'contractor' as const,
+      contractor_guide: '案内図（住宅地図等）、配置図（敷地内の浄化槽位置）、設置大系図（配管経路含む）を作成。A4にまとめる',
+      contractor_timing: '設計段階で作成',
     },
     {
       order: 3,
@@ -316,6 +322,8 @@ export const INAZAWA_SUBSIDY_DATA = {
       customer_guide: '借家にお住まいの場合のみ必要です。大家さんの「工事してOK」という書面です',
       how_to_get: '大家さん（家主さん）に書いてもらってください',
       who_prepares: 'customer' as const,
+      contractor_guide: 'お客様が借家の場合、大家さんの承諾書が必要。市の様式があるか環境保全課に確認を',
+      contractor_timing: '申請前にお客様に依頼',
     },
     {
       order: 4,
@@ -325,6 +333,8 @@ export const INAZAWA_SUBSIDY_DATA = {
       customer_guide: '浄化槽工事の見積もり or 契約書のコピーです',
       how_to_get: '工事業者からもらった見積書・契約書をコピーしてください',
       who_prepares: 'contractor' as const,
+      contractor_guide: '自社の見積書又は契約書のコピーを用意。本体・工事費・配管費等の内訳が明記されていること',
+      contractor_timing: '契約締結後すぐ',
     },
     {
       order: 5,
@@ -334,6 +344,8 @@ export const INAZAWA_SUBSIDY_DATA = {
       customer_guide: '浄化槽のブロアー（送風機）等の電気工事に関する届出です',
       how_to_get: '工事業者が手続きします。お客様の準備は不要です',
       who_prepares: 'contractor' as const,
+      contractor_guide: 'ブロアー等の電気設備に関する届出（県知事宛て）のコピー。電気工事業者に確認して取得',
+      contractor_timing: '工事着手前',
     },
     {
       order: 6,
@@ -343,6 +355,8 @@ export const INAZAWA_SUBSIDY_DATA = {
       customer_guide: '工事業者が「ちゃんと登録された業者です」という証明です',
       how_to_get: '工事業者からコピーをもらってください',
       who_prepares: 'contractor' as const,
+      contractor_guide: '浄化槽工事業の登録証（県知事登録）のコピーを用意。有効期限内であること確認',
+      contractor_timing: '常時準備しておく',
     },
     {
       order: 7,
@@ -352,6 +366,8 @@ export const INAZAWA_SUBSIDY_DATA = {
       customer_guide: '設置後の点検・お手入れを定期的にやりますよ、という契約書です',
       how_to_get: '保守点検業者と契約するか、工事業者に紹介してもらってください',
       who_prepares: 'both' as const,
+      contractor_guide: '保守点検業者（自社 or 提携先）との契約書コピー、又は「法定検査・保守点検・清掃を行う」誓約書を用意。お客様に署名いただく',
+      contractor_timing: '工事契約時に一緒に手配',
     },
     {
       order: 8,
@@ -361,6 +377,8 @@ export const INAZAWA_SUBSIDY_DATA = {
       customer_guide: '設置場所の土地が誰のものかを証明する書類です',
       how_to_get: '法務局の窓口 or オンライン（登記ねっと）で取得できます。手数料600円',
       who_prepares: 'customer' as const,
+      contractor_guide: 'お客様に取得を依頼。発行後3ヶ月以内のもの。法務局窓口 or オンライン（登記ねっと）で取得可能',
+      contractor_timing: '申請の1ヶ月前にお客様に依頼',
     },
     {
       order: 9,
@@ -370,6 +388,8 @@ export const INAZAWA_SUBSIDY_DATA = {
       customer_guide: 'ご本人の住民票です',
       how_to_get: '市役所の窓口 or コンビニ（マイナンバーカード利用）で取得。手数料300円程度',
       who_prepares: 'customer' as const,
+      contractor_guide: 'お客様に取得を依頼。発行後3ヶ月以内。マイナンバーカードがあればコンビニ交付可',
+      contractor_timing: '申請の1ヶ月前にお客様に依頼',
     },
     {
       order: 10,
@@ -379,6 +399,8 @@ export const INAZAWA_SUBSIDY_DATA = {
       customer_guide: '市の税金を滞りなく払っていますよ、という証明です',
       how_to_get: '稲沢市役所の税務課窓口で発行してもらえます。手数料300円程度',
       who_prepares: 'customer' as const,
+      contractor_guide: 'お客様に取得を依頼。稲沢市役所 税務課窓口で発行。滞納があると補助金申請不可なので事前確認推奨',
+      contractor_timing: '申請の1ヶ月前にお客様に依頼',
     },
     {
       order: 11,
@@ -388,6 +410,8 @@ export const INAZAWA_SUBSIDY_DATA = {
       customer_guide: '設置する浄化槽が国の基準を満たしている、という認定書です',
       how_to_get: '工事業者が浄化槽メーカーから取り寄せます。お客様の準備は不要です',
       who_prepares: 'contractor' as const,
+      contractor_guide: '設置する浄化槽の型式に対応した確認証をメーカー or 代理店から取得。型式適合認定品であること確認',
+      contractor_timing: '浄化槽発注時にメーカーに依頼',
     },
     {
       order: 12,
@@ -397,6 +421,8 @@ export const INAZAWA_SUBSIDY_DATA = {
       customer_guide: 'お住まいの場所が下水道の計画エリア外であることの確認書です',
       how_to_get: '市役所の環境保全課で用紙をもらって記入・提出してください',
       who_prepares: 'customer' as const,
+      contractor_guide: '市の環境保全課で用紙を入手し、お客様に記入・押印いただく。下水道計画区域内の場合は補助対象外なので事前に確認必須',
+      contractor_timing: '申請準備の最初に確認（区域外であることの確認が最優先）',
     },
     {
       order: 13,
@@ -406,6 +432,8 @@ export const INAZAWA_SUBSIDY_DATA = {
       customer_guide: '全ての書類はA4サイズの用紙で提出してください',
       how_to_get: '',
       who_prepares: 'customer' as const,
+      contractor_guide: '全書類をA4で統一。図面が大きい場合はA4に折り込む',
+      contractor_timing: '',
     },
   ],
   // 解体（撤去）時の追加必要書類
@@ -419,6 +447,8 @@ export const INAZAWA_SUBSIDY_DATA = {
       customer_guide: '古い浄化槽や便槽を取り壊す工事の見積もりです',
       how_to_get: '解体工事業者から見積書・契約書をもらってください',
       who_prepares: 'contractor' as const,
+      contractor_guide: '撤去工事の見積書又は契約書コピーを用意。設置工事と別業者の場合は別途見積もりが必要',
+      contractor_timing: '撤去工事の契約時',
     },
     {
       order: 15,
@@ -429,6 +459,8 @@ export const INAZAWA_SUBSIDY_DATA = {
       customer_guide: '工事を始める前の「今の状態」の写真です',
       how_to_get: '工事開始前にスマホで撮影しておいてください。業者にお願いしてもOK',
       who_prepares: 'both' as const,
+      contractor_guide: '撤去工事着手前に現況写真を撮影。全景・蓋まわり・内部の3点以上。日付入りが望ましい',
+      contractor_timing: '撤去工事の着手前（当日朝でもOK）',
     },
     {
       order: 16,
@@ -439,6 +471,8 @@ export const INAZAWA_SUBSIDY_DATA = {
       customer_guide: '解体工事が終わったら提出する届出です',
       how_to_get: '工事完了後に市役所の環境保全課に届出してください',
       who_prepares: 'both' as const,
+      contractor_guide: '撤去工事完了後、環境保全課へ完了届を提出。完了後の写真（埋め戻し後）も添付するとスムーズ',
+      contractor_timing: '撤去工事完了後、速やかに',
     },
   ],
 } as const;
