@@ -2,9 +2,11 @@
  * DocumentChecklist - 必要書類チェックリストコンポーネント
  *
  * 稲沢市の浄化槽補助金申請に必要な書類の管理
+ * LINE・メール送信用のコピー機能、印刷機能付き
+ * お客様向けのわかりやすい案内表示
  */
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { getInazawaRequiredDocuments } from '@/utils/subsidyCalculator';
 
 interface DocumentChecklistProps {
@@ -18,12 +20,92 @@ interface DocumentState {
   notes: string;
 }
 
+type ViewMode = 'checklist' | 'customer';
+
+const WHO_PREPARES_BADGE = {
+  customer: { label: 'お客様', className: 'bg-blue-100 text-blue-700' },
+  contractor: { label: '業者', className: 'bg-gray-100 text-gray-600' },
+  both: { label: 'お客様+業者', className: 'bg-purple-100 text-purple-700' },
+} as const;
+
+/**
+ * お客様向けの共有テキストを生成（LINE・メール用）
+ * 正式名称ではなく、わかりやすい案内文で生成
+ */
+function generateShareText(
+  documents: ReturnType<typeof getInazawaRequiredDocuments>,
+  customerName: string,
+  includeDemolition: boolean
+): string {
+  const lines: string[] = [];
+
+  lines.push('【稲沢市】浄化槽補助金');
+  lines.push('ご準備いただく書類のご案内');
+  if (customerName) {
+    lines.push('');
+    lines.push(`${customerName}様`);
+  }
+  lines.push('');
+  lines.push('ーーーーーーーーーーーーーーー');
+
+  // お客様が用意するものだけフィルタ
+  const customerDocs = documents.filter(
+    (d) => d.order <= 13 && (d.who_prepares === 'customer' || d.who_prepares === 'both')
+  );
+  const contractorDocs = documents.filter(
+    (d) => d.order <= 13 && d.who_prepares === 'contractor'
+  );
+
+  lines.push('');
+  lines.push('【お客様にご用意いただくもの】');
+  lines.push('');
+  customerDocs.forEach((doc) => {
+    if (doc.order === 13) return; // A4備考はスキップ
+    lines.push(`${doc.customer_guide || doc.name}`);
+    if (doc.how_to_get) {
+      lines.push(`  → ${doc.how_to_get}`);
+    }
+    if (doc.is_conditional && doc.condition_note) {
+      lines.push(`  ※ ${doc.condition_note}`);
+    }
+    lines.push('');
+  });
+
+  lines.push('【工事業者が用意するもの】');
+  lines.push('（以下はこちらで手配しますのでご安心ください）');
+  lines.push('');
+  contractorDocs.forEach((doc) => {
+    lines.push(`・${doc.customer_guide || doc.name}`);
+  });
+
+  if (includeDemolition) {
+    lines.push('');
+    lines.push('【解体（撤去）がある場合の追加書類】');
+    lines.push('');
+    const demoDocs = documents.filter((d) => d.order >= 14);
+    demoDocs.forEach((doc) => {
+      lines.push(`・${doc.customer_guide || doc.name}`);
+      if (doc.how_to_get) {
+        lines.push(`  → ${doc.how_to_get}`);
+      }
+    });
+  }
+
+  lines.push('');
+  lines.push('ーーーーーーーーーーーーーーー');
+  lines.push('※ 書類はすべてA4サイズでお願いします');
+  lines.push('※ ご不明な点はお気軽にお問い合わせください');
+
+  return lines.join('\n');
+}
+
 export const DocumentChecklist: React.FC<DocumentChecklistProps> = ({
   includeDemolition,
   customerName = '',
 }) => {
   const documents = getInazawaRequiredDocuments(includeDemolition);
 
+  const [viewMode, setViewMode] = useState<ViewMode>('customer');
   const [docStates, setDocStates] = useState<Record<number, DocumentState>>(() => {
     const initial: Record<number, DocumentState> = {};
     documents.forEach((doc) => {
@@ -31,6 +113,8 @@ export const DocumentChecklist: React.FC<DocumentChecklistProps> = ({
     });
     return initial;
   });
+
+  const [copied, setCopied] = useState(false);
 
   const toggleCheck = (order: number) => {
     setDocStates((prev) => ({
@@ -46,12 +130,96 @@ export const DocumentChecklist: React.FC<DocumentChecklistProps> = ({
     }));
   };
 
+  const handleCopy = useCallback(async () => {
+    const text = generateShareText(documents, customerName, includeDemolition);
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  }, [documents, customerName, includeDemolition]);
+
+  const handlePrint = useCallback(() => {
+    window.print();
+  }, []);
+
   const totalDocs = documents.length;
   const checkedDocs = Object.values(docStates).filter((d) => d.checked).length;
   const progress = totalDocs > 0 ? Math.round((checkedDocs / totalDocs) * 100) : 0;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
+      {/* 共有・印刷ボタン */}
+      <div className="flex gap-2">
+        <button
+          onClick={handleCopy}
+          className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium text-sm transition active:scale-[0.98] ${
+            copied
+              ? 'bg-green-100 text-green-700 border border-green-300'
+              : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
+          }`}
+        >
+          {copied ? (
+            <>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              コピーしました！
+            </>
+          ) : (
+            <>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+              </svg>
+              お客様向け案内をコピー
+            </>
+          )}
+        </button>
+        <button
+          onClick={handlePrint}
+          className="px-4 py-3 rounded-xl font-medium text-sm bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 transition active:scale-[0.98] print:hidden"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+          </svg>
+        </button>
+      </div>
+
+      {/* 表示切替: お客様向け / チェックリスト */}
+      <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
+        <button
+          onClick={() => setViewMode('customer')}
+          className={`flex-1 px-3 py-2 rounded-md text-xs font-medium transition ${
+            viewMode === 'customer'
+              ? 'bg-white text-blue-700 shadow-sm'
+              : 'text-gray-500'
+          }`}
+        >
+          お客様向け（わかりやすく）
+        </button>
+        <button
+          onClick={() => setViewMode('checklist')}
+          className={`flex-1 px-3 py-2 rounded-md text-xs font-medium transition ${
+            viewMode === 'checklist'
+              ? 'bg-white text-blue-700 shadow-sm'
+              : 'text-gray-500'
+          }`}
+        >
+          正式書類名（チェックリスト）
+        </button>
+      </div>
+
       {/* 進捗バー */}
       <div className="bg-white rounded-xl p-4 border border-gray-200">
         <div className="flex items-center justify-between mb-2">
@@ -81,6 +249,7 @@ export const DocumentChecklist: React.FC<DocumentChecklistProps> = ({
           const state = docStates[doc.order];
           const isChecked = state?.checked || false;
           const isDemolitionDoc = doc.order >= 14;
+          const prepBadge = doc.who_prepares ? WHO_PREPARES_BADGE[doc.who_prepares] : null;
 
           return (
             <div
@@ -115,26 +284,59 @@ export const DocumentChecklist: React.FC<DocumentChecklistProps> = ({
                       {doc.order}.
                     </span>
                     <div className="flex-1">
-                      <p className={`text-sm font-medium ${
-                        isChecked ? 'text-green-700 line-through' : 'text-gray-800'
-                      }`}>
-                        {doc.name}
-                      </p>
-                      {doc.description && (
-                        <p className="text-xs text-gray-500 mt-1">
-                          {doc.description}
-                        </p>
+                      {viewMode === 'customer' ? (
+                        <>
+                          {/* お客様向け: わかりやすい案内 */}
+                          <p className={`text-sm font-medium ${
+                            isChecked ? 'text-green-700 line-through' : 'text-gray-800'
+                          }`}>
+                            {doc.customer_guide || doc.name}
+                          </p>
+                          {doc.how_to_get && (
+                            <p className="text-xs text-blue-600 mt-1 flex items-start gap-1">
+                              <span className="flex-shrink-0 mt-0.5">→</span>
+                              <span>{doc.how_to_get}</span>
+                            </p>
+                          )}
+                          {/* 正式名称を小さく表示 */}
+                          <p className="text-xs text-gray-400 mt-1 leading-relaxed">
+                            正式名: {doc.name}
+                          </p>
+                        </>
+                      ) : (
+                        <>
+                          {/* チェックリスト: 正式名称 */}
+                          <p className={`text-sm font-medium ${
+                            isChecked ? 'text-green-700 line-through' : 'text-gray-800'
+                          }`}>
+                            {doc.name}
+                          </p>
+                          {doc.description && (
+                            <p className="text-xs text-gray-500 mt-1">
+                              {doc.description}
+                            </p>
+                          )}
+                        </>
                       )}
-                      {doc.is_conditional && doc.condition_note && (
-                        <p className="text-xs text-amber-600 mt-1 font-medium">
-                          * {doc.condition_note}
-                        </p>
-                      )}
-                      {isDemolitionDoc && (
-                        <span className="inline-block mt-1 px-2 py-0.5 text-xs bg-orange-100 text-orange-700 rounded font-medium">
-                          解体時のみ
-                        </span>
-                      )}
+
+                      {/* バッジ行 */}
+                      <div className="flex flex-wrap gap-1.5 mt-2">
+                        {prepBadge && (
+                          <span className={`inline-block px-2 py-0.5 text-xs rounded font-medium ${prepBadge.className}`}>
+                            {prepBadge.label}が用意
+                          </span>
+                        )}
+                        {doc.is_conditional && doc.condition_note && (
+                          <span className="inline-block px-2 py-0.5 text-xs bg-amber-50 text-amber-600 rounded font-medium">
+                            条件: {doc.condition_note}
+                          </span>
+                        )}
+                        {isDemolitionDoc && (
+                          <span className="inline-block px-2 py-0.5 text-xs bg-orange-100 text-orange-700 rounded font-medium">
+                            解体時のみ
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
 
