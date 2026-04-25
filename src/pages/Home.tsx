@@ -4,7 +4,7 @@
  * ローン計算フォーム、電卓、結果表示を統合
  */
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Container from '@/components/Layout/Container';
 import Header from '@/components/Layout/Header';
 import Footer from '@/components/Layout/Footer';
@@ -21,65 +21,47 @@ import GuideViewer from '@/components/Guide/GuideViewer';
 import { ExportButton } from '@/components/Common/ExportButton';
 import { PDFExportButton } from '@/components/Common/PDFExportButton';
 import { FeatureShowcase } from '@/components/Common/FeatureShowcase';
-import { AIAdviceCard } from '@/components/AI/AIAdviceCard';
+import { InstallHint } from '@/components/Common/InstallHint';
 import { useCalculator } from '@/hooks/useCalculator';
-import { useAIAdvice } from '@/hooks/useAIAdvice';
-import { generateAdvice, isGeminiAvailable } from '@/services/geminiClient';
-import { generateLoanAnalysisPrompt, createAnalysisContext } from '@/utils/promptTemplates';
-import { parseAIAdvice, isAIAdviceError } from '@/utils/aiAdviceParser';
 import InterestRateComparisonPanel from '@/components/Input/InterestRateComparisonPanel';
 import type { LoanParams, ReverseLoanParams, CalculationMode } from '@/types';
-import type { IncomeResult } from '@/types/income';
+import type { IncomeParams, IncomeResult } from '@/types/income';
 import type { RepaymentRatioResult } from '@/types/repaymentRatio';
-import type { AILoanAdvice, AIAdviceError, LoanAnalysisParams } from '@/types/aiAdvice';
+import { loadFormDraft, saveFormDraft, type ViewMode } from '@/utils/formDraft';
 
-type ViewMode = 'loan' | 'calculator' | 'investment' | 'guide';
+const initialDraft = loadFormDraft();
 
 const Home: React.FC = () => {
   const { loanParams, loanResult, error, calculate, calculateReverse } = useCalculator();
-  const { saveAdvice } = useAIAdvice();
   const [showSchedule, setShowSchedule] = useState(false);
-  const [calculationMode, setCalculationMode] = useState<CalculationMode>('forward');
-  const [viewMode, setViewMode] = useState<ViewMode>('loan');
+  const [calculationMode, setCalculationMode] = useState<CalculationMode>(
+    initialDraft.calculationMode
+  );
+  const [viewMode, setViewMode] = useState<ViewMode>(initialDraft.viewMode);
 
   const [currentParams, setCurrentParams] = useState<LoanParams>(
-    loanParams || {
-      principal: 50000000, // デフォルト: 5000万円
-      interestRate: 1.0,
-      years: 40,
-      months: 0,
-      repaymentType: 'equal-payment',
-      bonusPayment: {
-        enabled: true, // デフォルト: ON
-        amount: 15000000, // デフォルト: 1500万円
-        months: [1, 8], // デフォルト: 1月（冬）と8月（夏）
-      },
-    }
+    loanParams || initialDraft.forward
   );
 
-  const [reverseParams, setReverseParams] = useState<ReverseLoanParams>({
-    monthlyPayment: 150000, // デフォルト: 15万円
-    interestRate: 1.0,
-    years: 40,
-    months: 0,
-    repaymentType: 'equal-payment',
-    bonusPayment: {
-      enabled: true, // デフォルト: ON
-      payment: 200000,
-      months: [1, 8], // デフォルト: 1月（冬）と8月（夏）
-    },
-  });
+  const [reverseParams, setReverseParams] = useState<ReverseLoanParams>(initialDraft.reverse);
 
   // 返済負担率計算の状態
   const [repaymentRatioResult, setRepaymentRatioResult] = useState<RepaymentRatioResult | null>(
     null
   );
 
-  // AI アドバイスの状態
-  const [aiAdvice, setAiAdvice] = useState<AILoanAdvice | null>(null);
-  const [aiLoading, setAiLoading] = useState(false);
-  const [aiError, setAiError] = useState<AIAdviceError | null>(null);
-  const [showAiAdvice, setShowAiAdvice] = useState(false);
+  // フォーム入力を localStorage に自動保存（次回起動時に最終入力を復元）
+  useEffect(() => {
+    const handle = window.setTimeout(() => {
+      saveFormDraft({
+        forward: currentParams,
+        reverse: reverseParams,
+        calculationMode,
+        viewMode,
+      });
+    }, 400);
+    return () => window.clearTimeout(handle);
+  }, [currentParams, reverseParams, calculationMode, viewMode]);
 
   const exportParams = loanParams ?? currentParams;
   // 比較パネルは表示中の結果と同じパラメータを使う
@@ -100,108 +82,8 @@ const Home: React.FC = () => {
     setRepaymentRatioResult(result);
   };
 
-  // AI アドバイス生成
-  const handleGenerateAIAdvice = async () => {
-    if (!loanResult) return;
-
-    setAiLoading(true);
-    setAiError(null);
-    setShowAiAdvice(true);
-
-    try {
-      // デフォルト値で分析コンテキストを作成
-      // TODO: 実際のユーザー入力から取得（Phase 13以降で実装）
-      const analysisContext: LoanAnalysisParams = createAnalysisContext(
-        currentParams,
-        loanResult,
-        600, // デフォルト年収: 600万円
-        3,   // デフォルト家族人数: 3人
-        1    // デフォルト子供人数: 1人
-      );
-
-      // Gemini API が利用可能かチェック
-      if (!isGeminiAvailable()) {
-        // テストモード: モックデータを使用
-        console.info('🧪 テストモード: Gemini APIキー未設定のため、モックデータを表示します');
-
-        // ローディング演出のため少し待つ
-        await new Promise(resolve => setTimeout(resolve, 2000));
-
-        // 返済負担率からリスクレベルを判定
-        const repaymentRatio = analysisContext.repaymentRatio;
-        let riskLevel: 'low' | 'medium' | 'high' = 'medium';
-        if (repaymentRatio <= 25) riskLevel = 'low';
-        else if (repaymentRatio > 35) riskLevel = 'high';
-
-        // モックアドバイスを生成
-        const mockAdvice: AILoanAdvice = {
-          riskLevel,
-          analysis: `【テストモード】年収${analysisContext.annualIncome}万円に対して${(analysisContext.principal / 10000).toLocaleString()}万円の借入は、返済負担率が${repaymentRatio.toFixed(1)}%となります。${
-            riskLevel === 'low' ? '比較的安全な範囲内での借入と言えます。' :
-            riskLevel === 'medium' ? '標準的な範囲ですが、余裕を持った資金計画が重要です。' :
-            '負担率がやや高めです。慎重な検討をお勧めします。'
-          }金利上昇リスクや教育費・老後資金の準備も含めた総合的な計画を立てましょう。実際のAI分析を利用するには、Gemini APIキーを設定してください（詳細: docs/GEMINI_SETUP.md）。`,
-          recommendations: [
-            `返済期間を${analysisContext.years + 5}年に延長することで、月々の返済額を約${Math.round((analysisContext.monthlyPayment * 0.15) / 1000) * 1000}円軽減できます`,
-            `ボーナス時に年間${Math.round((analysisContext.principal * 0.01) / 10000) * 10000}円の繰上返済を行うことで、総返済額を約${Math.round((analysisContext.principal * 0.05) / 100000) * 10}万円削減可能です`,
-            `つみたてNISAで月3万円の積立投資を並行し、${analysisContext.childrenCount > 0 ? '教育費と' : ''}老後資金を準備しましょう`,
-          ],
-          warnings: [
-            `変動金利の場合、金利が1%上昇すると月々の返済額が約${Math.round((analysisContext.principal * 0.01 / 12) / 1000) * 1000}円増加します`,
-            analysisContext.childrenCount > 0
-              ? '10年後に子供の大学進学費用が必要になる時期と返済のピークが重なる可能性があります'
-              : '将来のライフイベント（結婚、出産など）による支出増加に備えた資金計画が必要です',
-          ],
-          generatedAt: new Date().toISOString(),
-        };
-
-        setAiAdvice(mockAdvice);
-        setAiError(null);
-        return;
-      }
-
-      // プロンプト生成
-      const prompt = generateLoanAnalysisPrompt(analysisContext);
-
-      // Gemini API 呼び出し
-      const response = await generateAdvice(prompt);
-
-      // レスポンスをパース
-      const parsedResult = parseAIAdvice(response);
-
-      if (isAIAdviceError(parsedResult)) {
-        setAiError(parsedResult);
-        setAiAdvice(null);
-      } else {
-        setAiAdvice(parsedResult);
-        setAiError(null);
-
-        // Supabase に保存（ログイン済みの場合）
-        try {
-          await saveAdvice({
-            advice: parsedResult,
-            analysisParams: analysisContext,
-          });
-        } catch (saveError) {
-          console.warn('AI advice save failed (non-critical):', saveError);
-          // 保存失敗してもアドバイスは表示する
-        }
-      }
-    } catch (error) {
-      console.error('AI advice generation error:', error);
-      setAiError({
-        type: 'api_error',
-        message: error instanceof Error ? error.message : '予期しないエラーが発生しました',
-        originalError: error instanceof Error ? error : undefined,
-      });
-      setAiAdvice(null);
-    } finally {
-      setAiLoading(false);
-    }
-  };
-
   // 年収計算から詳細計算への遷移
-  const handleDetailPlan = (result: IncomeResult, incomeParams: any) => {
+  const handleDetailPlan = (result: IncomeResult, incomeParams: IncomeParams) => {
     // 借入可能額を借入金額にセット
     setCurrentParams({
       principal: result.maxBorrowableAmount,
@@ -394,26 +276,6 @@ const Home: React.FC = () => {
                       className="shadow-md"
                       actions={
                         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                          {/* AI アドバイスボタン */}
-                          <button
-                            onClick={handleGenerateAIAdvice}
-                            disabled={aiLoading}
-                            className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                          >
-                            {aiLoading ? (
-                              <>
-                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                <span>分析中...</span>
-                              </>
-                            ) : (
-                              <>
-                                <span>🤖</span>
-                                <span>AIアドバイス</span>
-                              </>
-                            )}
-                          </button>
-
-                          {/* PDF エクスポートボタン */}
                           {exportParams && (
                             <PDFExportButton
                               result={loanResult}
@@ -424,16 +286,6 @@ const Home: React.FC = () => {
                         </div>
                       }
                     />
-
-                    {/* AI アドバイスカード */}
-                    {showAiAdvice && (
-                      <AIAdviceCard
-                        advice={aiAdvice}
-                        loading={aiLoading}
-                        error={aiError}
-                        onRegenerate={handleGenerateAIAdvice}
-                      />
-                    )}
 
                     {/* 金利上昇比較パネル */}
                     {calculationMode === 'forward' && (
@@ -499,6 +351,7 @@ const Home: React.FC = () => {
         </div>
       </Container>
 
+      <InstallHint />
       <Footer />
     </div>
   );

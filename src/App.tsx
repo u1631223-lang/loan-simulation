@@ -15,14 +15,11 @@ import History from '@/pages/History';
 import PrivacyPolicy from '@/pages/PrivacyPolicy';
 import TermsOfService from '@/pages/TermsOfService';
 import LoanTools from '@/pages/LoanTools';
-import ComingSoon from '@/pages/ComingSoon';
-import { InsurancePlanning } from '@/pages/InsurancePlanning';
 
 function AppContent() {
   const location = useLocation();
 
   useEffect(() => {
-    // ページ遷移を追跡
     trackPageView(location.pathname + location.search);
   }, [location]);
 
@@ -33,11 +30,6 @@ function AppContent() {
       <Route path="/terms-of-service" element={<TermsOfService />} />
       <Route path="/history" element={<History />} />
       <Route path="/loan-tools" element={<LoanTools />} />
-      <Route path="/household-budget" element={<ComingSoon />} />
-      <Route path="/asset-management" element={<ComingSoon />} />
-      <Route path="/insurance-planning" element={<InsurancePlanning />} />
-
-      {/* Catch all - redirect to home */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

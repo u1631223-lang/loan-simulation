@@ -4,4 +4,3 @@
 
 export * from './loanCalculator';
 export * from './investmentCalculator';
-export * from './lifePlanCalculator';

@@ -31,13 +31,6 @@ const features: FeatureCard[] = [
     link: '/loan-tools',
   },
   {
-    id: 'insurance',
-    icon: '🛡️',
-    title: '保険設計シミュレーション',
-    description: '必要保障額計算・保険管理・分析機能',
-    link: '/insurance-planning',
-  },
-  {
     id: 'history',
     icon: '📝',
     title: '計算履歴',
