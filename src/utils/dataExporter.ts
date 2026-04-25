@@ -11,20 +11,22 @@ export const exportToCSV = (data: unknown[], filename: string): void => {
   }
 
   const headers = Object.keys(data[0] as object);
+  const escape = (value: unknown): string => {
+    if (value === null || value === undefined) return '';
+    const str = String(value);
+    if (/[",\r\n]/.test(str)) {
+      return `"${str.replace(/"/g, '""')}"`;
+    }
+    return str;
+  };
   const csvContent = [
-    headers.join(','),
+    headers.map(escape).join(','),
     ...data.map((row) =>
       headers
-        .map((header) => {
-          const value = (row as Record<string, unknown>)[header];
-          if (typeof value === 'string' && (value.includes(',') || value.includes('\n'))) {
-            return `"${value.replace(/"/g, '""')}"`;
-          }
-          return value;
-        })
+        .map((header) => escape((row as Record<string, unknown>)[header]))
         .join(',')
     ),
-  ].join('\n');
+  ].join('\r\n');
 
   // UTF-8 BOM 付きでダウンロード（Excel での文字化けを防止）
   const bom = '\uFEFF';
