@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#1E40AF"/>
+  <path d="M256 96 L96 232 V416 H192 V304 H320 V416 H416 V232 Z"
+        fill="#ffffff" stroke="#ffffff" stroke-width="8" stroke-linejoin="round"/>
+  <text x="256" y="468" font-family="'Noto Sans JP','Hiragino Sans',sans-serif"
+        font-size="56" font-weight="800" text-anchor="middle" fill="#FBBF24">¥</text>
+</svg>

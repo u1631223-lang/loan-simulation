@@ -3,7 +3,7 @@
  * メモリー機能付き電卓（不動産業務用）
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 interface CalculationHistory {
   expression: string;
@@ -18,38 +18,36 @@ const SimpleCalculator: React.FC = () => {
   const [waitingForOperand, setWaitingForOperand] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
-  // キーボード入力対応
-  const handleKeyPress = useCallback((event: KeyboardEvent) => {
-    const key = event.key;
-
-    // 数字キー
-    if (/^[0-9.]$/.test(key)) {
-      handleNumberClick(key);
-    }
-    // 演算子
-    else if (['+', '-', '*', '/'].includes(key)) {
-      const op = key === '*' ? '×' : key === '/' ? '÷' : key;
-      handleOperatorClick(op);
-    }
-    // Enter または = で計算実行
-    else if (key === 'Enter' || key === '=') {
-      event.preventDefault();
-      handleEquals();
-    }
-    // Backspace で1文字削除
-    else if (key === 'Backspace') {
-      handleBackspace();
-    }
-    // Escape でクリア
-    else if (key === 'Escape') {
-      handleClear();
-    }
-  }, [display, expression, waitingForOperand]);
+  // 最新のハンドラを ref 経由で参照する（useCallback の依存地獄を避ける）
+  const handlersRef = useRef({
+    handleNumberClick: (_n: string) => {},
+    handleOperatorClick: (_o: string) => {},
+    handleEquals: () => {},
+    handleBackspace: () => {},
+    handleClear: () => {},
+  });
 
   useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      const key = event.key;
+      const h = handlersRef.current;
+      if (/^[0-9.]$/.test(key)) {
+        h.handleNumberClick(key);
+      } else if (['+', '-', '*', '/'].includes(key)) {
+        const op = key === '*' ? '×' : key === '/' ? '÷' : key;
+        h.handleOperatorClick(op);
+      } else if (key === 'Enter' || key === '=') {
+        event.preventDefault();
+        h.handleEquals();
+      } else if (key === 'Backspace') {
+        h.handleBackspace();
+      } else if (key === 'Escape') {
+        h.handleClear();
+      }
+    };
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [handleKeyPress]);
+  }, []);
 
   // 数字ボタンクリック（00ボタン対応）
   const handleNumberClick = (num: string) => {
@@ -194,6 +192,15 @@ const SimpleCalculator: React.FC = () => {
   const handleHistoryClick = (value: number) => {
     setDisplay(String(value));
     setWaitingForOperand(true);
+  };
+
+  // キーボードハンドラから最新の関数を呼べるよう、毎レンダごとに ref を更新
+  handlersRef.current = {
+    handleNumberClick,
+    handleOperatorClick,
+    handleEquals,
+    handleBackspace,
+    handleClear,
   };
 
   // ボタンのスタイル（金融機関風 - 高級感・信頼性）

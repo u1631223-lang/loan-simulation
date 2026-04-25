@@ -1,0 +1,20 @@
+{
+  "name": "住宅ローン電卓",
+  "short_name": "ローン電卓",
+  "description": "住宅ローン・NISA・年収MAX借入額を一画面で。商談中の暗算をゼロに。",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F9FAFB",
+  "theme_color": "#1E40AF",
+  "lang": "ja",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

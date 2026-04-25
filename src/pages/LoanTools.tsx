@@ -6,8 +6,7 @@ import React, { useState } from 'react';
 import Header from '@/components/Layout/Header';
 import Footer from '@/components/Layout/Footer';
 import { PrepaymentSimulator } from '@/components/Loan/PrepaymentSimulator';
-import { ComparisonTable } from '@/components/FP/LoanComparison/ComparisonTable';
-import { FeatureGate } from '@/components/Common/FeatureGate';
+import { ComparisonTable } from '@/components/Loan/ComparisonTable';
 
 type LoanToolTab = 'prepayment' | 'comparison';
 
@@ -77,15 +76,11 @@ const LoanTools: React.FC = () => {
 
         <div className="pb-12">
           {activeTab === 'prepayment' ? (
-            <FeatureGate tier="authenticated" featureName="繰上返済シミュレーション">
-              <PrepaymentSimulator />
-            </FeatureGate>
+            <PrepaymentSimulator />
           ) : (
-            <FeatureGate tier="authenticated" featureName="ローン比較">
-              <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-                <ComparisonTable />
-              </div>
-            </FeatureGate>
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+              <ComparisonTable />
+            </div>
           )}
         </div>
       </main>
