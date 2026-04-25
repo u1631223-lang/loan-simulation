@@ -6,12 +6,25 @@ import path from 'path'
 export default defineConfig({
   plugins: [react()],
   server: {
-    host: true,  // 外部アクセスを許可
+    host: true,
     port: 5173,
   },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+    },
+  },
+  build: {
+    chunkSizeWarningLimit: 700,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          react: ['react', 'react-dom', 'react-router-dom'],
+          charts: ['recharts'],
+          pdf: ['jspdf', 'html2canvas'],
+          xlsx: ['xlsx'],
+        },
+      },
     },
   },
   test: {

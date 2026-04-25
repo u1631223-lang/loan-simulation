@@ -2,11 +2,16 @@
  * LoanTools Page - 追加ローン機能（繰上返済・ローン比較）
  */
 
-import React, { useState } from 'react';
+import React, { useState, lazy, Suspense } from 'react';
 import Header from '@/components/Layout/Header';
 import Footer from '@/components/Layout/Footer';
-import { PrepaymentSimulator } from '@/components/Loan/PrepaymentSimulator';
-import { ComparisonTable } from '@/components/Loan/ComparisonTable';
+
+const PrepaymentSimulator = lazy(() =>
+  import('@/components/Loan/PrepaymentSimulator').then((m) => ({ default: m.PrepaymentSimulator }))
+);
+const ComparisonTable = lazy(() =>
+  import('@/components/Loan/ComparisonTable').then((m) => ({ default: m.ComparisonTable }))
+);
 
 type LoanToolTab = 'prepayment' | 'comparison';
 
@@ -75,13 +80,21 @@ const LoanTools: React.FC = () => {
         </div>
 
         <div className="pb-12">
-          {activeTab === 'prepayment' ? (
-            <PrepaymentSimulator />
-          ) : (
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-              <ComparisonTable />
-            </div>
-          )}
+          <Suspense
+            fallback={
+              <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center text-gray-500" aria-live="polite">
+                読み込み中…
+              </div>
+            }
+          >
+            {activeTab === 'prepayment' ? (
+              <PrepaymentSimulator />
+            ) : (
+              <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                <ComparisonTable />
+              </div>
+            )}
+          </Suspense>
         </div>
       </main>
 

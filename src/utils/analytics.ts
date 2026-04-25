@@ -2,17 +2,18 @@ import ReactGA from 'react-ga4';
 
 const GA_MEASUREMENT_ID = import.meta.env.VITE_GA_MEASUREMENT_ID || '';
 
+let initialized = false;
+
 export function initGA() {
-  if (!GA_MEASUREMENT_ID) {
-    console.warn('Google Analytics Measurement ID is not set');
-    return;
-  }
+  if (initialized) return;
+  if (!GA_MEASUREMENT_ID) return;
 
   ReactGA.initialize(GA_MEASUREMENT_ID, {
     gtagOptions: {
       send_page_view: false, // ページビューは手動で送信
     },
   });
+  initialized = true;
 }
 
 export function trackPageView(path: string, title?: string) {

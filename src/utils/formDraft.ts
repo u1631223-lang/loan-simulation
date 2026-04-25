@@ -87,6 +87,17 @@ const isViewMode = (value: unknown): value is ViewMode =>
  * 最終入力値を localStorage から読み込む。
  * 値が無い・壊れている場合はデフォルト値を返す。
  */
+export const hasFormDraft = (): boolean => {
+  try {
+    const json = localStorage.getItem(STORAGE_KEY);
+    if (!json) return false;
+    const parsed = JSON.parse(json) as Partial<StoredDraft>;
+    return parsed.__v === SCHEMA_VERSION;
+  } catch {
+    return false;
+  }
+};
+
 export const loadFormDraft = (): FormDraft => {
   const fallback: FormDraft = {
     forward: DEFAULT_FORWARD,

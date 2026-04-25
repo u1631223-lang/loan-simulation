@@ -1,7 +1,18 @@
 /* eslint-env serviceworker */
 // 住宅ローン電卓 - 最小オフラインキャッシュ
-const CACHE_NAME = 'loan-calc-v1';
-const APP_SHELL = ['/', '/index.html', '/manifest.webmanifest', '/icon.svg'];
+// __CACHE_VERSION__ はビルド時に scripts/postbuild.mjs が置換します
+const CACHE_NAME = 'loan-calc-__CACHE_VERSION__';
+const APP_SHELL = [
+  '/',
+  '/index.html',
+  '/manifest.webmanifest',
+  '/icon.svg',
+  '/icon-192.png',
+  '/icon-512.png',
+  '/apple-touch-icon.png',
+  '/favicon-32.png',
+  '/og-image.png',
+];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(

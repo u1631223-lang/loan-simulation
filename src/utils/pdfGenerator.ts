@@ -17,6 +17,20 @@ export interface PDFOptions {
   keywords?: string;
 }
 
+/**
+ * HTML テンプレートに数値・文字列を埋め込む際の XSS 対策。
+ * 現状は数値のみだが、将来メモ等のユーザー入力を載せる場合に備えて
+ * すべての動的値をエスケープ経由で埋め込む。
+ */
+const escapeHtml = (value: unknown): string => {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+};
+
 const getCurrentDateTime = (): string => {
   const now = new Date();
   const yyyy = now.getFullYear();
@@ -89,11 +103,11 @@ export const generateLoanPDF = async (
       .map(
         (payment, index) => `
         <tr>
-          <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${useIndex ? index + 1 : payment.month}</td>
-          <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${formatCurrency(payment.payment)}</td>
-          <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${formatCurrency(payment.principal)}</td>
-          <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${formatCurrency(payment.interest)}</td>
-          <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${formatCurrency(payment.balance)}</td>
+          <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${escapeHtml(useIndex ? index + 1 : payment.month)}</td>
+          <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${escapeHtml(formatCurrency(payment.payment))}</td>
+          <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${escapeHtml(formatCurrency(payment.principal))}</td>
+          <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${escapeHtml(formatCurrency(payment.interest))}</td>
+          <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${escapeHtml(formatCurrency(payment.balance))}</td>
         </tr>`
       )
       .join('');
@@ -104,7 +118,7 @@ export const generateLoanPDF = async (
         住宅ローンシミュレーション結果
       </h1>
       <p style="text-align: right; font-size: 12px; color: #666; margin-bottom: 20px;">
-        生成日時: ${getCurrentDateTime()}
+        生成日時: ${escapeHtml(getCurrentDateTime())}
       </p>
       <hr style="border: none; border-top: 2px solid #1E40AF; margin-bottom: 30px;">
 
@@ -114,15 +128,15 @@ export const generateLoanPDF = async (
       <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
         <tr>
           <td style="padding: 10px; background-color: #f3f4f6; border: 1px solid #ddd; font-weight: bold; width: 35%;">借入金額</td>
-          <td style="padding: 10px; border: 1px solid #ddd;">${formatCurrency(params.principal)}</td>
+          <td style="padding: 10px; border: 1px solid #ddd;">${escapeHtml(formatCurrency(params.principal))}</td>
         </tr>
         <tr>
           <td style="padding: 10px; background-color: #f3f4f6; border: 1px solid #ddd; font-weight: bold;">金利</td>
-          <td style="padding: 10px; border: 1px solid #ddd;">${params.interestRate.toFixed(2)}%</td>
+          <td style="padding: 10px; border: 1px solid #ddd;">${escapeHtml(params.interestRate.toFixed(2))}%</td>
         </tr>
         <tr>
           <td style="padding: 10px; background-color: #f3f4f6; border: 1px solid #ddd; font-weight: bold;">返済期間</td>
-          <td style="padding: 10px; border: 1px solid #ddd;">${params.years}年${params.months}ヶ月</td>
+          <td style="padding: 10px; border: 1px solid #ddd;">${escapeHtml(params.years)}年${escapeHtml(params.months)}ヶ月</td>
         </tr>
         <tr>
           <td style="padding: 10px; background-color: #f3f4f6; border: 1px solid #ddd; font-weight: bold;">返済方式</td>
@@ -131,7 +145,7 @@ export const generateLoanPDF = async (
         ${params.bonusPayment?.enabled ? `
         <tr>
           <td style="padding: 10px; background-color: #f3f4f6; border: 1px solid #ddd; font-weight: bold;">ボーナス払い</td>
-          <td style="padding: 10px; border: 1px solid #ddd;">年${params.bonusPayment.months.length}回 ${formatCurrency(params.bonusPayment.amount)}</td>
+          <td style="padding: 10px; border: 1px solid #ddd;">年${escapeHtml(params.bonusPayment.months.length)}回 ${escapeHtml(formatCurrency(params.bonusPayment.amount))}</td>
         </tr>
         ` : ''}
       </table>
@@ -142,25 +156,25 @@ export const generateLoanPDF = async (
       <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
         <tr>
           <td style="padding: 10px; background-color: #f3f4f6; border: 1px solid #ddd; font-weight: bold; width: 35%;">月々返済額</td>
-          <td style="padding: 10px; border: 1px solid #ddd; font-size: 18px; font-weight: bold; color: #10B981;">${formatCurrency(result.monthlyPayment)}</td>
+          <td style="padding: 10px; border: 1px solid #ddd; font-size: 18px; font-weight: bold; color: #10B981;">${escapeHtml(formatCurrency(result.monthlyPayment))}</td>
         </tr>
         ${result.bonusPayment ? `
         <tr>
           <td style="padding: 10px; background-color: #f3f4f6; border: 1px solid #ddd; font-weight: bold;">ボーナス返済額</td>
-          <td style="padding: 10px; border: 1px solid #ddd; font-size: 16px; font-weight: bold; color: #10B981;">${formatCurrency(result.bonusPayment)}</td>
+          <td style="padding: 10px; border: 1px solid #ddd; font-size: 16px; font-weight: bold; color: #10B981;">${escapeHtml(formatCurrency(result.bonusPayment))}</td>
         </tr>
         ` : ''}
         <tr>
           <td style="padding: 10px; background-color: #f3f4f6; border: 1px solid #ddd; font-weight: bold;">総返済額</td>
-          <td style="padding: 10px; border: 1px solid #ddd;">${formatCurrency(result.totalPayment)}</td>
+          <td style="padding: 10px; border: 1px solid #ddd;">${escapeHtml(formatCurrency(result.totalPayment))}</td>
         </tr>
         <tr>
           <td style="padding: 10px; background-color: #f3f4f6; border: 1px solid #ddd; font-weight: bold;">元金総額</td>
-          <td style="padding: 10px; border: 1px solid #ddd;">${formatCurrency(result.totalPrincipal)}</td>
+          <td style="padding: 10px; border: 1px solid #ddd;">${escapeHtml(formatCurrency(result.totalPrincipal))}</td>
         </tr>
         <tr>
           <td style="padding: 10px; background-color: #f3f4f6; border: 1px solid #ddd; font-weight: bold;">利息総額</td>
-          <td style="padding: 10px; border: 1px solid #ddd; color: #EF4444;">${formatCurrency(result.totalInterest)}</td>
+          <td style="padding: 10px; border: 1px solid #ddd; color: #EF4444;">${escapeHtml(formatCurrency(result.totalInterest))}</td>
         </tr>
       </table>
 
@@ -189,7 +203,7 @@ export const generateLoanPDF = async (
 
       <hr style="border: none; border-top: 1px solid #ddd; margin-top: 40px; margin-bottom: 10px;">
       <p style="text-align: center; font-size: 10px; color: #999;">
-        Generated by 住宅ローン電卓 (${getCurrentDateTime()})
+        Generated by 住宅ローン電卓 (${escapeHtml(getCurrentDateTime())})
       </p>
     </div>
   `;

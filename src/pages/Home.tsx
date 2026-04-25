@@ -4,7 +4,7 @@
  * ローン計算フォーム、電卓、結果表示を統合
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, lazy, Suspense } from 'react';
 import Container from '@/components/Layout/Container';
 import Header from '@/components/Layout/Header';
 import Footer from '@/components/Layout/Footer';
@@ -16,23 +16,47 @@ import Summary from '@/components/Result/Summary';
 import Schedule from '@/components/Result/Schedule';
 import { RepaymentRatioSummary } from '@/components/Result/RepaymentRatioSummary';
 import SimpleCalculator from '@/components/Calculator/SimpleCalculator';
-import { InvestmentCalculator } from '@/components/Investment';
-import GuideViewer from '@/components/Guide/GuideViewer';
 import { ExportButton } from '@/components/Common/ExportButton';
-import { PDFExportButton } from '@/components/Common/PDFExportButton';
 import { FeatureShowcase } from '@/components/Common/FeatureShowcase';
+import { HeroPitch } from '@/components/Common/HeroPitch';
 import { InstallHint } from '@/components/Common/InstallHint';
 import { useCalculator } from '@/hooks/useCalculator';
 import InterestRateComparisonPanel from '@/components/Input/InterestRateComparisonPanel';
+
+// 重いライブラリ（recharts / jspdf / html2canvas）を含むため遅延読み込み
+const InvestmentCalculator = lazy(() =>
+  import('@/components/Investment').then((m) => ({ default: m.InvestmentCalculator }))
+);
+const GuideViewer = lazy(() => import('@/components/Guide/GuideViewer'));
+const PDFExportButton = lazy(() =>
+  import('@/components/Common/PDFExportButton').then((m) => ({ default: m.PDFExportButton }))
+);
+
+const LazyFallback: React.FC = () => (
+  <div className="bg-white rounded-lg shadow-md p-12 text-center text-gray-500" aria-live="polite">
+    読み込み中…
+  </div>
+);
 import type { LoanParams, ReverseLoanParams, CalculationMode } from '@/types';
 import type { IncomeParams, IncomeResult } from '@/types/income';
 import type { RepaymentRatioResult } from '@/types/repaymentRatio';
-import { loadFormDraft, saveFormDraft, type ViewMode } from '@/utils/formDraft';
+import {
+  loadFormDraft,
+  saveFormDraft,
+  clearFormDraft,
+  hasFormDraft,
+  DEFAULT_FORWARD,
+  DEFAULT_REVERSE,
+  type ViewMode,
+} from '@/utils/formDraft';
+import { useToast } from '@/hooks/useToast';
 
 const initialDraft = loadFormDraft();
+const initialDraftExists = hasFormDraft();
 
 const Home: React.FC = () => {
   const { loanParams, loanResult, error, calculate, calculateReverse } = useCalculator();
+  const { showToast } = useToast();
   const [showSchedule, setShowSchedule] = useState(false);
   const [calculationMode, setCalculationMode] = useState<CalculationMode>(
     initialDraft.calculationMode
@@ -62,6 +86,23 @@ const Home: React.FC = () => {
     }, 400);
     return () => window.clearTimeout(handle);
   }, [currentParams, reverseParams, calculationMode, viewMode]);
+
+  // 起動時、ドラフトを復元したことを 1 度だけ控えめに通知
+  useEffect(() => {
+    if (initialDraftExists) {
+      showToast('前回入力した値を復元しました', 'success');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // フォームを初期値に戻す
+  const handleResetForm = () => {
+    if (!window.confirm('入力内容を初期値に戻します。よろしいですか？')) return;
+    setCurrentParams(DEFAULT_FORWARD);
+    setReverseParams(DEFAULT_REVERSE);
+    clearFormDraft();
+    showToast('入力を初期値に戻しました', 'success');
+  };
 
   const exportParams = loanParams ?? currentParams;
   // 比較パネルは表示中の結果と同じパラメータを使う
@@ -157,6 +198,8 @@ const Home: React.FC = () => {
             </p>
           </div>
 
+          <HeroPitch />
+
           {/* 表示モード切り替え */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6 max-w-4xl mx-auto w-full">
             <button
@@ -221,8 +264,16 @@ const Home: React.FC = () => {
 
           {/* メインコンテンツ */}
           {viewMode === 'calculator' && <SimpleCalculator />}
-          {viewMode === 'investment' && <InvestmentCalculator />}
-          {viewMode === 'guide' && <GuideViewer />}
+          {viewMode === 'investment' && (
+            <Suspense fallback={<LazyFallback />}>
+              <InvestmentCalculator />
+            </Suspense>
+          )}
+          {viewMode === 'guide' && (
+            <Suspense fallback={<LazyFallback />}>
+              <GuideViewer />
+            </Suspense>
+          )}
           {viewMode === 'loan' && calculationMode === 'income' && (
             <IncomeForm onDetailPlan={handleDetailPlan} />
           )}
@@ -239,9 +290,22 @@ const Home: React.FC = () => {
               {/* 左側: 入力フォーム */}
               <div>
                 <div className="bg-white rounded-lg shadow-md p-6">
-                  <h2 className="text-xl font-semibold text-gray-800 mb-4">
-                    {calculationMode === 'forward' ? 'ローン条件入力' : '返済条件入力'}
-                  </h2>
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-semibold text-gray-800">
+                      {calculationMode === 'forward' ? 'ローン条件入力' : '返済条件入力'}
+                    </h2>
+                    <button
+                      type="button"
+                      onClick={handleResetForm}
+                      className="text-sm text-gray-500 hover:text-gray-700 underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
+                      aria-label="入力内容を初期値に戻す"
+                    >
+                      初期値に戻す
+                    </button>
+                  </div>
+                  <p className="text-xs text-gray-500 mb-3" role="status">
+                    入力値はこの端末に自動保存され、次回開いたときに復元されます。
+                  </p>
                   {calculationMode === 'forward' ? (
                     <LoanForm
                       values={currentParams}
@@ -277,11 +341,13 @@ const Home: React.FC = () => {
                       actions={
                         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                           {exportParams && (
-                            <PDFExportButton
-                              result={loanResult}
-                              params={exportParams}
-                              className="w-full sm:w-auto"
-                            />
+                            <Suspense fallback={null}>
+                              <PDFExportButton
+                                result={loanResult}
+                                params={exportParams}
+                                className="w-full sm:w-auto"
+                              />
+                            </Suspense>
                           )}
                         </div>
                       }
