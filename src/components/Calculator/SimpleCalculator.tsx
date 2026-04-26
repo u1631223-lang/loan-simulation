@@ -106,19 +106,25 @@ const SimpleCalculator: React.FC = () => {
     setDisplay(String(Math.round(taxIncluded))); // 整数に丸める
   };
 
-  // 式を計算
+  // 式を計算（数字・小数点・四則演算子・括弧のみ許可してコード注入を防ぐ）
   const calculateExpression = (expr: string): number => {
     try {
-      // 式を JavaScript で評価できる形式に変換
       const jsExpr = expr
         .replace(/×/g, '*')
         .replace(/÷/g, '/')
         .replace(/\s/g, '');
 
-      // eval の代わりに Function を使用（より安全）
-      const result = new Function(`return ${jsExpr}`)();
-      return Math.round(result * 100000000) / 100000000; // 浮動小数点誤差対策
-    } catch (error) {
+      // ホワイトリスト: 数値・演算子・括弧以外が混入していたら即拒否
+      if (!/^[0-9.+\-*/()]*$/.test(jsExpr)) {
+        return 0;
+      }
+
+      const result = new Function(`"use strict"; return (${jsExpr})`)();
+      if (typeof result !== 'number' || !Number.isFinite(result)) {
+        return 0;
+      }
+      return Math.round(result * 100000000) / 100000000;
+    } catch {
       return 0;
     }
   };

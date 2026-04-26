@@ -42,13 +42,26 @@ export function trackEvent(
   });
 }
 
-// 住宅ローン計算アプリ専用のイベント
+/**
+ * 借入金額（円）を 1000 万円単位のレンジ文字列に丸める。
+ * 例) 32,000,000 → "30M-40M"。
+ * GA の label には PII となりうる正確な金額を載せず、集計用バケットだけを送る。
+ */
+const bucketPrincipal = (principal: number): string => {
+  if (!Number.isFinite(principal) || principal <= 0) return 'unknown';
+  const tier = Math.floor(principal / 10_000_000); // 1000万円ごと
+  const lo = tier * 10;
+  const hi = lo + 10;
+  return `${lo}M-${hi}M`;
+};
+
 export function trackCalculation(
   repaymentType: 'equal-payment' | 'equal-principal',
   principal: number,
   _years: number
 ) {
-  trackEvent('Calculation', 'Execute', repaymentType, principal);
+  // value には金額そのものを入れず、バケット ID のみを label に載せる。
+  trackEvent('Calculation', 'Execute', `${repaymentType}/${bucketPrincipal(principal)}`);
 }
 
 export function trackHistorySave() {
