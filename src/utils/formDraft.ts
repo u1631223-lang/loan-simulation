@@ -111,7 +111,13 @@ export const loadFormDraft = (): FormDraft => {
     const json = localStorage.getItem(STORAGE_KEY);
     if (!json) return fallback;
 
+    // Prototype pollution (CWE-1321) を防ぐため、危険なキーを含む JSON は拒否する。
+    if (/"\s*(__proto__|constructor|prototype)\s*"\s*:/.test(json)) {
+      return fallback;
+    }
+
     const parsed = JSON.parse(json) as Partial<StoredDraft>;
+    if (!parsed || typeof parsed !== 'object') return fallback;
     if (parsed.__v !== SCHEMA_VERSION) return fallback;
 
     return {
@@ -133,14 +139,26 @@ export const loadFormDraft = (): FormDraft => {
  * 最終入力値を localStorage に保存する。
  */
 export const saveFormDraft = (draft: Omit<FormDraft, 'savedAt'>): void => {
+  const stored: StoredDraft = {
+    ...draft,
+    savedAt: new Date().toISOString(),
+    __v: SCHEMA_VERSION,
+  };
+  const payload = JSON.stringify(stored);
+
   try {
-    const stored: StoredDraft = {
-      ...draft,
-      savedAt: new Date().toISOString(),
-      __v: SCHEMA_VERSION,
-    };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
+    localStorage.setItem(STORAGE_KEY, payload);
   } catch (error) {
+    // QuotaExceededError 等で保存に失敗した場合、自分の枠を一度開放してから再試行する
+    if (error instanceof DOMException) {
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.setItem(STORAGE_KEY, payload);
+        return;
+      } catch {
+        // 再試行も失敗した場合は諦める（次回保存時に再挑戦）
+      }
+    }
     console.warn('Failed to save form draft:', error);
   }
 };

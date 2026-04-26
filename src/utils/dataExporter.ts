@@ -11,13 +11,17 @@ export const exportToCSV = (data: unknown[], filename: string): void => {
   }
 
   const headers = Object.keys(data[0] as object);
+  // CSV Formula Injection (CWE-1236) を防ぐため、=, +, -, @, |, タブ で
+  // 始まる文字列の前に ' を挿入して Excel での式評価を抑止する。
+  const FORMULA_PREFIX = /^[=+\-@|\t\r]/;
   const escape = (value: unknown): string => {
     if (value === null || value === undefined) return '';
-    const str = String(value);
-    if (/[",\r\n]/.test(str)) {
-      return `"${str.replace(/"/g, '""')}"`;
+    const raw = String(value);
+    const safe = FORMULA_PREFIX.test(raw) ? `'${raw}` : raw;
+    if (/[",\r\n]/.test(safe)) {
+      return `"${safe.replace(/"/g, '""')}"`;
     }
-    return str;
+    return safe;
   };
   const csvContent = [
     headers.map(escape).join(','),
